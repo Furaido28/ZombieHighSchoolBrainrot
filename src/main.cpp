@@ -1,6 +1,6 @@
 #include <iostream>
 
 int main() {
-    // test
+    // tests
     return 0;
 }
