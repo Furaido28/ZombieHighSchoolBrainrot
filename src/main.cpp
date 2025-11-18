@@ -5,43 +5,62 @@
 const unsigned int WIDTH  = 1280;
 const unsigned int HEIGHT = 720;
 
-// Déclaration de la fonction
 void handleSelection(int choice, sf::RenderWindow& window);
 
 int main() {
-
     sf::RenderWindow window(
         sf::VideoMode(WIDTH, HEIGHT),
         "Zombie High School Brainrot - Menu"
     );
     window.setFramerateLimit(60);
 
-    // --- Menu principal ---
     Menu menu(WIDTH, HEIGHT);
 
-    while (window.isOpen()) {
+    // Variables pour gérer le curseur
+    bool cursorIsHand = false;
 
+    // Initialiser le curseur une fois au début
+    sf::Cursor cursor;
+    if (cursor.loadFromSystem(sf::Cursor::Arrow)) {
+        window.setMouseCursor(cursor);
+    }
+
+    while (window.isOpen()) {
         sf::Event event{};
         while (window.pollEvent(event)) {
-
-            // --- Fermeture fenêtre ---
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
 
-            // --- Surlignage à la souris ---
             if (event.type == sf::Event::MouseMoved) {
                 sf::Vector2f mousePos(
                     static_cast<float>(event.mouseMove.x),
                     static_cast<float>(event.mouseMove.y)
                 );
                 menu.hoverWithMouse(mousePos);
+
+                // Vérifier si on doit changer le curseur
+                bool onButton = menu.isMouseOnAnyButton(mousePos);
+
+                if (onButton && !cursorIsHand) {
+                    // Changer en main
+                    sf::Cursor handCursor;
+                    if (handCursor.loadFromSystem(sf::Cursor::Hand)) {
+                        window.setMouseCursor(handCursor);
+                        cursorIsHand = true;
+                    }
+                } else if (!onButton && cursorIsHand) {
+                    // Changer en flèche
+                    sf::Cursor arrowCursor;
+                    if (arrowCursor.loadFromSystem(sf::Cursor::Arrow)) {
+                        window.setMouseCursor(arrowCursor);
+                        cursorIsHand = false;
+                    }
+                }
             }
 
-            // --- Clic sur un item ---
             if (event.type == sf::Event::MouseButtonPressed &&
                 event.mouseButton.button == sf::Mouse::Left) {
-
                 sf::Vector2f mousePos(
                     static_cast<float>(event.mouseButton.x),
                     static_cast<float>(event.mouseButton.y)
@@ -55,9 +74,7 @@ int main() {
                 }
             }
 
-            // --- Navigation clavier ---
             if (event.type == sf::Event::KeyPressed) {
-
                 if (event.key.code == sf::Keyboard::Up) {
                     menu.moveUp();
                 }
@@ -71,8 +88,8 @@ int main() {
             }
         }
 
-        // --- AFFICHAGE ---
-        window.clear(sf::Color(30, 30, 30));  // fond gris foncé
+        // Affichage
+        window.clear(sf::Color(30, 30, 30));
         menu.draw(window);
         window.display();
     }
@@ -80,24 +97,16 @@ int main() {
     return 0;
 }
 
-// Fonction de gestion des sélections
 void handleSelection(int choice, sf::RenderWindow& window) {
     switch (choice) {
         case 0:
             std::cout << "JOUER\n";
-            // TODO: lancer le jeu
             break;
-
         case 1:
             std::cout << "OPTIONS\n";
-            // TODO: menu options
             break;
-
         case 2:
             window.close();
-            break;
-
-        default:
             break;
     }
 }
