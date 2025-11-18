@@ -14,15 +14,34 @@ int main() {
     );
     window.setFramerateLimit(60);
 
+    // --- CHARGEMENT DE L'ICÔNE ---
+    sf::Image icon;
+
+    // Chemins optimisés basés sur votre structure
+    std::vector<std::string> possiblePaths = {
+        "../assets/icon.png",        // Depuis cmake-build-debug/
+        "../../assets/icon.png",     // Depuis la racine du projet
+        "assets/icon.png",           // Depuis le dossier d'exécution
+        "../src/assets/icon.png"     // Alternative
+    };
+
+    for (const auto& path : possiblePaths) {
+        if (icon.loadFromFile(path)) {
+            window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+            break;
+        }
+    }
+
     Menu menu(WIDTH, HEIGHT);
 
-    // Variables pour gérer le curseur
+    // Gestion du curseur
     bool cursorIsHand = false;
+    sf::Cursor arrowCursor, handCursor;
+    bool cursorsAvailable = arrowCursor.loadFromSystem(sf::Cursor::Arrow) &&
+                           handCursor.loadFromSystem(sf::Cursor::Hand);
 
-    // Initialiser le curseur une fois au début
-    sf::Cursor cursor;
-    if (cursor.loadFromSystem(sf::Cursor::Arrow)) {
-        window.setMouseCursor(cursor);
+    if (cursorsAvailable) {
+        window.setMouseCursor(arrowCursor);
     }
 
     while (window.isOpen()) {
@@ -32,6 +51,7 @@ int main() {
                 window.close();
             }
 
+            // Surlignage à la souris
             if (event.type == sf::Event::MouseMoved) {
                 sf::Vector2f mousePos(
                     static_cast<float>(event.mouseMove.x),
@@ -39,26 +59,21 @@ int main() {
                 );
                 menu.hoverWithMouse(mousePos);
 
-                // Vérifier si on doit changer le curseur
-                bool onButton = menu.isMouseOnAnyButton(mousePos);
+                // Gestion du curseur
+                if (cursorsAvailable) {
+                    bool onButton = menu.isMouseOnAnyButton(mousePos);
 
-                if (onButton && !cursorIsHand) {
-                    // Changer en main
-                    sf::Cursor handCursor;
-                    if (handCursor.loadFromSystem(sf::Cursor::Hand)) {
+                    if (onButton && !cursorIsHand) {
                         window.setMouseCursor(handCursor);
                         cursorIsHand = true;
-                    }
-                } else if (!onButton && cursorIsHand) {
-                    // Changer en flèche
-                    sf::Cursor arrowCursor;
-                    if (arrowCursor.loadFromSystem(sf::Cursor::Arrow)) {
+                    } else if (!onButton && cursorIsHand) {
                         window.setMouseCursor(arrowCursor);
                         cursorIsHand = false;
                     }
                 }
             }
 
+            // Clic sur un item
             if (event.type == sf::Event::MouseButtonPressed &&
                 event.mouseButton.button == sf::Mouse::Left) {
                 sf::Vector2f mousePos(
@@ -74,6 +89,7 @@ int main() {
                 }
             }
 
+            // Navigation clavier
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Up) {
                     menu.moveUp();
@@ -84,6 +100,9 @@ int main() {
                 else if (event.key.code == sf::Keyboard::Enter) {
                     int choice = menu.getSelectedIndex();
                     handleSelection(choice, window);
+                }
+                else if (event.key.code == sf::Keyboard::Escape) {
+                    window.close();
                 }
             }
         }
@@ -100,13 +119,20 @@ int main() {
 void handleSelection(int choice, sf::RenderWindow& window) {
     switch (choice) {
         case 0:
-            std::cout << "JOUER\n";
+            std::cout << "JOUER - Lancement du jeu...\n";
+            // TODO: Implémenter le lancement du jeu
             break;
+
         case 1:
-            std::cout << "OPTIONS\n";
+            std::cout << "OPTIONS - Ouverture des paramètres...\n";
+            // TODO: Implémenter le menu options
             break;
+
         case 2:
             window.close();
+            break;
+
+        default:
             break;
     }
 }
