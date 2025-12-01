@@ -9,6 +9,11 @@ int main() {
     SceneManager manager;
     manager.changeScene<MenuScene>(&window);
 
+    sf::Image icon;
+    if (icon.loadFromFile("assets/icon.png")) {
+        window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+    }
+
     sf::Clock clock;
 
     while (window.isOpen()) {

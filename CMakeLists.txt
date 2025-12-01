@@ -30,6 +30,10 @@ add_executable(ZombieHighSchoolBrainrot
         src/scenes/MenuScene.h
         src/scenes/GameScene.h
         src/scenes/GameScene.cpp
+        src/models/TileMap.cpp
+        src/models/TileMap.h
+        src/views/game/MapView.cpp
+        src/views/game/MapView.h
 )
 
 target_include_directories(ZombieHighSchoolBrainrot PRIVATE

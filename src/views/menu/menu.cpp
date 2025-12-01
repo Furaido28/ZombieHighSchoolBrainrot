@@ -5,8 +5,8 @@ Menu::Menu(float width, float height) {
     selectedIndex = 0;
 
     // --- Chargement du fond d'écran ---
-    if (!backgroundTexture.loadFromFile("../assets/menus/title_screen.png")) {
-        std::cerr << "Erreur : impossible de charger ../assets/menus/title_screen.png\n";
+    if (!backgroundTexture.loadFromFile("assets/menus/title_screen.png")) {
+        std::cerr << "Erreur : impossible de charger assets/menus/title_screen.png\n";
     } else {
         backgroundSprite.setTexture(backgroundTexture);
         sf::Vector2u textureSize = backgroundTexture.getSize();
