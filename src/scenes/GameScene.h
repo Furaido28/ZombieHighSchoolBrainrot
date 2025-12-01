@@ -1,0 +1,15 @@
+#pragma once
+#include "core/Scene.h"
+#include "controllers/GameController.h"
+
+class GameScene : public Scene {
+public:
+    GameScene(SceneManager* manager, sf::RenderWindow* window);
+
+    void handleEvent(const sf::Event& event) override;
+    void update(float dt) override;
+    void render() override;
+
+private:
+    GameController controller;
+};

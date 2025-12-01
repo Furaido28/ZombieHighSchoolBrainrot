@@ -1,30 +1,29 @@
-#ifndef MENU_H
-#define MENU_H
-
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <string>
 
 class Menu {
 public:
     Menu(float width, float height);
 
-    void draw(sf::RenderWindow &window);
+    void draw(sf::RenderWindow& window);
+
     void moveUp();
     void moveDown();
     int getSelectedIndex() const;
 
     bool isMouseOnItem(sf::Vector2f mousePos, int index) const;
-    void hoverWithMouse(sf::Vector2f mousePos);
     bool isMouseOnAnyButton(sf::Vector2f mousePos) const;
+    void hoverWithMouse(sf::Vector2f mousePos);
 
 private:
-    int selectedIndex;
-    sf::Font font;
     std::vector<sf::Text> items;
     std::vector<sf::RectangleShape> buttonRects;
+    sf::Font font;
 
     sf::Texture backgroundTexture;
     sf::Sprite backgroundSprite;
-};
 
-#endif
+    int selectedIndex;
+};
