@@ -1,83 +1,143 @@
 #include "GameController.h"
+#include "../Constants.h"
 #include <iostream>
+#include <cmath>
 
-GameController::GameController() {
-    // --- 1. CHARGEMENT DE LA MAP ---
-    if (!tileMap.loadFromFile("assets/maps/map1.txt")) {
-        std::cerr << "ERREUR : Impossible de charger assets/maps/map1.txt" << std::endl;
+GameController::GameController()
+: player(), playerView()
+{
+    // --- CHARGEMENT DE LA MAP ---
+    std::cout << "--- DEBUG: Tentative de chargement de la map ---" << std::endl;
+
+    // On charge une seule fois (nettoyage du doublon)
+    if (map.loadFromFile("assets/maps/map1.txt", TILE_SIZE)) {
+        std::cout << "DEBUG: Map chargee avec succes !" << std::endl;
+        std::cout << "DEBUG: Taille de la map: " << map.getWidth() << " x " << map.getHeight() << std::endl;
+    } else {
+        std::cerr << "DEBUG: ECHEC du chargement de la map ! Verifiez le Working Directory." << std::endl;
     }
 
-    if (!mapView.load("assets/tileset.png", tileMap)) {
-        std::cerr << "ERREUR : Impossible de charger assets/tileset.png" << std::endl;
-    }
+    // Configure la vue de la map
+    mapView.load(map);
 
-    // --- 2. SPAWN DU JOUEUR ---
-    // On place le joueur à la case (2, 2) soit 64px, 64px pour éviter les murs
-    player.setPosition(64.f + 16.f, 64.f + 16.f);
+    // Configuration de la caméra
+    gameView.setSize(1280.f, 720.f);
+    gameView.zoom(1.0f); // 1.0f = Zoom normal (changez à 0.5f pour zoomer plus)
 
-    // --- 3. CONFIGURATION CAMÉRA ---
-    // Zoom x2 (640x360) pour bien voir le pixel art
-    gameView.setSize(960.f, 540.f);
-    // gameView.setSize(640.f, 360.f);
-    gameView.setCenter(player.getPosition());
+    // Initialisation du joueur
+    player.setSize(48.f, 48.f);
+    placePlayerAtFirstFreeTile();
 }
 
 void GameController::handleEvent(const sf::Event& event) {
-    if (event.type == sf::Event::KeyPressed) {
-
-        sf::Vector2f moveAmount(0.f, 0.f);
-        float step = 32.f; // On se déplace d'une case (32 pixels) à la fois
-
-        // Détection de la touche
-        if (event.key.code == sf::Keyboard::Z) moveAmount.y = -step;
-        else if (event.key.code == sf::Keyboard::S) moveAmount.y = step;
-        else if (event.key.code == sf::Keyboard::Q) moveAmount.x = -step;
-        else if (event.key.code == sf::Keyboard::D) moveAmount.x = step;
-
-        // Si on essaie de bouger
-        if (moveAmount.x != 0 || moveAmount.y != 0) {
-
-            // 1. Calculer la position FUTURE (le centre)
-            sf::Vector2f nextPos = player.getPosition() + moveAmount;
-
-            // 2. Créer un "Point de vérification" (CheckPoint)
-            // Au lieu de vérifier le centre, on va vérifier le bord du cercle
-            sf::Vector2f checkPos = nextPos;
-
-            // Le rayon du joueur est de 14px. On vérifie 14px devant.
-            // On peut réduire un peu (ex: 12px) si on veut être moins sévère.
-            float offset = 14.f;
-
-            if (moveAmount.x > 0) checkPos.x += offset; // On va à Droite -> Check bord Droit
-            if (moveAmount.x < 0) checkPos.x -= offset; // On va à Gauche -> Check bord Gauche
-            if (moveAmount.y > 0) checkPos.y += offset; // On va en Bas    -> Check bord Bas
-            if (moveAmount.y < 0) checkPos.y -= offset; // On va en Haut   -> Check bord Haut
-
-            // 3. Convertir ce point précis en coordonnées de grille
-            int gridX = static_cast<int>(checkPos.x) / tileMap.getTileSize();
-            int gridY = static_cast<int>(checkPos.y) / tileMap.getTileSize();
-
-            // 4. Vérifier la collision
-            if (tileMap.getTile(gridX, gridY) == 0) {
-                player.move(moveAmount);
-            } else {
-                std::cout << "Bloqué ! Le bord du joueur touche un mur." << std::endl;
-            }
-        }
-    }
+    (void)event;
 }
 
 void GameController::update(float dt) {
+    sf::Vector2f dir(0.f, 0.f);
+
+    // --- INPUTS & ANIMATION ---
+    // C'est ici qu'on ajoute l'appel à setDirection !
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
+        dir.y -= 1.f;
+        player.setDirection(Direction::Up); // DOS
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+        dir.y += 1.f;
+        player.setDirection(Direction::Down); // FACE
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+        dir.x -= 1.f;
+        player.setDirection(Direction::Left); // GAUCHE
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+        dir.x += 1.f;
+        player.setDirection(Direction::Right); // DROITE
+    }
+
+    // --- NORMALISATION ---
+    if (dir.x != 0.f || dir.y != 0.f) {
+        float len = std::sqrt(dir.x*dir.x + dir.y*dir.y);
+        dir /= len;
+    }
+
+    const float speed = 200.f;
+    sf::Vector2f delta = dir * (speed * dt);
+
+    // --- COLLISIONS ---
+    sf::FloatRect currentBBox = player.getGlobalBounds();
+
+    // 1. Test Position Future (Diagonale)
+    sf::FloatRect futureBBox = currentBBox;
+    futureBBox.left += delta.x;
+    futureBBox.top += delta.y;
+
+    if (isPositionFree(futureBBox)) {
+        player.move(delta);
+    } else {
+        // 2. Glissement (Sliding) sur X
+        sf::FloatRect bboxX = currentBBox;
+        bboxX.left += delta.x;
+        if (isPositionFree(bboxX)) {
+            player.move({delta.x, 0.f});
+        }
+        // 3. Glissement (Sliding) sur Y
+        else { // Petit else ici pour éviter de glisser deux fois si coincé
+            sf::FloatRect bboxY = currentBBox;
+            bboxY.top += delta.y;
+            if (isPositionFree(bboxY)) {
+                player.move({0.f, delta.y});
+            }
+        }
+    }
+
+    // Mise à jour finale du joueur
     player.update(dt);
+
+    // Caméra suit le joueur
+    gameView.setCenter(player.getPosition());
 }
 
 void GameController::render(sf::RenderWindow& window) {
-    // --- 1. MISE À JOUR CAMÉRA ---
-    // La caméra se centre sur le joueur
-    gameView.setCenter(player.getPosition());
+    // 1. Caméra Joueur
     window.setView(gameView);
+    window.draw(mapView);
+    playerView.render(window, player);
 
-    // --- 2. DESSIN ---
-    window.draw(mapView);            // Carte en dessous
-    playerView.render(window, player); // Joueur au dessus
+    // 2. Interface (HUD) - Remise à zéro de la caméra
+    window.setView(window.getDefaultView());
+}
+
+bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
+    float tileSizeF = (float)map.getTileSize();
+
+    int x0 = (int)std::floor(bbox.left / tileSizeF);
+    int y0 = (int)std::floor(bbox.top / tileSizeF);
+    int x1 = (int)std::floor((bbox.left + bbox.width - 0.001f) / tileSizeF);
+    int y1 = (int)std::floor((bbox.top + bbox.height - 0.001f) / tileSizeF);
+
+    for (int y = y0; y <= y1; ++y) {
+        for (int x = x0; x <= x1; ++x) {
+            char t = map.getTile(x, y);
+            if (t == '#') return false;
+        }
+    }
+    return true;
+}
+
+void GameController::placePlayerAtFirstFreeTile() {
+    float tileSizeF = (float)map.getTileSize();
+    for (unsigned y = 0; y < map.getHeight(); ++y) {
+        for (unsigned x = 0; x < map.getWidth(); ++x) {
+            if (map.getTile((int)x, (int)y) == '.') {
+                float cx = x * tileSizeF + tileSizeF / 2.f;
+                float cy = y * tileSizeF + tileSizeF / 2.f;
+                player.setPosition(cx, cy);
+                return;
+            }
+        }
+    }
+    player.setPosition(tileSizeF + playerSize().x, tileSizeF + playerSize().y);
 }

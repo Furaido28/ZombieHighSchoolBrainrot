@@ -34,6 +34,7 @@ add_executable(ZombieHighSchoolBrainrot
         src/models/TileMap.h
         src/views/game/MapView.cpp
         src/views/game/MapView.h
+        src/Constants.h
 )
 
 target_include_directories(ZombieHighSchoolBrainrot PRIVATE
