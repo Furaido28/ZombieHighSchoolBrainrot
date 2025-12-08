@@ -2,7 +2,7 @@
 
 // 1. MODIFICATION : On initialise 'currentDirection' à Down (Face) par défaut
 Player::Player()
-    : position(0.f, 0.f), speed(200.f), size(48.f, 48.f), currentDirection(Direction::Down)
+    : position(0.f, 0.f), size(48.f, 48.f), currentDirection(Direction::Down), moving(false)
 {}
 
 void Player::move(const sf::Vector2f& delta) {
@@ -51,3 +51,6 @@ void Player::setDirection(Direction dir) {
 Direction Player::getDirection() const {
     return currentDirection;
 }
+
+void Player::setMoving(bool m) { moving = m; }
+bool Player::isMoving() const { return moving; }

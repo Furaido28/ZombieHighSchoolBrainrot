@@ -22,10 +22,14 @@ public:
     sf::Vector2f getSize() const;
     sf::FloatRect getGlobalBounds() const;
 
+    void setMoving(bool moving);
+    bool isMoving() const;
+
 private:
     sf::Vector2f position;
     sf::Vector2f size;
     float speed;
+    bool moving;
 
     // 3. NOUVEAU : Variable pour stocker l'état actuel
     Direction currentDirection;

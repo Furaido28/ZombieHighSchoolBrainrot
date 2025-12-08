@@ -22,7 +22,7 @@ GameController::GameController()
 
     // Configuration de la caméra
     gameView.setSize(1280.f, 720.f);
-    gameView.zoom(1.0f); // 1.0f = Zoom normal (changez à 0.5f pour zoomer plus)
+    gameView.zoom(1.0f);
 
     // Initialisation du joueur
     player.setSize(48.f, 48.f);
@@ -36,26 +36,36 @@ void GameController::handleEvent(const sf::Event& event) {
 void GameController::update(float dt) {
     sf::Vector2f dir(0.f, 0.f);
 
+    // NOUVEAU : On suppose qu'on ne bouge pas au début de la frame
+    bool isMoving = false;
+
     // --- INPUTS & ANIMATION ---
-    // C'est ici qu'on ajoute l'appel à setDirection !
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
         dir.y -= 1.f;
         player.setDirection(Direction::Up); // DOS
+        isMoving = true; // On bouge !
     }
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
         dir.y += 1.f;
         player.setDirection(Direction::Down); // FACE
+        isMoving = true; // On bouge !
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
         dir.x -= 1.f;
         player.setDirection(Direction::Left); // GAUCHE
+        isMoving = true; // On bouge !
     }
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
         dir.x += 1.f;
         player.setDirection(Direction::Right); // DROITE
+        isMoving = true; // On bouge !
     }
+
+    // IMPORTANT : On envoie l'info au modèle Player
+    // Sans ça, l'animation reste figée
+    player.setMoving(isMoving);
 
     // --- NORMALISATION ---
     if (dir.x != 0.f || dir.y != 0.f) {
@@ -84,7 +94,7 @@ void GameController::update(float dt) {
             player.move({delta.x, 0.f});
         }
         // 3. Glissement (Sliding) sur Y
-        else { // Petit else ici pour éviter de glisser deux fois si coincé
+        else {
             sf::FloatRect bboxY = currentBBox;
             bboxY.top += delta.y;
             if (isPositionFree(bboxY)) {
