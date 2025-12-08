@@ -90,7 +90,7 @@ void PlayerView::render(sf::RenderWindow& window, const Player& player) {
 
         // Si votre sprite sheet de base est petit (ex: 48px), on l'agrandit peut-être un peu
         // ou on le laisse à échelle 1. Ajustez "targetSize" selon vos goûts.
-        float targetSize = 64.f;
+        float targetSize = 78.f;
         float scaleFactor = targetSize / staticFrameH;
         sprite.setScale(scaleFactor, scaleFactor);
 
