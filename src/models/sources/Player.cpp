@@ -1,4 +1,4 @@
-#include "Player.h"
+#include "../headers/Player.h"
 
 // 1. MODIFICATION : On initialise 'currentDirection' à Down (Face) par défaut
 Player::Player()

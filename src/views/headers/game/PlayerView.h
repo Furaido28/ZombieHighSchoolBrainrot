@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "../../models/Player.h"
+#include "../../../models/headers/Player.h"
 
 class PlayerView {
 public:
@@ -13,6 +13,9 @@ private:
 
     // Texture pour la marche gauche (votre grosse image)
     sf::Texture textureWalkLeft;
+    sf::Texture textureWalkRight;
+    sf::Texture textureWalkFront;
+    sf::Texture textureWalkBack;
 
     sf::Sprite sprite;
 
