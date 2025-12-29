@@ -20,12 +20,18 @@ void Boss::update(float dt, const sf::Vector2f& playerPos)
     if (len > 0.f)
         dir /= len;
 
-    position += dir * speed * dt;
+    velocity = dir * speed * dt;
+    position += velocity;
 }
 
 void Boss::setPosition(const sf::Vector2f& pos) {
     position = pos;
 }
+
+sf::Vector2f Boss::getVelocity() const {
+    return velocity;
+}
+
 
 sf::Vector2f Boss::getPosition() const { return position; }
 

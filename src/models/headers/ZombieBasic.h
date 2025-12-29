@@ -14,6 +14,8 @@ public:
 
     void setPosition(const sf::Vector2f &pos) override;
     sf::Vector2f getPosition() const override;
+    sf::Vector2f getVelocity() const override;
+
 
     float getRadius() const override;
     sf::FloatRect getGlobalBounds() const override;
@@ -24,6 +26,7 @@ public:
 
 protected:
     sf::Vector2f position;
+    sf::Vector2f velocity;
     float speed;
     float radius;
     int health;

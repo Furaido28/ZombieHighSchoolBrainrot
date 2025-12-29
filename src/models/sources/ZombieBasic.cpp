@@ -17,7 +17,9 @@ void ZombieBasic::update(float dt, const sf::Vector2f& playerPos)
     if (len > 0.f)
         dir /= len;
 
-    position += dir * speed * dt;
+    velocity = dir * speed * dt;
+
+    position += velocity;
 }
 
 void ZombieBasic::setPosition(const sf::Vector2f& pos) {
@@ -27,6 +29,10 @@ void ZombieBasic::setPosition(const sf::Vector2f& pos) {
 sf::Vector2f ZombieBasic::getPosition() const { return position; }
 
 float ZombieBasic::getRadius() const { return radius; }
+
+sf::Vector2f ZombieBasic::getVelocity() const {
+    return velocity;
+}
 
 sf::FloatRect ZombieBasic::getGlobalBounds() const {
     return {
