@@ -2,6 +2,8 @@
 #define ZOMBIEHIGHSCHOOLBRAINROT_BOSS_H
 
 #pragma once
+#include <SFML/Graphics/Rect.hpp>
+
 #include "Enemy.h"
 
 class Boss : public Enemy {
@@ -10,8 +12,11 @@ public:
 
     void update(float dt, const sf::Vector2f& playerPos) override;
 
+    void setPosition(const sf::Vector2f& pos) override;
     sf::Vector2f getPosition() const override;
+
     float getRadius() const override;
+    sf::FloatRect getGlobalBounds() const override;
 
     int getDamage() const override;
     bool isAlive() const override;

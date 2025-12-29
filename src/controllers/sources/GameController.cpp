@@ -124,7 +124,12 @@ void GameController::update(float dt) {
 
     // UPDATE DES ENNEMIS
     for (auto& enemy : enemies) {
+        sf::Vector2f oldPos = enemy->getPosition();
         enemy->update(dt, player.getPosition());
+
+        if (!isPositionFree(enemy->getGlobalBounds())) {
+            enemy->setPosition(oldPos);
+        }
     }
 
     // Enemy collisions

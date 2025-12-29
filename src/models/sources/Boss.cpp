@@ -23,7 +23,24 @@ void Boss::update(float dt, const sf::Vector2f& playerPos)
     position += dir * speed * dt;
 }
 
+void Boss::setPosition(const sf::Vector2f& pos) {
+    position = pos;
+}
+
 sf::Vector2f Boss::getPosition() const { return position; }
+
 float Boss::getRadius() const { return radius; }
+
+sf::FloatRect Boss::getGlobalBounds() const {
+    return {
+        position.x - radius,
+        position.y - radius,
+        radius * 2.f,
+        radius * 2.f
+    };
+}
+
 int Boss::getDamage() const { return 40; }
+
 bool Boss::isAlive() const { return health > 0; }
+
