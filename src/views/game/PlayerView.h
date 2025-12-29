@@ -13,6 +13,9 @@ private:
 
     // Texture pour la marche gauche (votre grosse image)
     sf::Texture textureWalkLeft;
+    sf::Texture textureWalkRight;
+    sf::Texture textureWalkFront;
+    sf::Texture textureWalkBack;
 
     sf::Sprite sprite;
 

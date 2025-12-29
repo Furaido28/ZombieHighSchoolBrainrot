@@ -36,7 +36,6 @@ void GameController::handleEvent(const sf::Event& event) {
 void GameController::update(float dt) {
     sf::Vector2f dir(0.f, 0.f);
 
-    // NOUVEAU : On suppose qu'on ne bouge pas au début de la frame
     bool isMoving = false;
 
     // --- INPUTS & ANIMATION ---
@@ -44,7 +43,7 @@ void GameController::update(float dt) {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
         dir.y -= 1.f;
         player.setDirection(Direction::Up); // DOS
-        isMoving = true; // On bouge !
+        isMoving = true; // On bouge
     }
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
         dir.y += 1.f;
