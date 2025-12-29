@@ -14,24 +14,24 @@ add_executable(ZombieHighSchoolBrainrot
         src/main.cpp
         src/views/menu/menu.cpp
         src/controllers/MenuController.h
-        src/controllers/MenuController.cpp
+        src/controllers/sources/MenuController.cpp
         src/scenes/MenuScene.cpp
         src/core/Scene.h
         src/core/SceneManager.h
         src/core/SceneManager.cpp
-        src/models/Player.h
-        src/models/Player.cpp
-        src/models/GameState.h
-        src/models/GameState.cpp
+        src/models/headers/Player.h
+        src/models/sources/Player.cpp
+        src/models/headers/GameState.h
+        src/models/sources/GameState.cpp
         src/views/game/PlayerView.h
         src/views/game/PlayerView.cpp
-        src/controllers/GameController.h
-        src/controllers/GameController.cpp
+        src/controllers/headers/GameController.h
+        src/controllers/sources/GameController.cpp
         src/scenes/MenuScene.h
         src/scenes/GameScene.h
         src/scenes/GameScene.cpp
-        src/models/TileMap.cpp
-        src/models/TileMap.h
+        src/models/sources/TileMap.cpp
+        src/models/headers/TileMap.h
         src/views/game/MapView.cpp
         src/views/game/MapView.h
         src/Constants.h
