@@ -1,6 +1,6 @@
 #pragma once
-#include "core/Scene.h"
-#include "controllers/GameController.h"
+#include "../../core/headers/Scene.h"
+#include "../../controllers/headers/GameController.h"
 
 class GameScene : public Scene {
 public:

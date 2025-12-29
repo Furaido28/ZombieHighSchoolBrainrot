@@ -1,4 +1,4 @@
-#include "MenuController.h"
+#include "../headers/MenuController.h"
 
 MenuController::MenuController(float width, float height)
 : menu(width, height), choice(-1) {}
