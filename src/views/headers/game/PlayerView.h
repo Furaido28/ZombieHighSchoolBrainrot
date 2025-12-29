@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "../../models/headers/Player.h"
+#include "../../../models/headers/Player.h"
 
 class PlayerView {
 public:

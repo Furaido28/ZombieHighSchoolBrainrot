@@ -2,9 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include "../../models/headers/Player.h"
 #include "../../models/headers/TileMap.h"
-#include "../../views/game/PlayerView.h"
+#include "../../views/headers/game/PlayerView.h"
 // AJOUT: On inclut la vue de la map pour pouvoir l'utiliser
-#include "../../views/game/MapView.h"
+#include "../../views/headers/game/MapView.h"
 
 class GameController {
 public:

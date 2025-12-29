@@ -12,8 +12,8 @@ find_package(SFML 2.6 COMPONENTS system window graphics audio REQUIRED)
 
 add_executable(ZombieHighSchoolBrainrot
         src/main.cpp
-        src/views/menu/menu.cpp
-        src/controllers/MenuController.h
+        src/views/sources/menu/MenuView.cpp
+        src/controllers/headers/MenuController.h
         src/controllers/sources/MenuController.cpp
         src/scenes/sources/MenuScene.cpp
         src/core/headers/Scene.h
@@ -23,8 +23,8 @@ add_executable(ZombieHighSchoolBrainrot
         src/models/sources/Player.cpp
         src/models/headers/GameState.h
         src/models/sources/GameState.cpp
-        src/views/game/PlayerView.h
-        src/views/game/PlayerView.cpp
+        src/views/headers/game/PlayerView.h
+        src/views/sources/game/PlayerView.cpp
         src/controllers/headers/GameController.h
         src/controllers/sources/GameController.cpp
         src/scenes/headers/MenuScene.h
@@ -32,8 +32,8 @@ add_executable(ZombieHighSchoolBrainrot
         src/scenes/sources/GameScene.cpp
         src/models/sources/TileMap.cpp
         src/models/headers/TileMap.h
-        src/views/game/MapView.cpp
-        src/views/game/MapView.h
+        src/views/sources/game/MapView.cpp
+        src/views/headers/game/MapView.h
         src/Constants.h
 )
 

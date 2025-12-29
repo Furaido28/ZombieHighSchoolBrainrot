@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "../../models/headers/TileMap.h"
+#include "../../../models/headers/TileMap.h"
 
 class MapView : public sf::Drawable, public sf::Transformable {
 public:

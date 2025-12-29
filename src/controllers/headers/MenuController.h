@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "views/menu/Menu.h"
+#include "../../views/headers/menu/MenuView.h"
 
 class MenuController {
 public:
