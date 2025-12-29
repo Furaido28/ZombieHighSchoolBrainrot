@@ -20,7 +20,7 @@ GameController::GameController()
     std::cout << "--- DEBUG: Tentative de chargement de la map ---" << std::endl;
 
     // On charge une seule fois (nettoyage du doublon)
-    if (map.loadFromFile("assets/maps/map1.txt", TILE_SIZE)) {
+    if (map.loadFromFile("assets/maps/map2.txt", TILE_SIZE)) {
         std::cout << "DEBUG: Map chargee avec succes !" << std::endl;
         std::cout << "DEBUG: Taille de la map: " << map.getWidth() << " x " << map.getHeight() << std::endl;
     } else {
@@ -176,7 +176,7 @@ bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
     for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
             char t = map.getTile(x, y);
-            if (t == '#') return false;
+            if (t == '#' || t=='R' || t=='B') return false;
         }
     }
     return true;
