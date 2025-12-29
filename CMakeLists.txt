@@ -12,29 +12,37 @@ find_package(SFML 2.6 COMPONENTS system window graphics audio REQUIRED)
 
 add_executable(ZombieHighSchoolBrainrot
         src/main.cpp
+
+        # Menu
         src/views/sources/menu/MenuView.cpp
-        src/controllers/headers/MenuController.h
         src/controllers/sources/MenuController.cpp
         src/scenes/sources/MenuScene.cpp
-        src/core/headers/Scene.h
-        src/core/headers/SceneManager.h
+
+        # Core
         src/core/sources/SceneManager.cpp
-        src/models/headers/Player.h
+
+        # Player
         src/models/sources/Player.cpp
-        src/models/headers/GameState.h
         src/models/sources/GameState.cpp
-        src/views/headers/game/PlayerView.h
         src/views/sources/game/PlayerView.cpp
-        src/controllers/headers/GameController.h
+
+        # Game
         src/controllers/sources/GameController.cpp
-        src/scenes/headers/MenuScene.h
-        src/scenes/headers/GameScene.h
         src/scenes/sources/GameScene.cpp
+
+        # Map
         src/models/sources/TileMap.cpp
-        src/models/headers/TileMap.h
         src/views/sources/game/MapView.cpp
-        src/views/headers/game/MapView.h
-        src/Constants.h
+
+        # ENEMIES
+        src/models/sources/Enemy.cpp
+        src/models/sources/ZombieBasic.cpp
+        src/models/sources/ZombieFast.cpp
+        src/models/sources/ZombieTank.cpp
+        src/models/sources/Boss.cpp
+
+        # ENEMY VIEW
+        src/views/sources/game/EnemyView.cpp
 )
 
 target_include_directories(ZombieHighSchoolBrainrot PRIVATE
