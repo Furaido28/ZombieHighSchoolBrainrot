@@ -2,7 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <vector>
-
+#include <map>
+#include <string>
 #include "../../models/headers/Player.h"
 #include "../../models/headers/TileMap.h"
 #include "../../models/headers/Enemy.h"
@@ -14,6 +15,8 @@
 #include "../../views/headers/game/EnemyView.h"
 // AJOUT: On inclut la vue de la map pour pouvoir l'utiliser
 #include "../../views/headers/game/MapView.h"
+//AJOUT DES ITEMS
+#include "./models/headers/Item.h"
 
 class GameController {
 public:
@@ -21,6 +24,9 @@ public:
     void handleEvent(const sf::Event& event);
     void update(float dt);
     void render(sf::RenderWindow& window);
+    Player& getPlayer();
+    void givePotionToPlayer();
+    const sf::Texture& getItemTexture(const std::string& name) const;
 
 private:
     // Méthodes internes de collision
@@ -30,6 +36,9 @@ private:
     // Helper: On demande la taille directement au Player (MVC)
     // Plus besoin de stocker "radius" ici, c'est le Player qui sait sa taille.
     sf::Vector2f playerSize() const { return player.getSize(); }
+
+    //textures
+    std::map<std::string, sf::Texture> itemTextures;
 
     Player player;
     PlayerView playerView;

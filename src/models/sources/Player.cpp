@@ -58,3 +58,4 @@ Direction Player::getDirection() const {
 
 void Player::setMoving(bool m) { moving = m; }
 bool Player::isMoving() const { return moving; }
+Inventory &Player::getInventory() {return inventory;}

@@ -44,6 +44,14 @@ GameController::GameController()
     enemies.push_back(std::make_unique<ZombieTank>(sf::Vector2f(300.f, 100.f)));
     enemies.push_back(std::make_unique<Boss>(sf::Vector2f(500.f, 300.f)));
 
+
+    //TEXTURES
+    itemTextures["potion"].loadFromFile("assets/inventory_items/potion.png");
+}
+
+Player& GameController::getPlayer() {return player;};
+const sf::Texture &GameController::getItemTexture(const std::string &name) const {
+    return itemTextures.at(name);
 }
 
 void GameController::handleEvent(const sf::Event& event) {
@@ -195,4 +203,12 @@ void GameController::placePlayerAtFirstFreeTile() {
         }
     }
     player.setPosition(tileSizeF + playerSize().x, tileSizeF + playerSize().y);
+}
+void GameController::givePotionToPlayer() {
+    Item potion;
+    potion.name = "Potion";
+    potion.type = ItemType::Consumable;
+    potion.sprite.setTexture(getItemTexture("potion"));
+
+    player.getInventory().addItem(potion);
 }
