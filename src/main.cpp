@@ -1,6 +1,6 @@
 #include <SFML/Graphics.hpp>
-#include "core/SceneManager.h"
-#include "scenes/MenuScene.h"
+#include "core/headers/SceneManager.h"
+#include "scenes/headers/MenuScene.h"
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(1280, 720), "Zombie High School Brainrot");

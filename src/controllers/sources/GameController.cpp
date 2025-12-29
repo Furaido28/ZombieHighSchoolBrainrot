@@ -1,5 +1,5 @@
-#include "GameController.h"
-#include "../Constants.h"
+#include "../headers/GameController.h"
+#include "../../Constants.h"
 #include <iostream>
 #include <cmath>
 

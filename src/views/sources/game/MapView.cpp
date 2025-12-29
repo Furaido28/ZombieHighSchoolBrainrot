@@ -1,4 +1,4 @@
-#include "MapView.h"
+#include "../../headers/game/MapView.h"
 #include <iostream>
 
 bool MapView::load(const TileMap& map) {

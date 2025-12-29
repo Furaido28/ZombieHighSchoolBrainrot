@@ -1,6 +1,6 @@
 #pragma once
-#include "core/Scene.h"
-#include "controllers/MenuController.h"
+#include "../../core/headers/Scene.h"
+#include "../../controllers/headers/MenuController.h"
 
 class MenuScene : public Scene {
 public:

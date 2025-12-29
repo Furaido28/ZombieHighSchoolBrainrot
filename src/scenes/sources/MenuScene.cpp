@@ -1,6 +1,6 @@
-#include "MenuScene.h"
-#include "GameScene.h"
-#include "core/SceneManager.h"
+#include "../headers/MenuScene.h"
+#include "../headers/GameScene.h"
+#include "../../core/headers/SceneManager.h"
 
 MenuScene::MenuScene(SceneManager* manager, sf::RenderWindow* window)
     : Scene(manager, window),

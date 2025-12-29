@@ -1,4 +1,4 @@
-#include "PlayerView.h"
+#include "../../headers/game/PlayerView.h"
 #include <iostream>
 
 PlayerView::PlayerView() {

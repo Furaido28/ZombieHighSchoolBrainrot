@@ -1,4 +1,4 @@
-#include "menu.h"
+#include "../../headers/menu/MenuView.h"
 #include <iostream>
 
 Menu::Menu(float width, float height) {
