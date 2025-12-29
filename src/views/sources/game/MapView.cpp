@@ -28,9 +28,11 @@ bool MapView::load(const TileMap& map) {
             // Index 1 = La tuile à droite de la première, etc.
             int tileIndex = 0;
 
-            if (tileType == '.')      tileIndex = 0; // Sol = 1ère image
-            else if (tileType == '#') tileIndex = 1; // Mur = 2ème image
-            else                      tileIndex = 2; // Autre...
+            if (tileType == '.')      tileIndex = 5; // Sol = 1ère image
+            else if (tileType == '#') tileIndex = 0; // Mur = 2ème image
+            else if (tileType == 'B') tileIndex = 3;
+            else if (tileType == 'R') tileIndex = 4;
+            else if (tileType == 'N') tileIndex = 6;// Autre...
 
             // 3. CALCUL DES COORDONNÉES DE TEXTURE (Maths)
             // On trouve la colonne (tu) et la ligne (tv) dans l'image
