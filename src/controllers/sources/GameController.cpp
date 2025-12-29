@@ -27,6 +27,13 @@ GameController::GameController()
     // Initialisation du joueur
     player.setSize(48.f, 48.f);
     placePlayerAtFirstFreeTile();
+
+    // Initialisation de quelques zombies
+    enemies.push_back(std::make_unique<ZombieBasic>(sf::Vector2f(100.f, 100.f)));
+    enemies.push_back(std::make_unique<ZombieFast>(sf::Vector2f(200.f, 100.f)));
+    enemies.push_back(std::make_unique<ZombieTank>(sf::Vector2f(300.f, 100.f)));
+    enemies.push_back(std::make_unique<Boss>(sf::Vector2f(500.f, 300.f)));
+
 }
 
 void GameController::handleEvent(const sf::Event& event) {
@@ -105,6 +112,11 @@ void GameController::update(float dt) {
     // Mise à jour finale du joueur
     player.update(dt);
 
+    // UPDATE DES ENNEMIS
+    for (auto& enemy : enemies) {
+        enemy->update(dt, player.getPosition());
+    }
+
     // Caméra suit le joueur
     gameView.setCenter(player.getPosition());
 }
@@ -113,9 +125,15 @@ void GameController::render(sf::RenderWindow& window) {
     // 1. Caméra Joueur
     window.setView(gameView);
     window.draw(mapView);
+
+    // 2. Ennemis
+    for (auto& enemy : enemies) {
+        enemyView.render(window, *enemy);
+    }
+
     playerView.render(window, player);
 
-    // 2. Interface (HUD) - Remise à zéro de la caméra
+    // 3. Interface (HUD) - Remise à zéro de la caméra
     window.setView(window.getDefaultView());
 }
 
