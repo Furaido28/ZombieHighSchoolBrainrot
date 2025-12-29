@@ -13,11 +13,6 @@ EnemyView::EnemyView() {
     frameHeight = zombieBasicTexture.getSize().y;
 
     sprite.setOrigin(frameWidth / 2.f, frameHeight / 2.f);
-
-    // 🔍 DEBUG CRUCIAL
-    std::cout << "Zombie texture: "
-              << zombieBasicTexture.getSize().x << "x"
-              << zombieBasicTexture.getSize().y << std::endl;
 }
 
 void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy)
