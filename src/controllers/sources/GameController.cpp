@@ -3,6 +3,16 @@
 #include <iostream>
 #include <cmath>
 
+static bool circlesIntersect(
+    const sf::Vector2f& aPos, float aRadius,
+    const sf::Vector2f& bPos, float bRadius)
+{
+    sf::Vector2f d = aPos - bPos;
+    float distSq = d.x * d.x + d.y * d.y;
+    float r = aRadius + bRadius;
+    return distSq <= r * r;
+}
+
 GameController::GameController()
 : player(), playerView()
 {
@@ -114,7 +124,25 @@ void GameController::update(float dt) {
 
     // UPDATE DES ENNEMIS
     for (auto& enemy : enemies) {
+        sf::Vector2f oldPos = enemy->getPosition();
         enemy->update(dt, player.getPosition());
+
+        if (!isPositionFree(enemy->getGlobalBounds())) {
+            enemy->setPosition(oldPos);
+        }
+    }
+
+    // Enemy collisions
+    for (auto& enemy : enemies) {
+        if (!enemy->isAlive()) continue;
+
+        if (circlesIntersect(
+                player.getPosition(), player.getRadius(),
+                enemy->getPosition(), enemy->getRadius()))
+        {
+            //player.takeDamage(enemy->getDamage());
+            std::cout << "COLLISION!" << std::endl;
+        }
     }
 
     // Caméra suit le joueur

@@ -27,5 +27,5 @@ target_link_libraries(ZombieHighSchoolBrainrot PRIVATE
         sfml-audio
 )
 
-# 🔥 copier automatiquement le dossier assets vers le dossier de build
+# copier automatiquement le dossier assets vers le dossier de build
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})

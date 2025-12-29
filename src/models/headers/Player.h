@@ -13,8 +13,9 @@ public:
     void setPosition(float x, float y);
     void setSize(float w, float h);
     void update(float dt);
+    float getRadius() const;
 
-    // 2. NOUVEAU : Méthodes pour gérer la direction
+    // 2. Méthodes pour gérer la direction
     void setDirection(Direction dir);
     Direction getDirection() const;
 
@@ -31,6 +32,6 @@ private:
     float speed;
     bool moving;
 
-    // 3. NOUVEAU : Variable pour stocker l'état actuel
+    // 3. Variable pour stocker l'état actuel
     Direction currentDirection;
 };

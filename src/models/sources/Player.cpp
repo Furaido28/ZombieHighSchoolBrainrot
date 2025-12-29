@@ -29,6 +29,10 @@ sf::Vector2f Player::getSize() const {
     return size;
 }
 
+float Player::getRadius() const {
+    return std::min(size.x, size.y) * 0.5f;
+}
+
 // Calcule et retourne la Hitbox du joueur (Ton code était parfait ici)
 sf::FloatRect Player::getGlobalBounds() const {
     float halfWidth = size.x / 2.f;

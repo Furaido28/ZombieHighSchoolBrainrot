@@ -13,7 +13,11 @@ public:
     void render(sf::RenderWindow& window, const Enemy& enemy);
 
 private:
-    sf::CircleShape shape;
+    sf::Texture zombieBasicTexture;
+    sf::Sprite sprite;
+
+    int frameWidth;
+    int frameHeight;
 };
 
 #endif //ZOMBIEHIGHSCHOOLBRAINROT_ENEMYVIEW_H
