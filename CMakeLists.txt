@@ -15,10 +15,10 @@ add_executable(ZombieHighSchoolBrainrot
         src/views/menu/menu.cpp
         src/controllers/MenuController.h
         src/controllers/sources/MenuController.cpp
-        src/scenes/MenuScene.cpp
-        src/core/Scene.h
-        src/core/SceneManager.h
-        src/core/SceneManager.cpp
+        src/scenes/sources/MenuScene.cpp
+        src/core/headers/Scene.h
+        src/core/headers/SceneManager.h
+        src/core/sources/SceneManager.cpp
         src/models/headers/Player.h
         src/models/sources/Player.cpp
         src/models/headers/GameState.h
@@ -27,9 +27,9 @@ add_executable(ZombieHighSchoolBrainrot
         src/views/game/PlayerView.cpp
         src/controllers/headers/GameController.h
         src/controllers/sources/GameController.cpp
-        src/scenes/MenuScene.h
-        src/scenes/GameScene.h
-        src/scenes/GameScene.cpp
+        src/scenes/headers/MenuScene.h
+        src/scenes/headers/GameScene.h
+        src/scenes/sources/GameScene.cpp
         src/models/sources/TileMap.cpp
         src/models/headers/TileMap.h
         src/views/game/MapView.cpp

@@ -1,5 +1,5 @@
 #pragma once
-#include "core/Scene.h"
+#include "../../core/headers/Scene.h"
 #include "controllers/MenuController.h"
 
 class MenuScene : public Scene {
