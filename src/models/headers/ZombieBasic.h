@@ -17,7 +17,7 @@ public:
     sf::Vector2f getVelocity() const override;
 
 
-    float getRadius() const override;
+    float getRadius() const override { return radius; }
     sf::FloatRect getGlobalBounds() const override;
 
     float getHealth() const override { return health; }

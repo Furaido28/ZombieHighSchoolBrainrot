@@ -42,7 +42,7 @@ GameController::GameController()
     enemies.push_back(std::make_unique<ZombieBasic>(sf::Vector2f(100.f, 100.f)));
     enemies.push_back(std::make_unique<ZombieFast>(sf::Vector2f(200.f, 100.f)));
     enemies.push_back(std::make_unique<ZombieTank>(sf::Vector2f(300.f, 100.f)));
-    enemies.push_back(std::make_unique<Boss>(sf::Vector2f(500.f, 300.f)));
+    enemies.push_back(std::make_unique<Boss>(sf::Vector2f(800.f, 300.f)));
 
 
     //TEXTURES

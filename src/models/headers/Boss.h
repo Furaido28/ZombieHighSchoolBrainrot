@@ -16,7 +16,7 @@ public:
     sf::Vector2f getPosition() const override;
     sf::Vector2f getVelocity() const override;
 
-    float getRadius() const override;
+    float getRadius() const override { return radius; }
     sf::FloatRect getGlobalBounds() const override;
 
     int getDamage() const override;

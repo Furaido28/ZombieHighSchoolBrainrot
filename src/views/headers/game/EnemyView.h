@@ -21,10 +21,18 @@ private:
     sf::Texture zombieTankTexture;
     sf::Texture bossZombieTexture;
 
-    sf::RectangleShape healthBarBack;
-    sf::RectangleShape healthBarFront;
-    float healthBarWidth  = 30.f;
-    float healthBarHeight = 5.f;
+    // Barre de vie stylée
+    float healthBarWidth  = 36.f;
+    float healthBarHeight = 6.f;
+    float healthBarRadius = 3.f;
+
+    sf::RectangleShape hbBack;
+    sf::RectangleShape hbFront;
+    sf::RectangleShape hbOutline;
+
+    sf::CircleShape hbBackLeft, hbBackRight;
+    sf::CircleShape hbFrontLeft, hbFrontRight;
+    sf::CircleShape hbOutlineLeft, hbOutlineRight;
 
     int frameWidth = 0;
     int frameHeight = 0;

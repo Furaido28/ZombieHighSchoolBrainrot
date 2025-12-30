@@ -17,10 +17,10 @@ void ZombieBasic::update(float dt, const sf::Vector2f& playerPos)
     if (len > 0.f)
         dir /= len;
 
-    velocity = dir * speed * dt;
-
-    position += velocity;
+    velocity = dir * speed;
+    position += velocity * dt;
 }
+
 
 void ZombieBasic::setPosition(const sf::Vector2f& pos) {
     position = pos;
@@ -28,20 +28,23 @@ void ZombieBasic::setPosition(const sf::Vector2f& pos) {
 
 sf::Vector2f ZombieBasic::getPosition() const { return position; }
 
-float ZombieBasic::getRadius() const { return radius; }
-
 sf::Vector2f ZombieBasic::getVelocity() const {
     return velocity;
 }
 
-sf::FloatRect ZombieBasic::getGlobalBounds() const {
+sf::FloatRect ZombieBasic::getGlobalBounds() const
+{
+    // Rayon de collision FIXE (indépendant du visuel)
+    const float collisionRadius = 32.f;
+
     return {
-        position.x - radius,
-        position.y - radius,
-        radius * 2.f,
-        radius * 2.f
+        position.x - collisionRadius,
+        position.y - collisionRadius,
+        collisionRadius * 2.f,
+        collisionRadius * 2.f
     };
 }
+
 
 int ZombieBasic::getDamage() const { return 10; }
 

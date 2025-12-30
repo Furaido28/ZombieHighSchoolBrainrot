@@ -12,6 +12,8 @@ public:
         return ZombieType::Tank;
     }
 
+    float getRadius() const override { return radius; }
+
     float getHealth() const override { return health; }
     float getMaxHealth() const override { return 150.f; }
 
