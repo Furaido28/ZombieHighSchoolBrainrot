@@ -1,6 +1,7 @@
 #pragma once
 #include "../../core/headers/Scene.h"
 #include "../../controllers/headers/GameController.h"
+#include "../../views/headers/game/InventoryView.h"
 
 class GameScene : public Scene {
 public:
@@ -12,4 +13,6 @@ public:
 
 private:
     GameController controller;
+    InventoryView inventoryView;
+    bool tabPressed = false;
 };
