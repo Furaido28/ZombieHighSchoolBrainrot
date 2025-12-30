@@ -5,7 +5,7 @@
 Boss::Boss(const sf::Vector2f& startPos)
     : position(startPos),
       speed(50.f),
-      radius(50.f),
+      radius(75.f),
       health(1000),
       attackCooldown(0.f)
 {}
