@@ -4,9 +4,9 @@
 
 ZombieBasic::ZombieBasic(const sf::Vector2f& startPos)
     : position(startPos),
-      speed(60.f),
-      radius(18.f),
-      health(50)
+    speed(60.f),
+    radius(50.f),
+    health(50)
 {}
 
 void ZombieBasic::update(float dt, const sf::Vector2f& playerPos)

@@ -22,6 +22,12 @@ public:
     int getDamage() const override;
     bool isAlive() const override;
 
+    ZombieType getType() const override {
+        return ZombieType::Boss;
+    }
+    float getHealth() const override { return health; }
+    float getMaxHealth() const override { return 1000.f; }
+
 private:
     sf::Vector2f position;
     sf::Vector2f velocity;

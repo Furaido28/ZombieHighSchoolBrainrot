@@ -7,6 +7,12 @@
 class ZombieFast : public ZombieBasic {
 public:
     ZombieFast(const sf::Vector2f& startPos);
+
+    float getHealth() const override { return health; }
+    float getMaxHealth() const override { return 35; }
+    ZombieType getType() const override {
+        return ZombieType::Fast;
+    }
 };
 
 #endif //ZOMBIEHIGHSCHOOLBRAINROT_ZOMBIEFAST_H
