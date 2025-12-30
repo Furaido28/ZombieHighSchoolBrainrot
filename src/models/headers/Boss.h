@@ -25,6 +25,8 @@ public:
     ZombieType getType() const override {
         return ZombieType::Boss;
     }
+    float getHealth() const override { return health; }
+    float getMaxHealth() const override { return 1000.f; }
 
 private:
     sf::Vector2f position;

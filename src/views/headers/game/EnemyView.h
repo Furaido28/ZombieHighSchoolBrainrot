@@ -5,10 +5,13 @@
 class EnemyView {
 public:
     EnemyView();
-    void render(sf::RenderWindow& window, const Enemy& enemy);
 
-private:
     void loadTextureForType(ZombieType type);
+    void drawHealthBar(sf::RenderWindow& window, const Enemy& enemy);
+    void render(
+        sf::RenderWindow& window,
+        const Enemy& enemy,
+        const sf::Vector2f& playerPos);
 
 private:
     sf::Sprite sprite;
@@ -17,6 +20,11 @@ private:
     sf::Texture zombieFastTexture;
     sf::Texture zombieTankTexture;
     sf::Texture bossZombieTexture;
+
+    sf::RectangleShape healthBarBack;
+    sf::RectangleShape healthBarFront;
+    float healthBarWidth  = 30.f;
+    float healthBarHeight = 5.f;
 
     int frameWidth = 0;
     int frameHeight = 0;

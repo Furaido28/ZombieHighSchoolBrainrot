@@ -20,6 +20,8 @@ public:
     float getRadius() const override;
     sf::FloatRect getGlobalBounds() const override;
 
+    float getHealth() const override { return health; }
+    float getMaxHealth() const override { return 50.f; }
     int getDamage() const override;
     bool isAlive() const override;
 

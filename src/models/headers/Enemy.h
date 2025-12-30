@@ -25,8 +25,12 @@ public:
     virtual float getRadius() const = 0;
     virtual sf::FloatRect getGlobalBounds() const = 0;
 
+    virtual float getHealth() const = 0;
+    virtual float getMaxHealth() const = 0;
     virtual int getDamage() const = 0;
     virtual bool isAlive() const = 0;
+
+
 
 };
 

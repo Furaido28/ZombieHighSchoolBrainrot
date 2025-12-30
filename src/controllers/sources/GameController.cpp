@@ -163,8 +163,10 @@ void GameController::render(sf::RenderWindow& window) {
     window.draw(mapView);
 
     // 2. Ennemis
+    sf::Vector2f playerPos = player.getPosition();
+
     for (auto& enemy : enemies) {
-        enemyView.render(window, *enemy);
+        enemyView.render(window, *enemy, playerPos);
     }
 
     playerView.render(window, player);
