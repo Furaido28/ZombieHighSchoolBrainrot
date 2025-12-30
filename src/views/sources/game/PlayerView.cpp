@@ -1,227 +1,180 @@
 #include "../../headers/game/PlayerView.h"
 #include <iostream>
+#include <algorithm>
+
+#include "models/headers/Player.h"
 
 PlayerView::PlayerView() {
-    // -----------------------------------------------------------
-    // 1. CHARGEMENT DE LA PLANCHE STATIQUE (Votre code de base)
-    // -----------------------------------------------------------
-    if (!textureStatic.loadFromFile("assets/animation/player/player_sheet.png")) {
-        std::cerr << "ERREUR: Impossible de charger assets/player_sheet.png" << std::endl;
-    }
+    // --- Textures ---
+    if (!textureIdle.loadFromFile("assets/animation/player/player_sheet.png"))
+        std::cerr << "Erreur player_sheet.png\n";
 
-    // -----------------------------------------------------------
-    // 2. CHARGEMENT DE L'ANIMATION MARCHE GAUCHE ET DROITE
-    // -----------------------------------------------------------
-    if (!textureWalkLeft.loadFromFile("assets/animation/player/player_walking_left.png")) {
-        std::cerr << "ERREUR: Impossible de charger assets/player_walking_left.png" << std::endl;
-    }
-    if (!textureWalkRight.loadFromFile("assets/animation/player/player_walking_right.png")) {
-        std::cerr << "ERREUR: Impossible de charger assets/animation/player/player_walking_right.png" << std::endl;
-    }
-    if (!textureWalkFront.loadFromFile("assets/animation/player/player_walking_front.png")) {
-        std::cerr << "ERREUR: Impossible de charger assets/animation/player/player_walking_front.png" << std::endl;
-    }
-    if (!textureWalkBack.loadFromFile("assets/animation/player/player_walking_back.png")) {
-        std::cerr << "ERREUR: Impossible de charger assets/animation/player/player_walking_back.png" << std::endl;
-    }
-    // ACTIVATION DU LISSAGE : Crucial car on réduit une image de 512px à 64px
-    textureWalkLeft.setSmooth(true);
-    textureWalkRight.setSmooth(true);
-    textureWalkFront.setSmooth(true);
-    textureWalkBack.setSmooth(true);
+    if (!textureLeft.loadFromFile("assets/animation/player/player_walking_left.png"))
+        std::cerr << "Erreur walking_left.png\n";
 
-    // Initialisation par défaut
-    sprite.setTexture(textureStatic);
+    if (!textureRight.loadFromFile("assets/animation/player/player_walking_right.png"))
+        std::cerr << "Erreur walking_right.png\n";
 
-    // Configuration de l'animation
-    currentFrame = 0;
-    timePerFrame = 0.03f; // Vitesse de l'animation (0.03s = ~30 fps)
+    if (!textureDown.loadFromFile("assets/animation/player/player_walking_front.png"))
+        std::cerr << "Erreur walking_front.png\n";
+
+    if (!textureUp.loadFromFile("assets/animation/player/player_walking_back.png"))
+        std::cerr << "Erreur walking_back.png\n";
+
+    textureLeft.setSmooth(true);
+    textureRight.setSmooth(true);
+    textureUp.setSmooth(true);
+    textureDown.setSmooth(true);
+
+    sprite.setTexture(textureIdle);
+
+    // --- HUD ---
+    hpBack.setSize({200.f, 20.f});
+    hpBack.setFillColor(sf::Color(30, 30, 30, 220));
+
+    hpFront.setSize({200.f, 20.f});
+    hpFront.setFillColor(sf::Color::Green);
+
+    hpOutline.setSize({200.f, 20.f});
+    hpOutline.setFillColor(sf::Color::Transparent);
+    hpOutline.setOutlineThickness(2.f);
+    hpOutline.setOutlineColor(sf::Color::Black);
+
+    if (!hudFont.loadFromFile("assets/fonts/arial.ttf"))
+        std::cerr << "Erreur police HUD\n";
+
+    hpText.setFont(hudFont);
+    hpText.setCharacterSize(14);
+    hpText.setFillColor(sf::Color::White);
+    hpText.setStyle(sf::Text::Bold);
 }
 
-void PlayerView::render(sf::RenderWindow& window, const Player& player) {
-    // Mise à jour de la position
+void PlayerView::playAnimation(
+    sf::Texture& texture,
+    int frameCount,
+    int columns,
+    float targetSize
+) {
+    sprite.setTexture(texture);
+
+    int frameSize = texture.getSize().x / columns;
+
+    if (animationClock.getElapsedTime().asSeconds() > frameTime) {
+        currentFrame = (currentFrame + 1) % frameCount;
+        animationClock.restart();
+    }
+
+    int col = currentFrame % columns;
+    int row = currentFrame / columns;
+
+    sprite.setTextureRect({
+        col * frameSize,
+        row * frameSize,
+        frameSize,
+        frameSize
+    });
+
+    float scale = targetSize / frameSize;
+    sprite.setScale(scale, scale);
+    sprite.setOrigin(frameSize / 2.f, frameSize / 2.f);
+}
+
+
+void PlayerView::renderWorld(sf::RenderWindow& window, const Player& player) {
     sprite.setPosition(player.getPosition());
 
     Direction dir = player.getDirection();
-    bool isMoving = player.isMoving();
+    bool moving = player.isMoving();
 
-    // =================================================================================
-    // CAS 1 : LE JOUEUR MARCHE VERS LA GAUCHE
-    // =================================================================================
-    if (dir == Direction::Left && isMoving) {
-
-        // 1. On applique la texture haute définition
-        sprite.setTexture(textureWalkLeft);
-
-        // 2. Gestion du temps (Timer)
-        if (animationTimer.getElapsedTime().asSeconds() > timePerFrame) {
-            currentFrame++;
-            // On a 34 images (de 0 à 33), donc si on dépasse 33, on revient à 0
-            if (currentFrame >= 34) {
-                currentFrame = 0;
-            }
-            animationTimer.restart();
-        }
-
-        // 3. Calcul de la grille (6 colonnes x 6 lignes)
-        // L'image fait 3072x3072. 3072 / 6 = 512 pixels par case.
-        int frameSize = 512;
-
-        int col = currentFrame % 6; // Colonne actuelle
-        int row = currentFrame / 6; // Ligne actuelle
-
-        // Découpage du rectangle
-        sf::IntRect rect(col * frameSize, row * frameSize, frameSize, frameSize);
-        sprite.setTextureRect(rect);
-
-        // 4. Mise à l'échelle (Scaling)
-        // On veut que le perso fasse 64px de haut dans le jeu, mais l'image fait 512px.
-        // Facteur = 64 / 512 = 0.125
-        float scaleFactor = 64.f / (float)frameSize;
-        sprite.setScale(scaleFactor, scaleFactor);
-
-        // 5. Origine au centre (512 / 2 = 256)
-        sprite.setOrigin(frameSize / 2.f, frameSize / 2.f);
+    if (moving) {
+        if (dir == Direction::Left)
+            playAnimation(textureLeft, 34, 6, 64.f);
+        else if (dir == Direction::Right)
+            playAnimation(textureRight, 33, 6, 64.f);
+        else if (dir == Direction::Down)
+            playAnimation(textureDown, 33, 6, 80.f);
+        else if (dir == Direction::Up)
+            playAnimation(textureUp, 33, 6, 80.f);
     }
-    else if (dir == Direction::Right && isMoving) {
-        // 1. On applique la texture haute définition
-        sprite.setTexture(textureWalkRight);
-
-        // 2. Gestion du temps (Timer)
-        if (animationTimer.getElapsedTime().asSeconds() > timePerFrame) {
-            currentFrame++;
-            // On a 33 images (de 0 à 32), donc si on dépasse 32, on revient à 0
-            if (currentFrame >= 33) {
-                currentFrame = 0;
-            }
-            animationTimer.restart();
-        }
-
-        // 3. Calcul de la grille (6 colonnes x 6 lignes)
-        // L'image fait 3072x3072. 3072 / 6 = 512 pixels par case.
-        int frameSize = 512;
-
-        int col = currentFrame % 6; // Colonne actuelle
-        int row = currentFrame / 6; // Ligne actuelle
-
-        // Découpage du rectangle
-        sf::IntRect rect(col * frameSize, row * frameSize, frameSize, frameSize);
-        sprite.setTextureRect(rect);
-
-        // 4. Mise à l'échelle (Scaling)
-        // On veut que le perso fasse 64px de haut dans le jeu, mais l'image fait 512px.
-        // Facteur = 64 / 512 = 0.125
-        float scaleFactor = 64.f / (float)frameSize;
-        sprite.setScale(scaleFactor, scaleFactor);
-
-        // 5. Origine au centre (512 / 2 = 256)
-        sprite.setOrigin(frameSize / 2.f, frameSize / 2.f);
-    }
-    else if (dir == Direction::Down && isMoving) {
-        // 1. On applique la texture haute définition
-        sprite.setTexture(textureWalkFront);
-
-        // 2. Gestion du temps (Timer)
-        if (animationTimer.getElapsedTime().asSeconds() > timePerFrame) {
-            currentFrame++;
-            // On a 33 images (de 0 à 32), donc si on dépasse 32, on revient à 0
-            if (currentFrame >= 33) {
-                currentFrame = 0;
-            }
-            animationTimer.restart();
-        }
-
-        // 3. Calcul de la grille (6 colonnes x 6 lignes)
-        // L'image fait 3072x3072. 3072 / 6 = 512 pixels par case.
-        int frameSize = 512;
-
-        int col = currentFrame % 6; // Colonne actuelle
-        int row = currentFrame / 6; // Ligne actuelle
-
-        // Découpage du rectangle
-        sf::IntRect rect(col * frameSize, row * frameSize, frameSize, frameSize);
-        sprite.setTextureRect(rect);
-
-        // 4. Mise à l'échelle (Scaling)
-        // On veut que le perso fasse 64px de haut dans le jeu, mais l'image fait 512px.
-        // Facteur = 64 / 512 = 0.125
-        float scaleFactor = 80.f / (float)frameSize;
-        sprite.setScale(scaleFactor, scaleFactor);
-
-        // 5. Origine au centre (512 / 2 = 256)
-        sprite.setOrigin(frameSize / 2.f, frameSize / 2.f);
-    }
-    else if (dir == Direction::Up && isMoving) {
-        // 1. On applique la texture haute définition
-        sprite.setTexture(textureWalkBack);
-
-        // 2. Gestion du temps (Timer)
-        if (animationTimer.getElapsedTime().asSeconds() > timePerFrame) {
-            currentFrame++;
-            // On a 33 images (de 0 à 32), donc si on dépasse 32, on revient à 0
-            if (currentFrame >= 33) {
-                currentFrame = 0;
-            }
-            animationTimer.restart();
-        }
-
-        // 3. Calcul de la grille (6 colonnes x 6 lignes)
-        // L'image fait 3072x3072. 3072 / 6 = 512 pixels par case.
-        int frameSize = 512;
-
-        int col = currentFrame % 6; // Colonne actuelle
-        int row = currentFrame / 6; // Ligne actuelle
-
-        // Découpage du rectangle
-        sf::IntRect rect(col * frameSize, row * frameSize, frameSize, frameSize);
-        sprite.setTextureRect(rect);
-
-        // 4. Mise à l'échelle (Scaling)
-        // On veut que le perso fasse 64px de haut dans le jeu, mais l'image fait 512px.
-        // Facteur = 64 / 512 = 0.125
-        float scaleFactor = 80.f / (float)frameSize;
-        sprite.setScale(scaleFactor, scaleFactor);
-
-        // 5. Origine au centre (512 / 2 = 256)
-        sprite.setOrigin(frameSize / 2.f, frameSize / 2.f);
-    }
-
-    // =================================================================================
-    // TOUS LES AUTRES CAS (Votre code de base adapté)
-    // =================================================================================
     else {
-        // 1. On remet la texture statique
-        sprite.setTexture(textureStatic);
+        sprite.setTexture(textureIdle);
 
-        // 2. IMPORTANT : On remet l'échelle normale !
-        // (Sinon le sprite statique sera minuscule à cause du 0.125 précédent)
+        sf::Vector2u size = textureIdle.getSize();
+        float frameW = size.x / 4.f;
+        float frameH = size.y;
 
-        // Calcul pour votre sprite statique (supposons qu'il doive faire 64px de haut aussi)
-        sf::Vector2u staticSize = textureStatic.getSize();
-        float staticFrameW = staticSize.x / 4.f;
-        float staticFrameH = staticSize.y;
-
-        // Si votre sprite sheet de base est petit (ex: 48px), on l'agrandit peut-être un peu
-        // ou on le laisse à échelle 1. Ajustez "targetSize" selon vos goûts.
-        float targetSize = 78.f;
-        float scaleFactor = targetSize / staticFrameH;
-        sprite.setScale(scaleFactor, scaleFactor);
-
-        // 3. On remet l'origine au centre du sprite statique
-        sprite.setOrigin(staticFrameW / 2.f, staticFrameH / 2.f);
-
-        // 4. Sélection de la frame statique (Votre switch)
-        int frameIndex = 0;
-        switch(dir) {
-            case Direction::Down:  frameIndex = 0; break;
-            case Direction::Left:  frameIndex = 1; break;
-            case Direction::Right: frameIndex = 2; break;
-            case Direction::Up:    frameIndex = 3; break;
+        int frame = 0;
+        switch (dir) {
+            case Direction::Down:  frame = 0; break;
+            case Direction::Left:  frame = 1; break;
+            case Direction::Right: frame = 2; break;
+            case Direction::Up:    frame = 3; break;
         }
 
-        sf::IntRect rect(frameIndex * (int)staticFrameW, 0, (int)staticFrameW, (int)staticFrameH);
-        sprite.setTextureRect(rect);
+        sprite.setTextureRect({
+            static_cast<int>(frame * frameW),
+            0,
+            static_cast<int>(frameW),
+            static_cast<int>(frameH)
+        });
+
+        sprite.setScale(78.f / frameH, 78.f / frameH);
+        sprite.setOrigin(frameW / 2.f, frameH / 2.f);
+        currentFrame = 0;
     }
+
+    // Feedback dégâts
+    if (!player.isAlive())
+        sprite.setColor(sf::Color(255, 255, 255, 80));
+    else if (player.isInvincible())
+        sprite.setColor(sf::Color(255, 100, 100));
+    else
+        sprite.setColor(sf::Color::White);
 
     window.draw(sprite);
+}
+
+void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player) {
+    float ratio = std::clamp(
+        (float)player.getHealth() / player.getMaxHealth(),
+        0.f, 1.f
+    );
+
+    float margin = 20.f;
+    float barWidth = 200.f;
+    float barHeight = 20.f;
+
+    sf::Vector2u winSize = window.getSize();
+    sf::Vector2f pos(
+        winSize.x - barWidth - margin,
+        winSize.y - barHeight - margin
+    );
+
+    hpBack.setPosition(pos);
+    hpFront.setPosition(pos);
+    hpOutline.setPosition(pos);
+
+    hpFront.setSize({barWidth * ratio, barHeight});
+
+    if (ratio > 0.6f)
+        hpFront.setFillColor(sf::Color::Green);
+    else if (ratio > 0.3f)
+        hpFront.setFillColor(sf::Color::Yellow);
+    else
+        hpFront.setFillColor(sf::Color::Red);
+
+    hpText.setString(
+        std::to_string((int)player.getHealth()) + " / " +
+        std::to_string((int)player.getMaxHealth())
+    );
+
+    hpText.setPosition(
+        pos.x + barWidth / 2.f - hpText.getLocalBounds().width / 2.f,
+        pos.y - 22.f
+    );
+
+    window.draw(hpBack);
+    window.draw(hpFront);
+    window.draw(hpOutline);
+    window.draw(hpText);
 }

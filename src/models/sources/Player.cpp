@@ -3,7 +3,37 @@
 // 1. MODIFICATION : On initialise 'currentDirection' à Down (Face) par défaut
 Player::Player()
     : position(0.f, 0.f), size(48.f, 48.f), currentDirection(Direction::Down), moving(false)
-{}
+{
+    maxHealth = 100;
+    health = maxHealth;
+}
+
+void Player::takeDamage(int amount){
+    if (invincibilityTimer > 0.f)
+        return;
+
+    health -= amount;
+    if (health < 0)
+        health = 0;
+
+    invincibilityTimer = 3.f; // 3s d’invincibilité
+}
+
+int Player::getHealth() const {
+    return health;
+}
+
+int Player::getMaxHealth() const {
+    return maxHealth;
+}
+
+bool Player::isInvincible() const{
+    return invincibilityTimer > 0.f;
+}
+
+bool Player::isAlive() const {
+    return health > 0;
+}
 
 void Player::move(const sf::Vector2f& delta) {
     position += delta;
@@ -18,7 +48,8 @@ void Player::setSize(float w, float h) {
 }
 
 void Player::update(float dt) {
-    // animations etc. plus tard
+    if (invincibilityTimer > 0.f)
+        invincibilityTimer -= dt;
 }
 
 sf::Vector2f Player::getPosition() const {

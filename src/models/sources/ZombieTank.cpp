@@ -5,5 +5,5 @@ ZombieTank::ZombieTank(const sf::Vector2f& startPos)
 {
     speed = 40.f;
     radius = 50.f;
-    health = 150;
+    health = 100;
 }

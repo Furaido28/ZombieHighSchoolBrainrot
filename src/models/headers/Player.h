@@ -9,6 +9,11 @@ enum class Direction { Down = 0, Left = 1, Right = 2, Up = 3 };
 class Player {
 public:
     Player();
+    int getHealth() const;
+    int getMaxHealth() const;
+    void takeDamage(int amount);
+    bool isAlive() const;
+    bool isInvincible() const;
 
     void move(const sf::Vector2f& delta);
     void setPosition(float x, float y);
@@ -29,6 +34,9 @@ public:
     Inventory& getInventory();
 
 private:
+    int health;
+    int maxHealth;
+    float invincibilityTimer = 0.f;
     sf::Vector2f position;
     sf::Vector2f size;
     float speed;
