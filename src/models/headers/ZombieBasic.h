@@ -23,6 +23,10 @@ public:
     int getDamage() const override;
     bool isAlive() const override;
 
+    ZombieType getType() const override {
+        return ZombieType::Basic;
+    }
+
 
 protected:
     sf::Vector2f position;

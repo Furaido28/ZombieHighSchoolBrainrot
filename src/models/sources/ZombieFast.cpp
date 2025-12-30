@@ -3,7 +3,7 @@
 ZombieFast::ZombieFast(const sf::Vector2f& startPos)
     : ZombieBasic(startPos)
 {
-    speed = 120.f;
-    radius = 50.0f;
+    speed = 100.f;
+    radius = 35.0f;
     health = 35;
 }

@@ -7,6 +7,10 @@
 class ZombieTank : public ZombieBasic {
 public:
     ZombieTank(const sf::Vector2f& startPos);
+
+    ZombieType getType() const override {
+        return ZombieType::Tank;
+    }
 };
 
 #endif //ZOMBIEHIGHSCHOOLBRAINROT_ZOMBIETANK_H

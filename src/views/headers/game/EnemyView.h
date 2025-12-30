@@ -1,23 +1,26 @@
-#ifndef ZOMBIEHIGHSCHOOLBRAINROT_ENEMYVIEW_H
-#define ZOMBIEHIGHSCHOOLBRAINROT_ENEMYVIEW_H
-
 #pragma once
-
 #include <SFML/Graphics.hpp>
-#include "../../../models/headers/Enemy.h"
+#include "models/headers/Enemy.h"
 
 class EnemyView {
 public:
     EnemyView();
-
     void render(sf::RenderWindow& window, const Enemy& enemy);
 
 private:
-    sf::Texture zombieBasicTexture;
+    void loadTextureForType(ZombieType type);
+
+private:
     sf::Sprite sprite;
 
-    int frameWidth;
-    int frameHeight;
-};
+    sf::Texture zombieBasicTexture;
+    sf::Texture zombieFastTexture;
+    sf::Texture zombieTankTexture;
+    sf::Texture bossZombieTexture;
 
-#endif //ZOMBIEHIGHSCHOOLBRAINROT_ENEMYVIEW_H
+    int frameWidth = 0;
+    int frameHeight = 0;
+
+    ZombieType currentType;
+    bool textureInitialized = false;
+};
