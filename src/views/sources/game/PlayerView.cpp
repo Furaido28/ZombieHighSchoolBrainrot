@@ -2,57 +2,66 @@
 #include <iostream>
 #include <algorithm>
 
-PlayerView::PlayerView()
-{
-    if (!textureStatic.loadFromFile("assets/animation/player/player_sheet.png"))
+#include "models/headers/Player.h"
+
+PlayerView::PlayerView() {
+    // --- Textures ---
+    if (!textureIdle.loadFromFile("assets/animation/player/player_sheet.png"))
         std::cerr << "Erreur player_sheet.png\n";
 
-    if (!textureWalkLeft.loadFromFile("assets/animation/player/player_walking_left.png"))
-        std::cerr << "Erreur player_walking_left.png\n";
+    if (!textureLeft.loadFromFile("assets/animation/player/player_walking_left.png"))
+        std::cerr << "Erreur walking_left.png\n";
 
-    if (!textureWalkRight.loadFromFile("assets/animation/player/player_walking_right.png"))
-        std::cerr << "Erreur player_walking_right.png\n";
+    if (!textureRight.loadFromFile("assets/animation/player/player_walking_right.png"))
+        std::cerr << "Erreur walking_right.png\n";
 
-    if (!textureWalkFront.loadFromFile("assets/animation/player/player_walking_front.png"))
-        std::cerr << "Erreur player_walking_front.png\n";
+    if (!textureDown.loadFromFile("assets/animation/player/player_walking_front.png"))
+        std::cerr << "Erreur walking_front.png\n";
 
-    if (!textureWalkBack.loadFromFile("assets/animation/player/player_walking_back.png"))
-        std::cerr << "Erreur player_walking_back.png\n";
+    if (!textureUp.loadFromFile("assets/animation/player/player_walking_back.png"))
+        std::cerr << "Erreur walking_back.png\n";
 
-    textureWalkLeft.setSmooth(true);
-    textureWalkRight.setSmooth(true);
-    textureWalkFront.setSmooth(true);
-    textureWalkBack.setSmooth(true);
+    textureLeft.setSmooth(true);
+    textureRight.setSmooth(true);
+    textureUp.setSmooth(true);
+    textureDown.setSmooth(true);
 
-    sprite.setTexture(textureStatic);
+    sprite.setTexture(textureIdle);
 
-    // --- HUD HP ---
-    hpBack.setSize({200.f, 18.f});
-    hpBack.setFillColor(sf::Color(40, 40, 40, 220));
+    // --- HUD ---
+    hpBack.setSize({200.f, 20.f});
+    hpBack.setFillColor(sf::Color(30, 30, 30, 220));
 
-    hpFront.setSize({200.f, 18.f});
+    hpFront.setSize({200.f, 20.f});
     hpFront.setFillColor(sf::Color::Green);
 
-    hpOutline.setSize({200.f, 18.f});
+    hpOutline.setSize({200.f, 20.f});
     hpOutline.setFillColor(sf::Color::Transparent);
     hpOutline.setOutlineThickness(2.f);
     hpOutline.setOutlineColor(sf::Color::Black);
+
+    if (!hudFont.loadFromFile("assets/fonts/arial.ttf"))
+        std::cerr << "Erreur police HUD\n";
+
+    hpText.setFont(hudFont);
+    hpText.setCharacterSize(14);
+    hpText.setFillColor(sf::Color::White);
+    hpText.setStyle(sf::Text::Bold);
 }
 
 void PlayerView::playAnimation(
     sf::Texture& texture,
     int frameCount,
     int columns,
-    float targetSize,
-    bool animated
+    float targetSize
 ) {
     sprite.setTexture(texture);
 
     int frameSize = texture.getSize().x / columns;
 
-    if (animated && animationTimer.getElapsedTime().asSeconds() > timePerFrame) {
+    if (animationClock.getElapsedTime().asSeconds() > frameTime) {
         currentFrame = (currentFrame + 1) % frameCount;
-        animationTimer.restart();
+        animationClock.restart();
     }
 
     int col = currentFrame % columns;
@@ -70,27 +79,27 @@ void PlayerView::playAnimation(
     sprite.setOrigin(frameSize / 2.f, frameSize / 2.f);
 }
 
-void PlayerView::render(sf::RenderWindow& window, const Player& player)
-{
+
+void PlayerView::renderWorld(sf::RenderWindow& window, const Player& player) {
     sprite.setPosition(player.getPosition());
 
     Direction dir = player.getDirection();
     bool moving = player.isMoving();
 
-    // --- ANIMATIONS ---
-    if (dir == Direction::Left && moving)
-        playAnimation(textureWalkLeft, 34, 6, 64.f, true);
-    else if (dir == Direction::Right && moving)
-        playAnimation(textureWalkRight, 33, 6, 64.f, true);
-    else if (dir == Direction::Down && moving)
-        playAnimation(textureWalkFront, 33, 6, 80.f, true);
-    else if (dir == Direction::Up && moving)
-        playAnimation(textureWalkBack, 33, 6, 80.f, true);
+    if (moving) {
+        if (dir == Direction::Left)
+            playAnimation(textureLeft, 34, 6, 64.f);
+        else if (dir == Direction::Right)
+            playAnimation(textureRight, 33, 6, 64.f);
+        else if (dir == Direction::Down)
+            playAnimation(textureDown, 33, 6, 80.f);
+        else if (dir == Direction::Up)
+            playAnimation(textureUp, 33, 6, 80.f);
+    }
     else {
-        // --- IDLE ---
-        sprite.setTexture(textureStatic);
+        sprite.setTexture(textureIdle);
 
-        sf::Vector2u size = textureStatic.getSize();
+        sf::Vector2u size = textureIdle.getSize();
         float frameW = size.x / 4.f;
         float frameH = size.y;
 
@@ -109,13 +118,12 @@ void PlayerView::render(sf::RenderWindow& window, const Player& player)
             static_cast<int>(frameH)
         });
 
-        float scale = 78.f / frameH;
-        sprite.setScale(scale, scale);
+        sprite.setScale(78.f / frameH, 78.f / frameH);
         sprite.setOrigin(frameW / 2.f, frameH / 2.f);
         currentFrame = 0;
     }
 
-    // --- FEEDBACK DÉGÂTS ---
+    // Feedback dégâts
     if (!player.isAlive())
         sprite.setColor(sf::Color(255, 255, 255, 80));
     else if (player.isInvincible())
@@ -124,10 +132,29 @@ void PlayerView::render(sf::RenderWindow& window, const Player& player)
         sprite.setColor(sf::Color::White);
 
     window.draw(sprite);
+}
 
-    // ================= HUD =================
-    float ratio = (float)player.getHealth() / player.getMaxHealth();
-    ratio = std::clamp(ratio, 0.f, 1.f);
+void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player) {
+    float ratio = std::clamp(
+        (float)player.getHealth() / player.getMaxHealth(),
+        0.f, 1.f
+    );
+
+    float margin = 20.f;
+    float barWidth = 200.f;
+    float barHeight = 20.f;
+
+    sf::Vector2u winSize = window.getSize();
+    sf::Vector2f pos(
+        winSize.x - barWidth - margin,
+        winSize.y - barHeight - margin
+    );
+
+    hpBack.setPosition(pos);
+    hpFront.setPosition(pos);
+    hpOutline.setPosition(pos);
+
+    hpFront.setSize({barWidth * ratio, barHeight});
 
     if (ratio > 0.6f)
         hpFront.setFillColor(sf::Color::Green);
@@ -136,15 +163,18 @@ void PlayerView::render(sf::RenderWindow& window, const Player& player)
     else
         hpFront.setFillColor(sf::Color::Red);
 
-    hpFront.setSize({200.f * ratio, 18.f});
+    hpText.setString(
+        std::to_string((int)player.getHealth()) + " / " +
+        std::to_string((int)player.getMaxHealth())
+    );
 
-    sf::Vector2f hudPos(20.f, window.getSize().y - 40.f);
-    hpBack.setPosition(hudPos);
-    hpFront.setPosition(hudPos);
-    hpOutline.setPosition(hudPos);
+    hpText.setPosition(
+        pos.x + barWidth / 2.f - hpText.getLocalBounds().width / 2.f,
+        pos.y - 22.f
+    );
 
     window.draw(hpBack);
     window.draw(hpFront);
     window.draw(hpOutline);
+    window.draw(hpText);
 }
-

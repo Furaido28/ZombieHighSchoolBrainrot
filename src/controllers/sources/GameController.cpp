@@ -169,10 +169,12 @@ void GameController::render(sf::RenderWindow& window) {
         enemyView.render(window, *enemy, playerPos);
     }
 
-    playerView.render(window, player);
+    playerView.renderWorld(window, player);
 
     // 3. Interface (HUD) - Remise à zéro de la caméra
     window.setView(window.getDefaultView());
+
+    playerView.renderHUD(window, player);
 }
 
 bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
