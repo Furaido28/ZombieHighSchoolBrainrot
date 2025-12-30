@@ -15,11 +15,35 @@ EnemyView::EnemyView() {
     if (!bossZombieTexture.loadFromFile("assets/animation/BossZombie/boss_idle.png"))
         std::cerr << "Erreur boss_idle.png\n";
 
-    healthBarBack.setSize({ healthBarWidth, healthBarHeight });
-    healthBarBack.setFillColor(sf::Color(50, 50, 50, 200));
+    // --- BACK ---
+    hbBack.setSize({ healthBarWidth - 2 * healthBarRadius, healthBarHeight });
+    hbBack.setFillColor(sf::Color(30, 30, 30, 220));
 
-    healthBarFront.setSize({ healthBarWidth, healthBarHeight });
-    healthBarFront.setFillColor(sf::Color::Green);
+    hbBackLeft.setRadius(healthBarRadius);
+    hbBackRight.setRadius(healthBarRadius);
+    hbBackLeft.setFillColor(hbBack.getFillColor());
+    hbBackRight.setFillColor(hbBack.getFillColor());
+
+    // --- FRONT ---
+    hbFront.setFillColor(sf::Color::Green);
+    hbFrontLeft.setRadius(healthBarRadius);
+    hbFrontRight.setRadius(healthBarRadius);
+
+    // --- OUTLINE ---
+    hbOutline.setSize({ healthBarWidth - 2 * healthBarRadius, healthBarHeight });
+    hbOutline.setFillColor(sf::Color::Transparent);
+    hbOutline.setOutlineThickness(1.f);
+    hbOutline.setOutlineColor(sf::Color::Black);
+
+    hbOutlineLeft.setRadius(healthBarRadius);
+    hbOutlineRight.setRadius(healthBarRadius);
+    hbOutlineLeft.setFillColor(sf::Color::Transparent);
+    hbOutlineRight.setFillColor(sf::Color::Transparent);
+    hbOutlineLeft.setOutlineThickness(1.f);
+    hbOutlineRight.setOutlineThickness(1.f);
+    hbOutlineLeft.setOutlineColor(sf::Color::Black);
+    hbOutlineRight.setOutlineColor(sf::Color::Black);
+
 }
 
 void EnemyView::loadTextureForType(ZombieType type) {
@@ -50,40 +74,80 @@ void EnemyView::loadTextureForType(ZombieType type) {
     sprite.setOrigin(frameWidth / 2.f, frameHeight / 2.f);
 }
 
-void EnemyView::drawHealthBar(
-    sf::RenderWindow& window,
-    const Enemy& enemy
-)
+void EnemyView::drawHealthBar(sf::RenderWindow& window, const Enemy& enemy)
 {
-    float ratio = enemy.getHealth() / enemy.getMaxHealth();
-    ratio = std::max(0.f, ratio);
+    float maxHp = enemy.getMaxHealth();
+    if (maxHp <= 0.f) return;
 
-    // Position au-dessus du zombie
-    sf::Vector2f pos = enemy.getPosition();
-    float yOffset = enemy.getRadius() + 10.f;
+    float ratio = enemy.getHealth() / maxHp;
+    ratio = std::clamp(ratio, 0.f, 1.f);
 
-    healthBarBack.setPosition(
-        pos.x - healthBarWidth / 2.f,
-        pos.y - yOffset
+    sf::Vector2f basePos = enemy.getPosition();
+    float yOffset = enemy.getRadius() + 12.f;
+
+    sf::Vector2f pos(
+        basePos.x - healthBarWidth / 2.f,
+        basePos.y - yOffset
     );
 
-    healthBarFront.setPosition(healthBarBack.getPosition());
-    healthBarFront.setSize({
-        healthBarWidth * ratio,
-        healthBarHeight
-    });
+    // ---------------- BACK ----------------
+    hbBack.setPosition(pos.x + healthBarRadius, pos.y);
+    hbBackLeft.setPosition(pos.x, pos.y);
+    hbBackRight.setPosition(
+        pos.x + healthBarWidth - 2 * healthBarRadius,
+        pos.y
+    );
+
+    // ---------------- FRONT ----------------
+    float frontWidth = (healthBarWidth - 2 * healthBarRadius) * ratio;
+    hbFront.setSize({ frontWidth, healthBarHeight });
+    hbFront.setPosition(pos.x + healthBarRadius, pos.y);
+
+    hbFrontLeft.setPosition(pos.x, pos.y);
+
+    if (ratio > 0.f) {
+        hbFrontRight.setPosition(
+            pos.x + healthBarRadius + frontWidth - healthBarRadius,
+            pos.y
+        );
+    }
 
     // Couleur dynamique
     if (ratio > 0.6f)
-        healthBarFront.setFillColor(sf::Color::Green);
+        hbFront.setFillColor(sf::Color(80, 220, 100));
     else if (ratio > 0.3f)
-        healthBarFront.setFillColor(sf::Color::Yellow);
+        hbFront.setFillColor(sf::Color(240, 200, 80));
     else
-        healthBarFront.setFillColor(sf::Color::Red);
+        hbFront.setFillColor(sf::Color(220, 80, 80));
 
-    window.draw(healthBarBack);
-    window.draw(healthBarFront);
+    hbFrontLeft.setFillColor(hbFront.getFillColor());
+    hbFrontRight.setFillColor(hbFront.getFillColor());
+
+    // ---------------- OUTLINE ----------------
+    hbOutline.setPosition(pos.x + healthBarRadius, pos.y);
+    hbOutlineLeft.setPosition(pos.x, pos.y);
+    hbOutlineRight.setPosition(
+        pos.x + healthBarWidth - 2 * healthBarRadius,
+        pos.y
+    );
+
+    // ---------------- DRAW ORDER ----------------
+    window.draw(hbBackLeft);
+    window.draw(hbBack);
+    window.draw(hbBackRight);
+
+    if (ratio > 0.f) {
+        window.draw(hbFrontLeft);
+        window.draw(hbFront);
+        if (frontWidth > healthBarRadius)
+            window.draw(hbFrontRight);
+    }
+
+    window.draw(hbOutlineLeft);
+    window.draw(hbOutline);
+    window.draw(hbOutlineRight);
 }
+
 
 void EnemyView::render(
     sf::RenderWindow& window,
