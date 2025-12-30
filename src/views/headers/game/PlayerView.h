@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "../../../models/headers/Player.h"
+#include "models/headers/Player.h"
 
 class PlayerView {
 public:
@@ -8,18 +8,23 @@ public:
     void render(sf::RenderWindow& window, const Player& player);
 
 private:
-    // Texture pour l'immobile (votre petite image)
-    sf::Texture textureStatic;
+    void playAnimation(
+        sf::Texture& texture,
+        int frameCount,
+        int columns,
+        float targetSize,
+        bool animated
+    );
 
-    // Texture pour la marche gauche (votre grosse image)
+private:
+    sf::Sprite sprite;
+
+    sf::Texture textureStatic;
     sf::Texture textureWalkLeft;
     sf::Texture textureWalkRight;
     sf::Texture textureWalkFront;
     sf::Texture textureWalkBack;
 
-    sf::Sprite sprite;
-
-    // Pour l'animation
     sf::Clock animationTimer;
     int currentFrame;
     float timePerFrame;

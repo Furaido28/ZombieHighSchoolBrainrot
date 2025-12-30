@@ -5,8 +5,8 @@ PlayerView::PlayerView() {
     // -----------------------------------------------------------
     // 1. CHARGEMENT DE LA PLANCHE STATIQUE (Votre code de base)
     // -----------------------------------------------------------
-    if (!textureStatic.loadFromFile("assets/animation/player/zombie_basic.png")) {
-        std::cerr << "ERREUR: Impossible de charger assets/zombie_basic.png" << std::endl;
+    if (!textureStatic.loadFromFile("assets/animation/player/player_sheet.png")) {
+        std::cerr << "ERREUR: Impossible de charger assets/player_sheet.png" << std::endl;
     }
 
     // -----------------------------------------------------------
