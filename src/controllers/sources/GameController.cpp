@@ -148,7 +148,7 @@ void GameController::update(float dt) {
                 player.getPosition(), player.getRadius(),
                 enemy->getPosition(), enemy->getRadius()))
         {
-            //player.takeDamage(enemy->getDamage());
+            player.takeDamage(enemy->getDamage());
             std::cout << "COLLISION!" << std::endl;
         }
     }

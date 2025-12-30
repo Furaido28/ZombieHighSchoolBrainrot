@@ -26,6 +26,11 @@ private:
     sf::Texture textureWalkBack;
 
     sf::Clock animationTimer;
-    int currentFrame;
-    float timePerFrame;
+    int currentFrame = 0;
+    float timePerFrame = 0.03f;
+
+    // HUD - Vie
+    sf::RectangleShape hpBack;
+    sf::RectangleShape hpFront;
+    sf::RectangleShape hpOutline;
 };
