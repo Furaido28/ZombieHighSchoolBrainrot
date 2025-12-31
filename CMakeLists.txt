@@ -14,8 +14,7 @@ file(GLOB_RECURSE SOURCES
         src/*.cpp
 )
 
-add_executable(ZombieHighSchoolBrainrot ${SOURCES}
-        src/models/sources/Inventory.cpp)
+add_executable(ZombieHighSchoolBrainrot ${SOURCES})
 
 target_include_directories(ZombieHighSchoolBrainrot PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
