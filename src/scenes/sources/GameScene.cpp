@@ -8,7 +8,24 @@ GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
 
 void GameScene::handleEvent(const sf::Event& event) {
     controller.handleEvent(event);
+    if (event.type == sf::Event::MouseWheelScrolled) {
+        Inventory& inv = controller.getPlayer().getInventory();
+        int current = inv.getSelectedSlot();
 
+        int maxSlot;
+        if (tabPressed)
+            maxSlot = 8;
+        else
+            maxSlot = 2;
+        if (event.mouseWheelScroll.delta >0) {
+            if (current < maxSlot)
+                inv.selectSlot(current +1);
+        }
+        else if (event.mouseWheelScroll.delta < 0){
+            if (current >0)
+                inv.selectSlot(current -1);
+        }
+    }
     if (event.type == sf::Event::KeyPressed) {
 
         if (event.key.code == sf::Keyboard::Num1)
@@ -29,6 +46,7 @@ void GameScene::handleEvent(const sf::Event& event) {
             controller.getPlayer().getInventory().selectSlot(7);
         if (event.key.code == sf::Keyboard::Num9)
             controller.getPlayer().getInventory().selectSlot(8);
+
 
 
         if (event.key.code == sf::Keyboard::Tab)

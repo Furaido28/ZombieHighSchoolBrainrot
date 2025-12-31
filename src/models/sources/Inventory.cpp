@@ -30,7 +30,7 @@ const std::vector<Item>& Inventory::getKeyFragments() const {
     return keyFragments;
 }
 void Inventory::selectSlot(int const index) {
-    if (index >= 0 && index < 8) {
+    if (index >= 0 && index <= 8) {
         selectedSlot = index;
     }
 }
