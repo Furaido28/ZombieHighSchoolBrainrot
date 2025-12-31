@@ -62,7 +62,15 @@ PlayerView::PlayerView() {
 
     heartSprite.setScale(scale, scale);
 
+    waveText.setFont(hudFont);
+    waveText.setCharacterSize(18);
+    waveText.setFillColor(sf::Color::White);
+    waveText.setStyle(sf::Text::Bold);
 
+    timerText.setFont(hudFont);
+    timerText.setCharacterSize(16);
+    timerText.setFillColor(sf::Color::White);
+    timerText.setStyle(sf::Text::Bold);
 }
 
 void PlayerView::playAnimation(
@@ -150,7 +158,7 @@ void PlayerView::renderWorld(sf::RenderWindow& window, const Player& player) {
     window.draw(sprite);
 }
 
-void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player) {
+void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int waveNumber, float timeLeft) {
     float ratio = std::clamp(
         (float)player.getHealth() / player.getMaxHealth(),
         0.f, 1.f
@@ -213,9 +221,66 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player) {
         heartBounds.height / 2.f
     );
 
+    // =========================
+    // TEXTE DE VAGUE
+    // =========================
+    std::string waveLabel;
+
+    switch (waveNumber) {
+        case 1:
+            waveLabel = "Simple WAVE";
+            break;
+        case 2:
+            waveLabel = "Medium WAVE";
+            break;
+        case 3:
+            waveLabel = "Difficult WAVE";
+            break;
+        case 4:
+            waveLabel = "Hard WAVE";
+            break;
+        default:
+            waveLabel = "./.";
+    }
+
+    waveText.setString(waveLabel);
+
+    sf::Vector2u waveTextwinSize = window.getSize();
+    float waveTextmargin = 20.f;
+
+    waveText.setPosition(
+        waveTextwinSize.x - waveText.getLocalBounds().width - waveTextmargin,
+        waveTextmargin
+    );
+
+    window.draw(waveText);
+
     window.draw(hpBack);
     window.draw(hpFront);
     window.draw(hpOutline);
     window.draw(heartSprite);
     window.draw(hpText);
+
+    // =========================
+    // TIMER DE VAGUE
+    // =========================
+    int seconds = static_cast<int>(timeLeft);
+    int minutes = seconds / 60;
+    seconds %= 60;
+
+    std::string timerStr =
+        (minutes < 10 ? "0" : "") + std::to_string(minutes) + ":" +
+        (seconds < 10 ? "0" : "") + std::to_string(seconds);
+
+    timerText.setString(timerStr);
+
+    sf::FloatRect bounds = timerText.getLocalBounds();
+    timerText.setOrigin(bounds.left + bounds.width, bounds.top);
+
+    timerText.setPosition(
+        window.getSize().x - 20.f,
+        waveText.getPosition().y + waveText.getCharacterSize() + 5.f
+    );
+
+    window.draw(timerText);
 }

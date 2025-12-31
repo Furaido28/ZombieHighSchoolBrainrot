@@ -4,19 +4,18 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "../../models/headers/Player.h"
-#include "../../models/headers/TileMap.h"
-#include "../../models/headers/Enemy.h"
-#include "../../models/headers/ZombieBasic.h"
-#include "../../models/headers/ZombieFast.h"
-#include "../../models/headers/ZombieTank.h"
-#include "../../models/headers/Boss.h"
-#include "../../views/headers/game/PlayerView.h"
-#include "../../views/headers/game/EnemyView.h"
-// AJOUT: On inclut la vue de la map pour pouvoir l'utiliser
-#include "../../views/headers/game/MapView.h"
-//AJOUT DES ITEMS
-#include "./models/headers/Item.h"
+#include "models/headers/Player.h"
+#include "models/headers/TileMap.h"
+#include "models/headers/Enemy.h"
+#include "models/headers/ZombieBasic.h"
+#include "models/headers/ZombieFast.h"
+#include "models/headers/ZombieTank.h"
+#include "models/headers/Boss.h"
+#include "models/headers/Item.h"
+#include "views/headers/game/PlayerView.h"
+#include "views/headers/game/EnemyView.h"
+#include "views/headers/game/MapView.h"
+#include "core/headers/WaveManager.h"
 
 class GameController {
 public:
@@ -47,4 +46,6 @@ private:
     MapView mapView;
     std::vector<std::unique_ptr<Enemy>> enemies;
     EnemyView enemyView;
+
+    std::unique_ptr<WaveManager> waveManager;
 };
