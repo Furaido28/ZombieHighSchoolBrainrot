@@ -10,7 +10,7 @@ public:
     void renderWorld(sf::RenderWindow& window, const Player& player);
 
     // Dessin du HUD (sans caméra)
-    void renderHUD(sf::RenderWindow& window, const Player& player);
+    void renderHUD(sf::RenderWindow& window, const Player& player, int waveNumber, float timeLeft);
 
 private:
     void playAnimation(
@@ -44,4 +44,7 @@ private:
 
     sf::Texture heartTexture;
     sf::Sprite heartSprite;
+
+    sf::Text waveText;
+    sf::Text timerText;
 };
