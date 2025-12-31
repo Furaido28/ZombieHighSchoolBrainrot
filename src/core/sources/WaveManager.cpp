@@ -25,37 +25,79 @@ WaveManager::WaveManager(const TileMap& mapRef)
         {14, 8, 3, 0},
         {20, 8, 6, 1},
     };
+
+    waveClock.restart();
 }
 
 int WaveManager::getCurrentWave() const {
     return currentWave + 1;
 }
 
+float WaveManager::getTimeLeft() const {
+    float elapsed = waveClock.getElapsedTime().asSeconds();
+    float remaining = maxWaveDuration - elapsed;
+    return std::max(0.f, remaining);
+}
+
 void WaveManager::update(float dt, Player& player,
                          std::vector<std::unique_ptr<Enemy>>& enemies)
 {
-    if (currentWave >= waves.size()) return;
+    if (currentWave >= waves.size())
+        return;
 
     const Wave& w = waves[currentWave];
     int totalEnemies = w.simple + w.medium + w.difficult + w.hard;
 
-    if (spawnedInWave >= totalEnemies) {
-        for (const auto& e : enemies)
-            if (e->isAlive())
-                return;
-
-        currentWave++;
-        spawnedInWave = 0;
-        spawnClock.restart();
-        return;
-    }
-
-    if (spawnClock.getElapsedTime().asSeconds() >= spawnDelay) {
+    // =========================
+    // SPAWN DES ENNEMIS
+    // =========================
+    if (spawnedInWave < totalEnemies &&
+        spawnClock.getElapsedTime().asSeconds() >= spawnDelay)
+    {
         spawnEnemy(player, enemies);
         spawnedInWave++;
         spawnClock.restart();
     }
+
+    // =========================
+    // ENNEMIS ENCORE EN VIE ?
+    // =========================
+    bool enemiesAlive = false;
+    for (const auto& e : enemies) {
+        if (e->isAlive()) {
+            enemiesAlive = true;
+            break;
+        }
+    }
+
+    bool allSpawned = (spawnedInWave >= totalEnemies);
+    bool timeOver   = (waveClock.getElapsedTime().asSeconds() >= maxWaveDuration);
+
+    bool nextIsLast = (currentWave == waves.size() - 2);
+
+    // =========================
+    // FIN DE VAGUE
+    // =========================
+
+    // Cas NORMAL : tout les ennemies sont mort → toujours autorisé
+    if (allSpawned && !enemiesAlive) {
+        currentWave++;
+        spawnedInWave = 0;
+        spawnClock.restart();
+        waveClock.restart();
+        return;
+    }
+
+    // Cas TIMER : autorisé SEULEMENT si la prochaine n’est PAS la dernière
+    if (allSpawned && timeOver && !nextIsLast) {
+        currentWave++;
+        spawnedInWave = 0;
+        spawnClock.restart();
+        waveClock.restart();
+        return;
+    }
 }
+
 
 void WaveManager::spawnEnemy(Player& player,
                              std::vector<std::unique_ptr<Enemy>>& enemies)

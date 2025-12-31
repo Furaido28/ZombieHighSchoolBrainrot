@@ -181,10 +181,13 @@ void GameController::render(sf::RenderWindow& window) {
     // 3. Interface (HUD) - Remise à zéro de la caméra
     window.setView(window.getDefaultView());
 
+    // Récupère le title de la wave
+    int wave = waveManager ? waveManager->getCurrentWave() : 0;
 
-    int waveNumber = waveManager ? waveManager->getCurrentWave() : 0;
+    // Récupère le temps restant
+    float timeLeft = waveManager ? waveManager->getTimeLeft() : 0.f;
 
-    playerView.renderHUD(window, player, waveNumber);
+    playerView.renderHUD(window, player, wave, timeLeft);
 }
 
 bool GameController::isPositionFree(const sf::FloatRect& bbox) const {

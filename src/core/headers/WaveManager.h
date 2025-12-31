@@ -23,6 +23,7 @@ public:
                 std::vector<std::unique_ptr<Enemy>>& enemies);
 
     int getCurrentWave() const;
+    float getTimeLeft() const;
 
 private:
     void spawnEnemy(Player& player,
@@ -34,6 +35,9 @@ private:
     std::vector<sf::Vector2i> freeTiles;
 
     std::vector<Wave> waves;
+    sf::Clock waveClock;
+    float maxWaveDuration = 150.f; // 2 minutes 30 secondes
+
     int currentWave = 0;
     int spawnedInWave = 0;
 
