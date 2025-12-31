@@ -62,7 +62,10 @@ PlayerView::PlayerView() {
 
     heartSprite.setScale(scale, scale);
 
-
+    waveText.setFont(hudFont);
+    waveText.setCharacterSize(18);
+    waveText.setFillColor(sf::Color::White);
+    waveText.setStyle(sf::Text::Bold);
 }
 
 void PlayerView::playAnimation(
@@ -150,7 +153,7 @@ void PlayerView::renderWorld(sf::RenderWindow& window, const Player& player) {
     window.draw(sprite);
 }
 
-void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player) {
+void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int waveNumber) {
     float ratio = std::clamp(
         (float)player.getHealth() / player.getMaxHealth(),
         0.f, 1.f
@@ -212,6 +215,28 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player) {
         hpText.getGlobalBounds().height / 2.f -
         heartBounds.height / 2.f
     );
+
+    // =========================
+    // TEXTE DE VAGUE
+    // =========================
+    std::string waveLabel;
+
+    if (waveNumber == 1)
+        waveLabel = "FIRST WAVE";
+    else
+        waveLabel = "WAVE " + std::to_string(waveNumber);
+
+    waveText.setString(waveLabel);
+
+    sf::Vector2u waveTextwinSize = window.getSize();
+    float waveTextmargin = 20.f;
+
+    waveText.setPosition(
+        waveTextwinSize.x - waveText.getLocalBounds().width - waveTextmargin,
+        waveTextmargin
+    );
+
+    window.draw(waveText);
 
     window.draw(hpBack);
     window.draw(hpFront);
