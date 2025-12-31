@@ -41,12 +41,28 @@ PlayerView::PlayerView() {
     hpOutline.setOutlineColor(sf::Color::Black);
 
     if (!hudFont.loadFromFile("assets/fonts/arial.ttf"))
-        std::cerr << "Erreur police HUD\n";
+        std::cerr << "❌ Erreur police HUD (healthbar)\n";
 
     hpText.setFont(hudFont);
     hpText.setCharacterSize(14);
     hpText.setFillColor(sf::Color::White);
     hpText.setStyle(sf::Text::Bold);
+
+    if (!heartTexture.loadFromFile("assets/ui/heart.png"))
+        std::cerr << "Erreur heart.png\n";
+
+    heartTexture.setSmooth(true);
+    heartSprite.setTexture(heartTexture);
+
+    // Taille du cœur
+    float targetHeartSize = 18.f;
+
+    sf::Vector2u texSize = heartTexture.getSize();
+    float scale = targetHeartSize / texSize.x;
+
+    heartSprite.setScale(scale, scale);
+
+
 }
 
 void PlayerView::playAnimation(
@@ -163,18 +179,43 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player) {
     else
         hpFront.setFillColor(sf::Color::Red);
 
+    // Texte HP
     hpText.setString(
         std::to_string((int)player.getHealth()) + " / " +
         std::to_string((int)player.getMaxHealth())
     );
 
+    // Origine du texte : bas-centre
+    sf::FloatRect textBounds = hpText.getLocalBounds();
+    hpText.setOrigin(
+        textBounds.left + textBounds.width / 2.f,
+        textBounds.top + textBounds.height
+    );
+
+    // Espace entre texte et barre
+    float textSpacing = 8.f;
+
+    // Position du texte (au-dessus de la barre)
     hpText.setPosition(
-        pos.x + barWidth / 2.f - hpText.getLocalBounds().width / 2.f,
-        pos.y - 22.f
+        pos.x + barWidth / 2.f,
+        pos.y - textSpacing
+    );
+
+    // --- CŒUR ---
+    float heartSpacing = 6.f;
+    sf::FloatRect heartBounds = heartSprite.getGlobalBounds();
+
+    // Position du cœur à gauche du texte
+    heartSprite.setPosition(
+        hpText.getGlobalBounds().left - heartBounds.width - heartSpacing,
+        hpText.getGlobalBounds().top +
+        hpText.getGlobalBounds().height / 2.f -
+        heartBounds.height / 2.f
     );
 
     window.draw(hpBack);
     window.draw(hpFront);
     window.draw(hpOutline);
+    window.draw(heartSprite);
     window.draw(hpText);
 }

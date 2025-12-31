@@ -38,6 +38,10 @@ private:
     sf::RectangleShape hpBack;
     sf::RectangleShape hpFront;
     sf::RectangleShape hpOutline;
+
     sf::Text hpText;
     sf::Font hudFont;
+
+    sf::Texture heartTexture;
+    sf::Sprite heartSprite;
 };
