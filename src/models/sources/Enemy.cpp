@@ -60,3 +60,11 @@ sf::Vector2f Enemy::normalize(const sf::Vector2f& v) const {
     return { v.x / len, v.y / len };
 }
 
+void Enemy::takeDamage(int amount) {
+    if (!isAlive()) {
+        return;
+    }
+    health -= amount;
+    if (health <0)
+        health = 0;
+}

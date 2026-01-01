@@ -18,6 +18,21 @@
 #include "views/headers/game/MapView.h"
 #include "core/headers/WaveManager.h"
 
+struct WorldItem {
+    Item item;
+    sf::Vector2f position;
+    float radius = 20.f;
+
+    sf::FloatRect getBounds() const {
+        return {
+            position.x - radius,
+            position.y - radius,
+            radius * 2.f,
+            radius * 2.f
+        };
+    }
+};
+
 class GameController {
 public:
     GameController();
@@ -49,4 +64,7 @@ private:
     EnemyView enemyView;
 
     std::unique_ptr<WaveManager> waveManager;
+    std::vector<WorldItem> worldItems;
+    float attackCooldown = 0.4f;
+    float attackTimer = 0.f;
 };

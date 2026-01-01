@@ -60,10 +60,6 @@ void GameScene::handleEvent(const sf::Event& event) {
         event.key.code == sf::Keyboard::Tab) {
         tabPressed = false;
         }
-    if (event.type == sf::Event::KeyPressed &&
-    event.key.code == sf::Keyboard::I) {
-        controller.givePotionToPlayer();
-    }
 
 }
 

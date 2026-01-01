@@ -26,6 +26,10 @@ int Player::getHealth() const {
 int Player::getMaxHealth() const {
     return maxHealth;
 }
+void Player::setHealth(int value) {
+    health = value;
+}
+
 
 bool Player::isInvincible() const{
     return invincibilityTimer > 0.f;

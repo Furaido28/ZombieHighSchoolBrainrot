@@ -12,6 +12,7 @@ public:
     Player();
     int getHealth() const;
     int getMaxHealth() const;
+    void setHealth(int value);
     void takeDamage(int amount);
     bool isAlive() const;
     bool isInvincible() const;

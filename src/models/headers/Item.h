@@ -14,4 +14,5 @@ struct Item {
     std::string name;
     ItemType type;
     sf::Sprite sprite;
+    int value;
 };

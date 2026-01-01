@@ -2,6 +2,8 @@
 #include "../../Constants.h"
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
 
 static bool circlesIntersect(
     const sf::Vector2f& aPos, float aRadius,
@@ -13,9 +15,52 @@ static bool circlesIntersect(
     return distSq <= r * r;
 }
 
+// =========================
+// RANDOM TILE HELPERS
+// =========================
+static sf::Vector2f getRandomFreeTileCenter(const TileMap& map) {
+    std::vector<sf::Vector2i> freeTiles;
+
+    for (unsigned y = 0; y < map.getHeight(); ++y) {
+        for (unsigned x = 0; x < map.getWidth(); ++x) {
+            if (map.getTile(x, y) == '.') {
+                freeTiles.emplace_back(x, y);
+            }
+        }
+    }
+
+    if (freeTiles.empty())
+        return {0.f, 0.f};
+
+    int index = std::rand() % freeTiles.size();
+    float tileSize = (float)map.getTileSize();
+
+    return {
+        freeTiles[index].x * tileSize + tileSize / 2.f,
+        freeTiles[index].y * tileSize + tileSize / 2.f
+    };
+}
+
+static void spawnWorldItem(
+    std::vector<WorldItem>& worldItems,
+    const TileMap& map,
+    Item item)
+{
+    WorldItem wi;
+    wi.item = item;
+    wi.position = getRandomFreeTileCenter(map);
+    wi.item.sprite.setPosition(wi.position);
+    worldItems.push_back(wi);
+}
+
+// =========================
+// CONSTRUCTOR
+// =========================
 GameController::GameController()
     : player(), playerView()
 {
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
     std::cout << "--- DEBUG: Tentative de chargement de la map ---" << std::endl;
 
     if (!map.loadFromFile("assets/maps/map2.txt", TILE_SIZE)) {
@@ -25,7 +70,6 @@ GameController::GameController()
 
     std::cout << "DEBUG: Map chargee avec succes !" << std::endl;
 
-    // ⚠️ WaveManager APRES le chargement de la map
     waveManager = std::make_unique<WaveManager>(map);
 
     mapView.load(map);
@@ -36,22 +80,103 @@ GameController::GameController()
     player.setSize(48.f, 48.f);
     placePlayerAtFirstFreeTile();
 
-    itemTextures["potion"].loadFromFile("assets/inventory_items/potion.png");
+    // =========================
+    // LOAD ITEM TEXTURES
+    // =========================
+    itemTextures["medkit"].loadFromFile("assets/inventory_items/medkit.png");
+    itemTextures["pen"].loadFromFile("assets/inventory_items/pen.png");
+    itemTextures["book"].loadFromFile("assets/inventory_items/book.png");
+    itemTextures["chalk"].loadFromFile("assets/inventory_items/chalk.png");
+
+    // =========================
+    // GUARANTEED ITEMS
+    // =========================
+    Item medkit;
+    medkit.name = "Medkit";
+    medkit.type = ItemType::Consumable;
+    medkit.value = 60;
+    medkit.sprite.setTexture(itemTextures["medkit"]);
+    spawnWorldItem(worldItems, map, medkit);
+
+    Item pen;
+    pen.name = "Pen";
+    pen.type = ItemType::Weapon;
+    pen.value = 15;
+    pen.sprite.setTexture(itemTextures["pen"]);
+    spawnWorldItem(worldItems, map, pen);
+
+    // =========================
+    // RANDOM EXTRA ITEMS
+    // =========================
+    int extraItems = 3 + std::rand() % 5; // 3 à 7 items
+
+    for (int i = 0; i < extraItems; ++i) {
+        Item item;
+        int r = std::rand() % 3;
+
+        if (r == 0) {
+            item.name = "Medkit";
+            item.type = ItemType::Consumable;
+            item.value = 60;
+            item.sprite.setTexture(itemTextures["medkit"]);
+        }
+        else if (r == 1) {
+            item.name = "Book";
+            item.type = ItemType::Weapon;
+            item.value = 30;
+            item.sprite.setTexture(itemTextures["book"]);
+        }
+        else {
+            item.name = "Chalk";
+            item.type = ItemType::Weapon;
+            item.value = 7;
+            item.sprite.setTexture(itemTextures["chalk"]);
+        }
+
+        spawnWorldItem(worldItems, map, item);
+    }
 }
 
-Player& GameController::getPlayer() {return player;};
-const sf::Texture &GameController::getItemTexture(const std::string &name) const {
+// =========================
+// ACCESSORS
+// =========================
+Player& GameController::getPlayer() { return player; }
+
+const sf::Texture& GameController::getItemTexture(const std::string& name) const {
     return itemTextures.at(name);
 }
 
+// =========================
+// INPUT EVENTS
+// =========================
 void GameController::handleEvent(const sf::Event& event) {
-    (void)event;
+    if (event.type == sf::Event::MouseButtonPressed &&
+        event.mouseButton.button == sf::Mouse::Right)
+    {
+        int slot = player.getInventory().getSelectedSlot();
+        auto& slots = player.getInventory().getSlots();
+
+        if (slots[slot].has_value()) {
+            Item& item = slots[slot].value();
+
+            if (item.type == ItemType::Consumable) {
+                player.takeDamage(-item.value);
+                slots[slot].reset();
+            }
+        }
+    }
 }
 
+// =========================
+// UPDATE
+// =========================
 void GameController::update(float dt)
 {
+    if (attackTimer > 0.f)
+        attackTimer -= dt;
+
     // =========================
-    // 1. INPUTS JOUEUR
+    // PLAYER INPUT
     // =========================
     sf::Vector2f dir(0.f, 0.f);
     bool isMoving = false;
@@ -81,79 +206,62 @@ void GameController::update(float dt)
     player.setMoving(isMoving);
 
     // =========================
-    // 2. NORMALISATION
+    // ITEM PICKUP (E)
+    // =========================
+    static bool eWasPressed = false;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
+        if (!eWasPressed) {
+            for (auto it = worldItems.begin(); it != worldItems.end();) {
+                if (circlesIntersect(
+                    player.getPosition(), player.getRadius(),
+                    it->position, it->radius))
+                {
+                    bool picked = false;
+                    if (it->item.type == ItemType::KeyFragment)
+                        picked = player.getInventory().addKeyFragment(it->item);
+                    else
+                        picked = player.getInventory().addItem(it->item);
+
+                    if (picked) {
+                        it = worldItems.erase(it);
+                        continue;
+                    }
+                }
+                ++it;
+            }
+        }
+        eWasPressed = true;
+    }
+    else eWasPressed = false;
+
+    // =========================
+    // MOVEMENT
     // =========================
     if (dir.x != 0.f || dir.y != 0.f) {
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         dir /= len;
     }
 
-    const float speed = 700.f;
-    sf::Vector2f delta = dir * speed * dt;
+    sf::Vector2f delta = dir * 700.f * dt;
 
-    // =========================
-    // 3. COLLISIONS JOUEUR
-    // =========================
-    sf::FloatRect currentBBox = player.getGlobalBounds();
+    sf::FloatRect bbox = player.getGlobalBounds();
+    sf::FloatRect future = bbox;
+    future.left += delta.x;
+    future.top += delta.y;
 
-    sf::FloatRect futureBBox = currentBBox;
-    futureBBox.left += delta.x;
-    futureBBox.top  += delta.y;
-
-    if (isPositionFree(futureBBox)) {
+    if (isPositionFree(future))
         player.move(delta);
-    }
-    else {
-        sf::FloatRect bboxX = currentBBox;
-        bboxX.left += delta.x;
 
-        if (isPositionFree(bboxX)) {
-            player.move({ delta.x, 0.f });
-        }
-        else {
-            sf::FloatRect bboxY = currentBBox;
-            bboxY.top += delta.y;
-
-            if (isPositionFree(bboxY)) {
-                player.move({ 0.f, delta.y });
-            }
-        }
-    }
-
-    // =========================
-    // 4. UPDATE JOUEUR
-    // =========================
     player.update(dt);
 
     // =========================
-    // 5. UPDATE ENNEMIS
-    // =========================
-    for (auto& enemy : enemies) {
-
-        if (!enemy->isAlive())
-            continue;
-
-        sf::Vector2f oldPos = enemy->getPosition();
-
-        if (player.isAlive()) {
-            enemy->update(dt, player.getPosition());
-        }
-        else {
-            enemy->update(dt, enemy->getPosition());
-        }
-
-        if (!isPositionFree(enemy->getGlobalBounds())) {
-            enemy->setPosition(oldPos);
-        }
-    }
-
-
-    // =========================
-    // 6. COLLISIONS ENNEMIS
+    // ENEMY UPDATE & ATTACK
     // =========================
     for (auto& enemy : enemies) {
         if (!enemy->isAlive())
             continue;
+
+        enemy->update(dt, player.getPosition());
 
         if (circlesIntersect(
             player.getPosition(), player.getRadius(),
@@ -164,58 +272,67 @@ void GameController::update(float dt)
     }
 
     // =========================
-    // 7. SYSTÈME DE VAGUES
+    // WEAPON ATTACK (COOLDOWN)
     // =========================
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && attackTimer <= 0.f) {
 
-    // ---- DEBUG : skip boss ----
-    // TODO retirer plus tard
-    static bool kWasPressed = false;
+        int slot = player.getInventory().getSelectedSlot();
+        auto& slots = player.getInventory().getSlots();
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::K)) {
-        if (!kWasPressed) {
-            waveManager->requestSkip();
-            std::cout << "[DEBUG] Skip requested\n";
+        if (slots[slot].has_value()) {
+            Item& item = slots[slot].value();
+
+            if (item.type == ItemType::Weapon) {
+                bool hit = false;
+
+                for (auto& enemy : enemies) {
+                    if (!enemy->isAlive())
+                        continue;
+
+                    if (circlesIntersect(
+                        player.getPosition(), 80.f,
+                        enemy->getPosition(), enemy->getRadius()))
+                    {
+                        enemy->takeDamage(item.value);
+                        hit = true;
+                    }
+                }
+
+                if (hit)
+                    attackTimer = attackCooldown;
+            }
         }
-        kWasPressed = true;
-    }
-    else {
-        kWasPressed = false;
     }
 
     if (waveManager)
         waveManager->update(dt, player, enemies);
 
-    // =========================
-    // 8. CAMÉRA
-    // =========================
     gameView.setCenter(player.getPosition());
 }
 
+// =========================
+// RENDER
+// =========================
 void GameController::render(sf::RenderWindow& window) {
-    // 1. Caméra Joueur
     window.setView(gameView);
     window.draw(mapView);
 
-    // 2. Ennemis
-    sf::Vector2f playerPos = player.getPosition();
+    for (auto& wi : worldItems)
+        window.draw(wi.item.sprite);
 
-    for (auto& enemy : enemies) {
-        enemyView.render(window, *enemy, playerPos);
-    }
+    for (auto& enemy : enemies)
+        enemyView.render(window, *enemy, player.getPosition());
 
     playerView.renderWorld(window, player);
 
-    // 3. Interface (HUD) - Remise à zéro de la caméra
     window.setView(window.getDefaultView());
 
-    // Récupère le title de la wave
     int wave = waveManager ? waveManager->getCurrentWave() : 0;
-
-    // Récupère le temps restant
     float timeLeft = waveManager ? waveManager->getTimeLeft() : 0.f;
 
     playerView.renderHUD(window, player, wave, timeLeft);
 }
+
 
 bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
     float tileSizeF = (float)map.getTileSize();
@@ -247,12 +364,4 @@ void GameController::placePlayerAtFirstFreeTile() {
         }
     }
     player.setPosition(tileSizeF + playerSize().x, tileSizeF + playerSize().y);
-}
-void GameController::givePotionToPlayer() {
-    Item potion;
-    potion.name = "Potion";
-    potion.type = ItemType::Consumable;
-    potion.sprite.setTexture(getItemTexture("potion"));
-
-    player.getInventory().addItem(potion);
 }
