@@ -1,6 +1,22 @@
 #pragma once
 
-#include <SFML/System.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/System/Vector2.hpp>
+
+#include "models/headers/Enemy.h"
+#include "models/headers/Enemy/BasicEnemy.h"
+#include "models/headers/Enemy/FastEnemy.h"
+#include "models/headers/Enemy/TankEnemy.h"
+
+#include "models/headers/Boss/TralaleroTralala.h"
+#include "models/headers/Boss/ChimpanziniBananini.h"
+#include "models/headers/Boss/OscarTheCrackhead.h"
+
+#include "models/headers/Player.h"
+#include "models/headers/TileMap.h"
+
+#include <algorithm>
+#include <cstdlib>
 #include <vector>
 #include <memory>
 
@@ -15,9 +31,19 @@ struct Wave {
     int hard;
 };
 
+/* 1 -> TralaleroTralala
+ * 2 -> ChimpanziniBananini
+ * 3 -> UdinDinDinDun
+ * 4 -> OscarTheCrackhead
+ */
+struct BossTile {
+    sf::Vector2i pos;
+    int bossType; // 1,2,3,4
+};
+
 class WaveManager {
 public:
-    WaveManager(const TileMap& map);
+    explicit WaveManager(const TileMap& mapRef);
 
     void update(float dt, Player& player,
                 std::vector<std::unique_ptr<Enemy>>& enemies);
@@ -25,22 +51,32 @@ public:
     int getCurrentWave() const;
     float getTimeLeft() const;
 
+    // ---------- KEY PASS WAVES ----------
+    // TODO retirer plus tard
+    bool debugSkipRequested = false;
+    void requestSkip();
+
 private:
+    // ---------- MAP ----------
+    const TileMap& map;
+    std::vector<sf::Vector2u> freeTiles;
+    std::vector<BossTile> bossTiles;
+
+    // ---------- WAVES ----------
+    std::vector<Wave> waves;
+    int currentWave = 0;
+    int spawnedInWave = 0;
+
+    float spawnDelay = 1.f;
+    float maxWaveDuration = 60.f;
+
+    sf::Clock spawnClock;
+    sf::Clock waveClock;
+
+    // ---------- INTERNAL ----------
     void spawnEnemy(Player& player,
                     std::vector<std::unique_ptr<Enemy>>& enemies);
 
     sf::Vector2f getSpawnPosition(const Player& player);
-
-    const TileMap& map;
-    std::vector<sf::Vector2i> freeTiles;
-
-    std::vector<Wave> waves;
-    sf::Clock waveClock;
-    float maxWaveDuration = 150.f; // 2 minutes 30 secondes
-
-    int currentWave = 0;
-    int spawnedInWave = 0;
-
-    sf::Clock spawnClock;
-    float spawnDelay = 1.0f;
+    sf::Vector2f getBossSpawnPosition(int &outBossType) const;
 };

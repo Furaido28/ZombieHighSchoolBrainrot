@@ -1,61 +1,86 @@
 #include "../headers/WaveManager.h"
-#include "../../models/headers/Enemy.h"
-#include "models/headers/Enemy/BasicEnemy.h"
-#include "../../models/headers/Enemy/FastEnemy.h"
-#include "models/headers/Enemy/TankEnemy.h"
-#include "models/headers/Player.h"
-#include "models/headers/TileMap.h"
-#include <cstdlib>
 
+#include <iostream>
+
+#include "models/headers/Boss/UdinDinDinDun.h"
+
+// ======================================================
+// CONSTRUCTOR
+// ======================================================
 WaveManager::WaveManager(const TileMap& mapRef)
     : map(mapRef)
 {
-    // Pré-calcul des tuiles libres '.'
+    // ---------- Scan map ----------
     for (unsigned y = 0; y < map.getHeight(); ++y) {
         for (unsigned x = 0; x < map.getWidth(); ++x) {
-            if (map.getTile(x, y) == '.') {
+            char tile = map.getTile(x, y);
+
+            if (tile == '.') {
                 freeTiles.emplace_back(x, y);
+            }
+            else if (tile >= '1' && tile <= '4') {
+                bossTiles.push_back({
+                    {static_cast<int>(x), static_cast<int>(y)},
+                    tile - '0'
+                });
             }
         }
     }
 
-    waves = {
-        {6, 0, 0, 0},
-        {10, 4, 0, 0},
-        {14, 8, 3, 0},
-        {20, 8, 6, 1},
-    };
+    // ---------- 3 cycles × 4 waves ----------
+    for (int cycle = 0; cycle < 3; ++cycle) {
+        waves.push_back({6, 0, 0, 0});
+        waves.push_back({10, 4, 0, 0});
+        waves.push_back({14, 8, 3, 0});
+        waves.push_back({20, 8, 6, 1});
+    }
 
+    spawnClock.restart();
     waveClock.restart();
+
+    std::cout << "[DEBUG] freeTiles = " << freeTiles.size() << std::endl;
+    std::cout << "[DEBUG] bossTiles = " << bossTiles.size() << std::endl;
+
 }
 
+// ======================================================
+// GETTERS
+// ======================================================
 int WaveManager::getCurrentWave() const {
     return currentWave + 1;
 }
 
 float WaveManager::getTimeLeft() const {
-    float elapsed = waveClock.getElapsedTime().asSeconds();
-    float remaining = maxWaveDuration - elapsed;
+    float remaining =
+        maxWaveDuration - waveClock.getElapsedTime().asSeconds();
     return std::max(0.f, remaining);
 }
 
+// ======================================================
+// UPDATE
+// ======================================================
 void WaveManager::update(float dt, Player& player,
                          std::vector<std::unique_ptr<Enemy>>& enemies)
 {
-    if (!player.isAlive()) {
-        waveClock.restart();
+    if (!player.isAlive())
         return;
-    }
 
-    if (currentWave >= waves.size())
+    if (currentWave >= static_cast<int>(waves.size()))
         return;
+
+    // Nettoyage des ennemis morts
+    enemies.erase(
+        std::remove_if(enemies.begin(), enemies.end(),
+            [](const std::unique_ptr<Enemy>& e) {
+                return !e->isAlive();
+            }),
+        enemies.end()
+    );
 
     const Wave& w = waves[currentWave];
     int totalEnemies = w.simple + w.medium + w.difficult + w.hard;
 
-    // =========================
-    // SPAWN DES ENNEMIS
-    // =========================
+    // ---------- SPAWN ----------
     if (spawnedInWave < totalEnemies &&
         spawnClock.getElapsedTime().asSeconds() >= spawnDelay)
     {
@@ -64,60 +89,93 @@ void WaveManager::update(float dt, Player& player,
         spawnClock.restart();
     }
 
-    // =========================
-    // ENNEMIS ENCORE EN VIE ?
-    // =========================
-    bool enemiesAlive = false;
-    for (const auto& e : enemies) {
-        if (e->isAlive()) {
-            enemiesAlive = true;
-            break;
-        }
-    }
-
     bool allSpawned = (spawnedInWave >= totalEnemies);
-    bool timeOver   = (waveClock.getElapsedTime().asSeconds() >= maxWaveDuration);
+    bool enemiesAlive = !enemies.empty();
 
-    bool nextIsLast = (currentWave == waves.size() - 2);
 
-    // =========================
-    // FIN DE VAGUE
-    // =========================
-
-    // Cas NORMAL : tout les ennemies sont mort → toujours autorisé
+    // --------------------------------------------------------------------
+    // DEBUG MODE (Skip)
+    if (debugSkipRequested) {
+        std::cout << "[DEBUG] Wave skipped\n";
+        enemies.clear();
+        spawnedInWave = waves[currentWave].simple +
+                        waves[currentWave].medium +
+                        waves[currentWave].difficult +
+                        waves[currentWave].hard;
+        debugSkipRequested = false;
+    }
+    // --------------------------------------------------------------------
+    // ---------- FIN DE VAGUE ----------
     if (allSpawned && !enemiesAlive) {
         currentWave++;
         spawnedInWave = 0;
         spawnClock.restart();
         waveClock.restart();
-        return;
-    }
-
-    // Cas TIMER : autorisé SEULEMENT si la prochaine n’est PAS la dernière
-    if (allSpawned && timeOver && !nextIsLast) {
-        currentWave++;
-        spawnedInWave = 0;
-        spawnClock.restart();
-        waveClock.restart();
-        return;
     }
 }
 
-
+// ======================================================
+// SPAWN ENEMY
+// ======================================================
 void WaveManager::spawnEnemy(Player& player,
                              std::vector<std::unique_ptr<Enemy>>& enemies)
 {
-    sf::Vector2f spawnPos = getSpawnPosition(player);
     const Wave& w = waves[currentWave];
+    int index = spawnedInWave;
 
-    if (spawnedInWave < w.simple)
-        enemies.push_back(std::make_unique<BasicEnemy>(spawnPos));
-    else if (spawnedInWave < w.simple + w.medium)
-        enemies.push_back(std::make_unique<FastEnemy>(spawnPos));
-    else if (spawnedInWave < w.simple + w.medium + w.difficult)
-        enemies.push_back(std::make_unique<BasicEnemy>(spawnPos));
+    // ---------- Ennemis normaux ----------
+    if (index < w.simple) {
+        enemies.push_back(
+            std::make_unique<BasicEnemy>(getSpawnPosition(player))
+        );
+    }
+    else if (index < w.simple + w.medium) {
+        enemies.push_back(
+            std::make_unique<FastEnemy>(getSpawnPosition(player))
+        );
+    }
+    else if (index < w.simple + w.medium + w.difficult) {
+        enemies.push_back(
+            std::make_unique<TankEnemy>(getSpawnPosition(player))
+        );
+    }
+    // ---------- BOSS ----------
+    else if (w.hard > 0) {
+
+        int bossType = 1;
+        sf::Vector2f pos = getBossSpawnPosition(bossType);
+
+        switch (bossType) {
+            case 1:
+                enemies.push_back(
+                    std::make_unique<TralaleroTralala>(pos)
+                );
+                break;
+
+            case 2:
+                enemies.push_back(
+                    std::make_unique<ChimpanziniBananini>(pos)
+                );
+                break;
+
+            case 3:
+                enemies.push_back(
+                    std::make_unique<UdinDinDinDun>(pos)
+                );
+                break;
+
+            case 4:
+                enemies.push_back(
+                    std::make_unique<OscarTheCrackhead>(pos)
+                );
+                break;
+        }
+    }
 }
 
+// ======================================================
+// SPAWN POSITIONS
+// ======================================================
 sf::Vector2f WaveManager::getSpawnPosition(const Player& player)
 {
     if (freeTiles.empty())
@@ -128,7 +186,6 @@ sf::Vector2f WaveManager::getSpawnPosition(const Player& player)
 
     for (int i = 0; i < 20; ++i) {
         const auto& tile = freeTiles[rand() % freeTiles.size()];
-
         sf::Vector2f pos(
             tile.x * tileSize + tileSize / 2.f,
             tile.y * tileSize + tileSize / 2.f
@@ -144,4 +201,29 @@ sf::Vector2f WaveManager::getSpawnPosition(const Player& player)
         tile.x * tileSize + tileSize / 2.f,
         tile.y * tileSize + tileSize / 2.f
     };
+}
+
+sf::Vector2f WaveManager::getBossSpawnPosition(int& outBossType) const
+{
+    const float tileSize = map.getTileSize();
+
+    if (bossTiles.empty()) {
+        outBossType = 1;
+        return {
+            map.getWidth() * tileSize / 2.f,
+            map.getHeight() * tileSize / 2.f
+        };
+    }
+
+    const BossTile& bt = bossTiles[rand() % bossTiles.size()];
+    outBossType = bt.bossType;
+
+    return {
+        bt.pos.x * tileSize + tileSize / 2.f,
+        bt.pos.y * tileSize + tileSize / 2.f
+    };
+}
+
+void WaveManager::requestSkip() {
+    debugSkipRequested = true;
 }

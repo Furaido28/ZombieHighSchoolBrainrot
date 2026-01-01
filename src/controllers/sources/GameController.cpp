@@ -88,7 +88,7 @@ void GameController::update(float dt)
         dir /= len;
     }
 
-    const float speed = 200.f;
+    const float speed = 700.f;
     sf::Vector2f delta = dir * speed * dt;
 
     // =========================
@@ -166,6 +166,22 @@ void GameController::update(float dt)
     // =========================
     // 7. SYSTÈME DE VAGUES
     // =========================
+
+    // ---- DEBUG : skip boss ----
+    // TODO retirer plus tard
+    static bool kWasPressed = false;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::K)) {
+        if (!kWasPressed) {
+            waveManager->requestSkip();
+            std::cout << "[DEBUG] Skip requested\n";
+        }
+        kWasPressed = true;
+    }
+    else {
+        kWasPressed = false;
+    }
+
     if (waveManager)
         waveManager->update(dt, player, enemies);
 

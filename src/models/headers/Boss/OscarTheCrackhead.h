@@ -2,12 +2,19 @@
 
 #include "Boss.h"
 
+#include "models/headers/Player.h"
+
 class OscarTheCrackhead : public Boss {
+
 public:
-    explicit OscarTheCrackhead(const sf::Vector2f& startPos);
+    explicit OscarTheCrackhead(const sf::Vector2f& pos);
 
-    int getDamage() const override { return 30; }
-    float getMaxHealth() const override { return 1200.f; }
+    EnemyType getType() const override { return EnemyType::FinalBoss; }
 
-    void update(float dt, const sf::Vector2f& playerPos) override;
+    int getDamage() const override;
+    void attack(Player& player) override;
+
+protected:
+    void updatePhaseLogic(float dt, const sf::Vector2f& playerPos) override;
+
 };
