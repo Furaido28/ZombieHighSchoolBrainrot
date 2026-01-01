@@ -1,19 +1,22 @@
 #pragma once
-
-#include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Clock.hpp>
+#include <SFML/Graphics.hpp>
 
-#include "Player.h"
+class Player;
 
 enum class EnemyType {
     Basic,
     Fast,
     Tank,
-    Boss
+    Boss01,
+    Boss02,
+    Boss03,
+    FinalBoss
 };
 
 class Enemy {
 public:
+    explicit Enemy(const sf::Vector2f& pos);
     virtual ~Enemy() = default;
 
     virtual EnemyType getType() const = 0;
@@ -32,10 +35,10 @@ public:
 
     virtual int getDamage() const = 0;
     virtual void attack(Player& player) = 0;
+
     bool canAttack() const;
 
 protected:
-    float attackCooldown;
     sf::Clock attackClock;
-    int attackDamage;
+    float attackCooldown = 1.f;
 };

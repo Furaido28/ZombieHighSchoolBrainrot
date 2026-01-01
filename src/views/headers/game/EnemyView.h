@@ -20,7 +20,11 @@ private:
     sf::Texture zombieBasicTexture;
     sf::Texture zombieFastTexture;
     sf::Texture zombieTankTexture;
-    sf::Texture bossZombieTexture;
+    sf::Texture boss01Texture;
+    sf::Texture boss02Texture;
+    sf::Texture boss03Texture;
+    sf::Texture finalBossTexture;
+
 
     // Barre de vie stylée
     float healthBarWidth  = 36.f;

@@ -1,6 +1,6 @@
 #include "../headers/WaveManager.h"
 #include "../../models/headers/Enemy.h"
-#include "models/headers/Enemy/BasicEnemy"
+#include "models/headers/Enemy/BasicEnemy.h"
 #include "../../models/headers/Enemy/FastEnemy.h"
 #include "models/headers/Enemy/TankEnemy.h"
 #include "models/headers/Player.h"

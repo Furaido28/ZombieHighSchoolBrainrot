@@ -3,17 +3,27 @@
 #include <cmath>
 
 EnemyView::EnemyView() {
-    if (!zombieBasicTexture.loadFromFile("assets/animation/ZombieBasic/basic_idle.png"))
-        std::cerr << "Erreur basic_idle.png\n";
+    if (!zombieBasicTexture.loadFromFile("assets/animation/Enemy/Basic/idle.png"))
+        std::cerr << "Erreur Basic/idle.png\n";
 
-    if (!zombieFastTexture.loadFromFile("assets/animation/ZombieFast/fast_idle.png"))
-        std::cerr << "Erreur fast_idle.png\n";
+    if (!zombieFastTexture.loadFromFile("assets/animation/Enemy/Fast/idle.png"))
+        std::cerr << "Erreur Fast/idle.png\n";
 
-    if (!zombieTankTexture.loadFromFile("assets/animation/ZombieTank/tank_idle.png"))
-        std::cerr << "Erreur tank_idle.png\n";
+    if (!zombieTankTexture.loadFromFile("assets/animation/Enemy/Tank/idle.png"))
+        std::cerr << "Erreur Tank/idle.png\n";
 
-    if (!bossZombieTexture.loadFromFile("assets/animation/BossZombie/boss_idle.png"))
-        std::cerr << "Erreur boss_idle.png\n";
+    if (!boss01Texture.loadFromFile("assets/animation/Boss/TralaleroTralala/idle.png"))
+        std::cerr << "Erreur TralaleroTralala/idle.png\n";
+
+    if (!boss02Texture.loadFromFile("assets/animation/Boss/ChimpanziniBananini/idle.png"))
+        std::cerr << "Erreur ChimpanziniBananini/idle.png\n";
+
+    if (!boss03Texture.loadFromFile("assets/animation/Boss/UdinDinDinDun/idle.png"))
+        std::cerr << "Erreur UdinDinDinDun/idle.png\n";
+
+    if (!finalBossTexture.loadFromFile("assets/animation/Boss/OscarTheCrackhead/idle.png"))
+        std::cerr << "Erreur OscarTheCrackhead/idle.png\n";
+
 
     // --- BACK ---
     hbBack.setSize({ healthBarWidth - 2 * healthBarRadius, healthBarHeight });
@@ -63,8 +73,17 @@ void EnemyView::loadTextureForType(EnemyType type) {
         case EnemyType::Tank:
             sprite.setTexture(zombieTankTexture);
             break;
-        case EnemyType::Boss:
-            sprite.setTexture(bossZombieTexture);
+        case EnemyType::Boss01:
+            sprite.setTexture(boss01Texture);
+            break;
+        case EnemyType::Boss02:
+            sprite.setTexture(boss02Texture);
+            break;
+        case EnemyType::Boss03:
+            sprite.setTexture(boss03Texture);
+            break;
+        case EnemyType::FinalBoss:
+            sprite.setTexture(finalBossTexture);
             break;
     }
 

@@ -2,31 +2,17 @@
 
 #include <SFML/Graphics/Rect.hpp>
 
-#include "../Enemy.h"
+#include "models/headers/Enemy.h"
 
 class Boss : public Enemy {
 public:
-    Boss(const sf::Vector2f& startPos);
+    explicit Boss(const sf::Vector2f& startPos);
 
+    // logique commune
     void update(float dt, const sf::Vector2f& playerPos) override;
 
-    void setPosition(const sf::Vector2f& pos) override;
-    sf::Vector2f getPosition() const override;
-    sf::Vector2f getVelocity() const override;
-
-    float getRadius() const override { return radius; }
-    sf::FloatRect getGlobalBounds() const override;
-
-    bool isAlive() const override;
-
-    EnemyType getType() const override {
-        return EnemyType::Boss;
-    }
-    float getHealth() const override { return health; }
-    float getMaxHealth() const override { return 1000.f; }
-
-    int getDamage() const override { return attackDamage; }
-    void attack(Player& player) override;
+    virtual int getDamage() const override = 0;
+    virtual void attack(Player &player) override = 0;
 
 protected:
     sf::Vector2f position;
@@ -35,6 +21,5 @@ protected:
     float radius;
     int health;
 
-    float attackCooldown = 1.5;
-    int attackDamage = 15;
+    float attackCooldown = 1.5f;
 };
