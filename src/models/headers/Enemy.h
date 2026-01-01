@@ -5,7 +5,7 @@
 
 #include "Player.h"
 
-enum class ZombieType {
+enum class EnemyType {
     Basic,
     Fast,
     Tank,
@@ -16,7 +16,7 @@ class Enemy {
 public:
     virtual ~Enemy() = default;
 
-    virtual ZombieType getType() const = 0;
+    virtual EnemyType getType() const = 0;
     virtual void update(float dt, const sf::Vector2f& playerPos) = 0;
 
     virtual void setPosition(const sf::Vector2f& pos) = 0;

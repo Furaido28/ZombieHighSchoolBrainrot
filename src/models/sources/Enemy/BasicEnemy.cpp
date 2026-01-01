@@ -1,15 +1,17 @@
-#include "../headers/ZombieBasic.h"
+#include "../../headers/Enemy/BasicEnemy"
 #include <cmath>
 #include <SFML/Graphics/Rect.hpp>
 
-ZombieBasic::ZombieBasic(const sf::Vector2f& startPos)
+#include "models/headers/Player.h"
+
+BasicEnemy::BasicEnemy(const sf::Vector2f& startPos)
     : position(startPos),
     speed(60.f),
     radius(50.f),
     health(50)
 {}
 
-void ZombieBasic::update(float dt, const sf::Vector2f& playerPos) {
+void BasicEnemy::update(float dt, const sf::Vector2f& playerPos) {
     sf::Vector2f dir = playerPos - position;
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
 
@@ -21,17 +23,17 @@ void ZombieBasic::update(float dt, const sf::Vector2f& playerPos) {
 }
 
 
-void ZombieBasic::setPosition(const sf::Vector2f& pos) {
+void BasicEnemy::setPosition(const sf::Vector2f& pos) {
     position = pos;
 }
 
-sf::Vector2f ZombieBasic::getPosition() const { return position; }
+sf::Vector2f BasicEnemy::getPosition() const { return position; }
 
-sf::Vector2f ZombieBasic::getVelocity() const {
+sf::Vector2f BasicEnemy::getVelocity() const {
     return velocity;
 }
 
-sf::FloatRect ZombieBasic::getGlobalBounds() const {
+sf::FloatRect BasicEnemy::getGlobalBounds() const {
     // Rayon de collision FIXE (indépendant du visuel)
     const float collisionRadius = 32.f;
 
@@ -43,7 +45,7 @@ sf::FloatRect ZombieBasic::getGlobalBounds() const {
     };
 }
 
-void ZombieBasic::attack(Player& player) {
+void BasicEnemy::attack(Player& player) {
     if (!player.isAlive()) return;
     if (!canAttack()) return;
 
@@ -52,4 +54,4 @@ void ZombieBasic::attack(Player& player) {
     attackClock.restart();
 }
 
-bool ZombieBasic::isAlive() const { return health > 0; }
+bool BasicEnemy::isAlive() const { return health > 0; }

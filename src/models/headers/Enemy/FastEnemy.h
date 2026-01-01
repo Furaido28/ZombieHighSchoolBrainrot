@@ -1,12 +1,13 @@
 #pragma once
 
-#include "ZombieBasic.h"
+#include "BasicEnemy"
+#include "models/headers/Enemy.h"
 
-class ZombieFast : public ZombieBasic {
+class FastEnemy : public BasicEnemy {
 public:
-    ZombieFast(const sf::Vector2f& startPos);
+    FastEnemy(const sf::Vector2f& startPos);
 
-    ZombieType getType() const override { return ZombieType::Fast; }
+    EnemyType getType() const override { return EnemyType::Fast; }
 
     float getRadius() const override { return radius; }
 

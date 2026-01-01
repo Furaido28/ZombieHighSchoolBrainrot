@@ -1,12 +1,13 @@
 #pragma once
 
-#include "ZombieBasic.h"
+#include "BasicEnemy"
+#include "../Enemy.h"
 
-class ZombieTank : public ZombieBasic {
+class TankEnemy : public BasicEnemy {
 public:
-    ZombieTank(const sf::Vector2f& startPos);
+    TankEnemy(const sf::Vector2f& startPos);
 
-    ZombieType getType() const override { return ZombieType::Tank; }
+    EnemyType getType() const override { return EnemyType::Tank; }
 
     float getRadius() const override { return radius; }
 

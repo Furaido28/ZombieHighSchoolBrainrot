@@ -1,4 +1,4 @@
-#include "../headers/Boss.h"
+#include "../../headers/Boss/Boss.h"
 
 #include <cmath>
 
