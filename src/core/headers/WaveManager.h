@@ -68,7 +68,7 @@ private:
     int spawnedInWave = 0;
 
     float spawnDelay = 1.f;
-    float maxWaveDuration = 60.f;
+    float maxWaveDuration = 150.f;
 
     sf::Clock spawnClock;
     sf::Clock waveClock;
