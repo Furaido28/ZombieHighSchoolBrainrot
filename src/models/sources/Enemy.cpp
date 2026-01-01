@@ -1,3 +1,5 @@
 #include "../headers/Enemy.h"
 
-// Rien ici : Enemy est abstraite
+bool Enemy::canAttack() const {
+    return attackClock.getElapsedTime().asSeconds() >= attackCooldown;
+}

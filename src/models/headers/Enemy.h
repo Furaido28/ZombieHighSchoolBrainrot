@@ -1,8 +1,9 @@
-#ifndef ZOMBIEHIGHSCHOOLBRAINROT_ENEMY_H
-#define ZOMBIEHIGHSCHOOLBRAINROT_ENEMY_H
-
 #pragma once
+
 #include <SFML/Graphics/Rect.hpp>
+#include <SFML/System/Clock.hpp>
+
+#include "Player.h"
 
 enum class ZombieType {
     Basic,
@@ -27,11 +28,14 @@ public:
 
     virtual float getHealth() const = 0;
     virtual float getMaxHealth() const = 0;
-    virtual int getDamage() const = 0;
     virtual bool isAlive() const = 0;
 
+    virtual int getDamage() const = 0;
+    virtual void attack(Player& player) = 0;
+    bool canAttack() const;
 
-
+protected:
+    float attackCooldown;
+    sf::Clock attackClock;
+    int attackDamage;
 };
-
-#endif //ZOMBIEHIGHSCHOOLBRAINROT_ENEMY_H

@@ -9,8 +9,7 @@ ZombieBasic::ZombieBasic(const sf::Vector2f& startPos)
     health(50)
 {}
 
-void ZombieBasic::update(float dt, const sf::Vector2f& playerPos)
-{
+void ZombieBasic::update(float dt, const sf::Vector2f& playerPos) {
     sf::Vector2f dir = playerPos - position;
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
 
@@ -32,8 +31,7 @@ sf::Vector2f ZombieBasic::getVelocity() const {
     return velocity;
 }
 
-sf::FloatRect ZombieBasic::getGlobalBounds() const
-{
+sf::FloatRect ZombieBasic::getGlobalBounds() const {
     // Rayon de collision FIXE (indépendant du visuel)
     const float collisionRadius = 32.f;
 
@@ -45,7 +43,13 @@ sf::FloatRect ZombieBasic::getGlobalBounds() const
     };
 }
 
+void ZombieBasic::attack(Player& player) {
+    if (!player.isAlive()) return;
+    if (!canAttack()) return;
 
-int ZombieBasic::getDamage() const { return 10; }
+    player.takeDamage(getDamage());
+
+    attackClock.restart();
+}
 
 bool ZombieBasic::isAlive() const { return health > 0; }

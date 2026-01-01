@@ -1,5 +1,4 @@
-#ifndef TILEMAP_H
-#define TILEMAP_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -22,5 +21,3 @@ private:
 
     // sf::RectangleShape tileShape a été retiré.
 };
-
-#endif // TILEMAP_H
