@@ -45,7 +45,13 @@ sf::FloatRect ZombieBasic::getGlobalBounds() const
     };
 }
 
+void ZombieBasic::attack(Player& player) {
+    if (!player.isAlive()) return;
+    if (!canAttack()) return;
 
-int ZombieBasic::getDamage() const { return 10; }
+    player.takeDamage(getDamage());
+
+    attackClock.restart();
+}
 
 bool ZombieBasic::isAlive() const { return health > 0; }

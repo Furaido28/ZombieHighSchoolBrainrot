@@ -1,7 +1,5 @@
-#ifndef ZOMBIEHIGHSCHOOLBRAINROT_BOSS_H
-#define ZOMBIEHIGHSCHOOLBRAINROT_BOSS_H
-
 #pragma once
+
 #include <SFML/Graphics/Rect.hpp>
 
 #include "Enemy.h"
@@ -19,7 +17,6 @@ public:
     float getRadius() const override { return radius; }
     sf::FloatRect getGlobalBounds() const override;
 
-    int getDamage() const override;
     bool isAlive() const override;
 
     ZombieType getType() const override {
@@ -28,14 +25,18 @@ public:
     float getHealth() const override { return health; }
     float getMaxHealth() const override { return 1000.f; }
 
-private:
+    int getDamage() const override { return attackDamage; }
+    void attack(Player& player) override;
+
+protected:
     sf::Vector2f position;
     sf::Vector2f velocity;
     float speed;
     float radius;
     int health;
 
-    float attackCooldown;
+    float attackCooldown = 1.5;
+    int attackDamage = 15;
 };
 
 #endif //ZOMBIEHIGHSCHOOLBRAINROT_BOSS_H

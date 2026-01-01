@@ -45,7 +45,13 @@ sf::FloatRect Boss::getGlobalBounds() const {
     };
 }
 
-int Boss::getDamage() const { return 40; }
-
 bool Boss::isAlive() const { return health > 0; }
 
+void Boss::attack(Player& player) {
+    if (!player.isAlive()) return;
+    if (!canAttack()) return;
+
+    player.takeDamage(getDamage());
+
+    attackClock.restart();
+}

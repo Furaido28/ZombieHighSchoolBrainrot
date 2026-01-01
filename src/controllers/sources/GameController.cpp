@@ -148,7 +148,7 @@ void GameController::update(float dt)
             player.getPosition(), player.getRadius(),
             enemy->getPosition(), enemy->getRadius()))
         {
-            player.takeDamage(enemy->getDamage());
+            enemy->attack(player);
         }
     }
 
