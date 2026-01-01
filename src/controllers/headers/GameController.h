@@ -8,7 +8,7 @@
 #include "models/headers/Player.h"
 #include "models/headers/TileMap.h"
 #include "../../models/headers/Enemy.h"
-#include "models/headers/Enemy/BasicEnemy"
+#include "models/headers/Enemy/BasicEnemy.h"
 #include "../../models/headers/Enemy/FastEnemy.h"
 #include "models/headers/Enemy/TankEnemy.h"
 #include "../../models/headers/Boss/Boss.h"

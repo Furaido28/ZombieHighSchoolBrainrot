@@ -12,6 +12,7 @@ public:
     void update(float dt, const sf::Vector2f& playerPos) override;
 
     virtual int getDamage() const override = 0;
+    virtual void attack(Player &player) override = 0;
 
 protected:
     sf::Vector2f position;

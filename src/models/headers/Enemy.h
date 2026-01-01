@@ -1,9 +1,8 @@
 #pragma once
-
-#include <SFML/System/Vector2.hpp>
 #include <SFML/System/Clock.hpp>
-#include <SFML/Graphics/Rect.hpp>
-#include "Player.h"
+#include <SFML/Graphics.hpp>
+
+class Player;
 
 enum class EnemyType {
     Basic,
@@ -40,10 +39,6 @@ public:
     bool canAttack() const;
 
 protected:
-    sf::Vector2f position;
-    sf::Vector2f velocity{0.f, 0.f};
-
-    float attackCooldown = 1.5f;
     sf::Clock attackClock;
-    int attackDamage = 0;
+    float attackCooldown = 1.f;
 };
