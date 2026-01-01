@@ -172,11 +172,14 @@ void GameController::handleEvent(const sf::Event& event) {
 // =========================
 void GameController::update(float dt)
 {
+    // =========================
+    // 0. TIMERS
+    // =========================
     if (attackTimer > 0.f)
         attackTimer -= dt;
 
     // =========================
-    // PLAYER INPUT
+    // 1. PLAYER INPUT
     // =========================
     sf::Vector2f dir(0.f, 0.f);
     bool isMoving = false;
@@ -206,7 +209,7 @@ void GameController::update(float dt)
     player.setMoving(isMoving);
 
     // =========================
-    // ITEM PICKUP (E)
+    // 2. ITEM PICKUP (E)
     // =========================
     static bool eWasPressed = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
@@ -217,6 +220,7 @@ void GameController::update(float dt)
                     it->position, it->radius))
                 {
                     bool picked = false;
+
                     if (it->item.type == ItemType::KeyFragment)
                         picked = player.getInventory().addKeyFragment(it->item);
                     else
@@ -232,10 +236,12 @@ void GameController::update(float dt)
         }
         eWasPressed = true;
     }
-    else eWasPressed = false;
+    else {
+        eWasPressed = false;
+    }
 
     // =========================
-    // MOVEMENT
+    // 3. MOVEMENT + COLLISIONS
     // =========================
     if (dir.x != 0.f || dir.y != 0.f) {
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
@@ -244,25 +250,59 @@ void GameController::update(float dt)
 
     sf::Vector2f delta = dir * 700.f * dt;
 
-    sf::FloatRect bbox = player.getGlobalBounds();
-    sf::FloatRect future = bbox;
-    future.left += delta.x;
-    future.top += delta.y;
+    sf::FloatRect currentBBox = player.getGlobalBounds();
+    sf::FloatRect futureBBox = currentBBox;
+    futureBBox.left += delta.x;
+    futureBBox.top  += delta.y;
 
-    if (isPositionFree(future))
+    if (isPositionFree(futureBBox)) {
         player.move(delta);
+    }
+    else {
+        // glissement X
+        sf::FloatRect bboxX = currentBBox;
+        bboxX.left += delta.x;
 
+        if (isPositionFree(bboxX)) {
+            player.move({ delta.x, 0.f });
+        }
+        else {
+            // glissement Y
+            sf::FloatRect bboxY = currentBBox;
+            bboxY.top += delta.y;
+
+            if (isPositionFree(bboxY)) {
+                player.move({ 0.f, delta.y });
+            }
+        }
+    }
+
+    // =========================
+    // 4. UPDATE PLAYER
+    // =========================
     player.update(dt);
 
     // =========================
-    // ENEMY UPDATE & ATTACK
+    // 5. ENEMY UPDATE & ATTACK
     // =========================
     for (auto& enemy : enemies) {
+
         if (!enemy->isAlive())
             continue;
 
-        enemy->update(dt, player.getPosition());
+        sf::Vector2f oldPos = enemy->getPosition();
 
+        if (player.isAlive())
+            enemy->update(dt, player.getPosition());
+        else
+            enemy->update(dt, enemy->getPosition());
+
+        // collision décor
+        if (!isPositionFree(enemy->getGlobalBounds())) {
+            enemy->setPosition(oldPos);
+        }
+
+        // attaque joueur
         if (circlesIntersect(
             player.getPosition(), player.getRadius(),
             enemy->getPosition(), enemy->getRadius()))
@@ -272,7 +312,7 @@ void GameController::update(float dt)
     }
 
     // =========================
-    // WEAPON ATTACK (COOLDOWN)
+    // 6. WEAPON ATTACK (COOLDOWN)
     // =========================
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && attackTimer <= 0.f) {
 
@@ -304,9 +344,30 @@ void GameController::update(float dt)
         }
     }
 
+    // =========================
+    // 7. DEBUG – SKIP WAVE
+    // =========================
+    static bool kWasPressed = false;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::K)) {
+        if (!kWasPressed && waveManager) {
+            waveManager->requestSkip();
+            std::cout << "[DEBUG] Skip requested\n";
+        }
+        kWasPressed = true;
+    }
+    else {
+        kWasPressed = false;
+    }
+
+    // =========================
+    // 8. WAVES
+    // =========================
     if (waveManager)
         waveManager->update(dt, player, enemies);
 
+    // =========================
+    // 9. CAMERA
+    // =========================
     gameView.setCenter(player.getPosition());
 }
 
