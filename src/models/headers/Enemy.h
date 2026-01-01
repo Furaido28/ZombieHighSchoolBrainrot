@@ -39,5 +39,3 @@ protected:
     sf::Clock attackClock;
     int attackDamage;
 };
-
-#endif //ZOMBIEHIGHSCHOOLBRAINROT_ENEMY_H

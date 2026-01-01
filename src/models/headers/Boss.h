@@ -38,5 +38,3 @@ protected:
     float attackCooldown = 1.5;
     int attackDamage = 15;
 };
-
-#endif //ZOMBIEHIGHSCHOOLBRAINROT_BOSS_H

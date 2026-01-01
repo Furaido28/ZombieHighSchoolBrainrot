@@ -42,6 +42,11 @@ float WaveManager::getTimeLeft() const {
 void WaveManager::update(float dt, Player& player,
                          std::vector<std::unique_ptr<Enemy>>& enemies)
 {
+    if (!player.isAlive()) {
+        waveClock.restart();
+        return;
+    }
+
     if (currentWave >= waves.size())
         return;
 

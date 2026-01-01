@@ -36,7 +36,7 @@ private:
 
     std::vector<Wave> waves;
     sf::Clock waveClock;
-    float maxWaveDuration = 5.f; // 2 minutes 30 secondes
+    float maxWaveDuration = 150.f; // 2 minutes 30 secondes
 
     int currentWave = 0;
     int spawnedInWave = 0;
