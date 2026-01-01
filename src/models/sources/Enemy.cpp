@@ -1,5 +1,7 @@
 #include "models/headers/Enemy.h"
 
+#include <cmath>
+
 Enemy::Enemy(const sf::Vector2f& startPos){
     setPosition(startPos);
     velocity = {0.f, 0.f};
@@ -50,3 +52,11 @@ sf::FloatRect Enemy::getGlobalBounds() const {
 bool Enemy::canAttack() const {
     return attackClock.getElapsedTime().asSeconds() >= attackCooldown;
 }
+
+sf::Vector2f Enemy::normalize(const sf::Vector2f& v) const {
+    float len = std::sqrt(v.x * v.x + v.y * v.y);
+    if (len == 0.f)
+        return {0.f, 0.f};
+    return { v.x / len, v.y / len };
+}
+

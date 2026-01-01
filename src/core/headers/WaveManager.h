@@ -28,7 +28,17 @@ struct Wave {
     int simple;
     int medium;
     int difficult;
-    int hard; // boss = 1
+    int hard;
+};
+
+/* 1 -> TralaleroTralala
+ * 2 -> ChimpanziniBananini
+ * 3 -> UdinDinDinDun
+ * 4 -> OscarTheCrackhead
+ */
+struct BossTile {
+    sf::Vector2i pos;
+    int bossType; // 1,2,3,4
 };
 
 class WaveManager {
@@ -41,11 +51,16 @@ public:
     int getCurrentWave() const;
     float getTimeLeft() const;
 
+    // ---------- KEY PASS WAVES ----------
+    // TODO retirer plus tard
+    bool debugSkipRequested = false;
+    void requestSkip();
+
 private:
     // ---------- MAP ----------
     const TileMap& map;
-    std::vector<sf::Vector2u> freeTiles;   // '.'
-    std::vector<sf::Vector2u> bossTiles;   // '1'
+    std::vector<sf::Vector2u> freeTiles;
+    std::vector<BossTile> bossTiles;
 
     // ---------- WAVES ----------
     std::vector<Wave> waves;
@@ -63,5 +78,5 @@ private:
                     std::vector<std::unique_ptr<Enemy>>& enemies);
 
     sf::Vector2f getSpawnPosition(const Player& player);
-    sf::Vector2f getBossSpawnPosition() const;
+    sf::Vector2f getBossSpawnPosition(int &outBossType) const;
 };

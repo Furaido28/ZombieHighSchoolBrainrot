@@ -12,6 +12,11 @@ public:
     void attack(Player& player) override;
 
 protected:
+    sf::Clock dashClock;
+    sf::Clock shockwaveClock;
+
+    void dashTowardPlayer(const sf::Vector2f& playerPos);
+    void shockwave();
     void updatePhaseLogic(float dt, const sf::Vector2f& playerPos) override;
 
 };

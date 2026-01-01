@@ -13,12 +13,14 @@ void Boss::update(float dt, const sf::Vector2f& playerPos) {
     updatePhaseLogic(dt, playerPos);
 }
 
-void Boss::updatePhase() {
+void Boss::updatePhase()
+{
     float ratio = health / maxHealth;
 
-    if (ratio < 0.7f) currentPhase = 1;
-    if (ratio < 0.4f) currentPhase = 2;
-    if (ratio < 0.2f) currentPhase = 3;
+    if (ratio > 0.75f) currentPhase = 0;
+    else if (ratio > 0.5f) currentPhase = 1;
+    else if (ratio > 0.25f) currentPhase = 2;
+    else currentPhase = 3;
 }
 
 void Boss::moveTowardPlayer(float dt, const sf::Vector2f& playerPos) {

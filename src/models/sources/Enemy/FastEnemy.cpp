@@ -4,9 +4,9 @@ FastEnemy::FastEnemy(const sf::Vector2f& startPos) : BasicEnemy(startPos) {
     speed = 150.f;
     maxHealth = 50.f;
     health = maxHealth;
-    attackCooldown = 1.5f;
+    attackCooldown =  0.8f;
 }
 
 int FastEnemy::getDamage() const {
-    return 10;
+    return 5;
 }

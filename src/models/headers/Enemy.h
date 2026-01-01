@@ -55,4 +55,6 @@ protected:
     // Attaque
     sf::Clock attackClock;
     float attackCooldown;
+
+    sf::Vector2f normalize(const sf::Vector2f& v) const;
 };

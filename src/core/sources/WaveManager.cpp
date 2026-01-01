@@ -1,5 +1,7 @@
 #include "../headers/WaveManager.h"
 
+#include <iostream>
+
 #include "models/headers/Boss/UdinDinDinDun.h"
 
 // ======================================================
@@ -13,24 +15,32 @@ WaveManager::WaveManager(const TileMap& mapRef)
         for (unsigned x = 0; x < map.getWidth(); ++x) {
             char tile = map.getTile(x, y);
 
-            if (tile == '.')
+            if (tile == '.') {
                 freeTiles.emplace_back(x, y);
-            else if (tile == '*')
-                bossTiles.emplace_back(x, y);
+            }
+            else if (tile >= '1' && tile <= '4') {
+                bossTiles.push_back({
+                    {static_cast<int>(x), static_cast<int>(y)},
+                    tile - '0'
+                });
+            }
         }
     }
 
     // ---------- 3 cycles × 4 waves ----------
     for (int cycle = 0; cycle < 3; ++cycle) {
-        waves.push_back({0,0,0,1});
-        // waves.push_back({6, 0, 0, 0});
-        // waves.push_back({10, 4, 0, 0});
-        // waves.push_back({14, 8, 3, 0});
-        // waves.push_back({20, 8, 6, 1});
+        waves.push_back({6, 0, 0, 0});
+        waves.push_back({10, 4, 0, 0});
+        waves.push_back({14, 8, 3, 0});
+        waves.push_back({20, 8, 6, 1});
     }
 
     spawnClock.restart();
     waveClock.restart();
+
+    std::cout << "[DEBUG] freeTiles = " << freeTiles.size() << std::endl;
+    std::cout << "[DEBUG] bossTiles = " << bossTiles.size() << std::endl;
+
 }
 
 // ======================================================
@@ -82,6 +92,19 @@ void WaveManager::update(float dt, Player& player,
     bool allSpawned = (spawnedInWave >= totalEnemies);
     bool enemiesAlive = !enemies.empty();
 
+
+    // --------------------------------------------------------------------
+    // DEBUG MODE (Skip)
+    if (debugSkipRequested) {
+        std::cout << "[DEBUG] Wave skipped\n";
+        enemies.clear();
+        spawnedInWave = waves[currentWave].simple +
+                        waves[currentWave].medium +
+                        waves[currentWave].difficult +
+                        waves[currentWave].hard;
+        debugSkipRequested = false;
+    }
+    // --------------------------------------------------------------------
     // ---------- FIN DE VAGUE ----------
     if (allSpawned && !enemiesAlive) {
         currentWave++;
@@ -100,9 +123,6 @@ void WaveManager::spawnEnemy(Player& player,
     const Wave& w = waves[currentWave];
     int index = spawnedInWave;
 
-    int waveInCycle = currentWave % 4;
-    int cycleIndex  = currentWave / 4;
-
     // ---------- Ennemis normaux ----------
     if (index < w.simple) {
         enemies.push_back(
@@ -120,29 +140,31 @@ void WaveManager::spawnEnemy(Player& player,
         );
     }
     // ---------- BOSS ----------
-    else if (waveInCycle == 3 && w.hard > 0) {
+    else if (w.hard > 0) {
 
-        sf::Vector2f pos = getBossSpawnPosition();
+        int bossType = 1;
+        sf::Vector2f pos = getBossSpawnPosition(bossType);
 
-        switch (cycleIndex) {
-            case 0:
+        switch (bossType) {
+            case 1:
                 enemies.push_back(
                     std::make_unique<TralaleroTralala>(pos)
                 );
                 break;
 
-            case 1:
+            case 2:
                 enemies.push_back(
                     std::make_unique<ChimpanziniBananini>(pos)
                 );
                 break;
 
-            case 2:
+            case 3:
                 enemies.push_back(
                     std::make_unique<UdinDinDinDun>(pos)
                 );
                 break;
-            case 3:
+
+            case 4:
                 enemies.push_back(
                     std::make_unique<OscarTheCrackhead>(pos)
                 );
@@ -181,21 +203,27 @@ sf::Vector2f WaveManager::getSpawnPosition(const Player& player)
     };
 }
 
-sf::Vector2f WaveManager::getBossSpawnPosition() const
+sf::Vector2f WaveManager::getBossSpawnPosition(int& outBossType) const
 {
     const float tileSize = map.getTileSize();
 
     if (bossTiles.empty()) {
+        outBossType = 1;
         return {
             map.getWidth() * tileSize / 2.f,
             map.getHeight() * tileSize / 2.f
         };
     }
 
-    const auto& tile = bossTiles[rand() % bossTiles.size()];
+    const BossTile& bt = bossTiles[rand() % bossTiles.size()];
+    outBossType = bt.bossType;
 
     return {
-        tile.x * tileSize + tileSize / 2.f,
-        tile.y * tileSize + tileSize / 2.f
+        bt.pos.x * tileSize + tileSize / 2.f,
+        bt.pos.y * tileSize + tileSize / 2.f
     };
+}
+
+void WaveManager::requestSkip() {
+    debugSkipRequested = true;
 }
