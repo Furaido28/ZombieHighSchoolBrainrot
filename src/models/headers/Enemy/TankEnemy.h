@@ -15,6 +15,7 @@ public:
     float getMaxHealth() const override { return 100.f; }
 
     int getDamage() const override { return attackDamage; }
+
 protected:
     float attackCooldown = 2.5;
     int attackDamage = 20;

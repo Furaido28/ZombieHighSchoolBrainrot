@@ -5,11 +5,11 @@
 #include "models/headers/Player.h"
 
 BasicEnemy::BasicEnemy(const sf::Vector2f& startPos)
-    : position(startPos),
-    speed(60.f),
-    radius(50.f),
-    health(50)
-{}
+    : Enemy(startPos),
+      speed(60.f),
+      radius(50.f),
+      health(50) {
+}
 
 void BasicEnemy::update(float dt, const sf::Vector2f& playerPos) {
     sf::Vector2f dir = playerPos - position;

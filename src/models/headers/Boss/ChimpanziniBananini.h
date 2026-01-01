@@ -1,4 +1,6 @@
 #pragma once
 
-class ChimpanziniBananini {
+#include "Boss.h"
+
+class ChimpanziniBananini : public Boss {
 };

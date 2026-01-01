@@ -1,4 +1,6 @@
 #pragma once
 
-class TralaleroTralala {
+#include "Boss.h"
+
+class TralaleroTralala : public Boss {
 };
