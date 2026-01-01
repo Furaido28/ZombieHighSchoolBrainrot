@@ -25,6 +25,11 @@ bool Inventory::addKeyFragment(const Item& fragment) {
 const std::vector<std::optional<Item>>& Inventory::getSlots() const {
     return slots;
 }
+// 🔹 NON-CONST VERSION
+std::vector<std::optional<Item>>& Inventory::getSlots() {
+    return slots;
+}
+
 
 const std::vector<Item>& Inventory::getKeyFragments() const {
     return keyFragments;

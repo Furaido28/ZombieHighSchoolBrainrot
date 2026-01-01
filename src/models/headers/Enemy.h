@@ -41,6 +41,7 @@ public:
     virtual sf::FloatRect getGlobalBounds() const;
 
     bool canAttack() const;
+    virtual void takeDamage(int amount);
 
 protected:
     sf::Vector2f position;

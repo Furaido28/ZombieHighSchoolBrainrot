@@ -12,6 +12,7 @@ public:
     bool addKeyFragment(const Item& fragment);
 
     const std::vector<std::optional<Item>>& getSlots() const;
+    std::vector<std::optional<Item>>& getSlots();
     const std::vector<Item>& getKeyFragments() const;
     void selectSlot(int index);
     int getSelectedSlot() const;
