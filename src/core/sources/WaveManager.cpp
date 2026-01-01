@@ -1,8 +1,8 @@
 #include "../headers/WaveManager.h"
-#include "models/headers/Enemy.h"
-#include "models/headers/ZombieBasic.h"
-#include "models/headers/ZombieFast.h"
-#include "models/headers/ZombieTank.h"
+#include "../../models/headers/Enemy.h"
+#include "models/headers/Enemy/BasicEnemy"
+#include "../../models/headers/Enemy/FastEnemy.h"
+#include "models/headers/Enemy/TankEnemy.h"
 #include "models/headers/Player.h"
 #include "models/headers/TileMap.h"
 #include <cstdlib>
@@ -111,11 +111,11 @@ void WaveManager::spawnEnemy(Player& player,
     const Wave& w = waves[currentWave];
 
     if (spawnedInWave < w.simple)
-        enemies.push_back(std::make_unique<ZombieBasic>(spawnPos));
+        enemies.push_back(std::make_unique<BasicEnemy>(spawnPos));
     else if (spawnedInWave < w.simple + w.medium)
-        enemies.push_back(std::make_unique<ZombieFast>(spawnPos));
+        enemies.push_back(std::make_unique<FastEnemy>(spawnPos));
     else if (spawnedInWave < w.simple + w.medium + w.difficult)
-        enemies.push_back(std::make_unique<ZombieTank>(spawnPos));
+        enemies.push_back(std::make_unique<BasicEnemy>(spawnPos));
 }
 
 sf::Vector2f WaveManager::getSpawnPosition(const Player& player)

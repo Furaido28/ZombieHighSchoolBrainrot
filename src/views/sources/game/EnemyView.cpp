@@ -46,7 +46,7 @@ EnemyView::EnemyView() {
 
 }
 
-void EnemyView::loadTextureForType(ZombieType type) {
+void EnemyView::loadTextureForType(EnemyType type) {
     if (textureInitialized && type == currentType)
         return;
 
@@ -54,16 +54,16 @@ void EnemyView::loadTextureForType(ZombieType type) {
     textureInitialized = true;
 
     switch (type) {
-        case ZombieType::Basic:
+        case EnemyType::Basic:
             sprite.setTexture(zombieBasicTexture);
             break;
-        case ZombieType::Fast:
+        case EnemyType::Fast:
             sprite.setTexture(zombieFastTexture);
             break;
-        case ZombieType::Tank:
+        case EnemyType::Tank:
             sprite.setTexture(zombieTankTexture);
             break;
-        case ZombieType::Boss:
+        case EnemyType::Boss:
             sprite.setTexture(bossZombieTexture);
             break;
     }

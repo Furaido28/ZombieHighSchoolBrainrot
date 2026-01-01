@@ -1,13 +1,13 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "models/headers/Enemy.h"
+#include "../../../models/headers/Enemy.h"
 
 class EnemyView {
 public:
     EnemyView();
 
-    void loadTextureForType(ZombieType type);
+    void loadTextureForType(EnemyType type);
     void drawHealthBar(sf::RenderWindow& window, const Enemy& enemy);
     void render(
         sf::RenderWindow& window,
@@ -38,6 +38,6 @@ private:
     int frameWidth = 0;
     int frameHeight = 0;
 
-    ZombieType currentType;
+    EnemyType currentType;
     bool textureInitialized = false;
 };

@@ -2,26 +2,28 @@
 
 #include <SFML/Graphics/Rect.hpp>
 
-#include "Enemy.h"
+#include "../Enemy.h"
 
-class ZombieBasic : public Enemy {
+class Boss : public Enemy {
 public:
-    ZombieBasic(const sf::Vector2f& startPos);
+    Boss(const sf::Vector2f& startPos);
 
     void update(float dt, const sf::Vector2f& playerPos) override;
 
-    void setPosition(const sf::Vector2f &pos) override;
+    void setPosition(const sf::Vector2f& pos) override;
     sf::Vector2f getPosition() const override;
     sf::Vector2f getVelocity() const override;
-
-    ZombieType getType() const override { return ZombieType::Basic; }
 
     float getRadius() const override { return radius; }
     sf::FloatRect getGlobalBounds() const override;
 
-    float getHealth() const override { return health; }
-    float getMaxHealth() const override { return 50.f; }
     bool isAlive() const override;
+
+    EnemyType getType() const override {
+        return EnemyType::Boss;
+    }
+    float getHealth() const override { return health; }
+    float getMaxHealth() const override { return 1000.f; }
 
     int getDamage() const override { return attackDamage; }
     void attack(Player& player) override;
