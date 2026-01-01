@@ -88,7 +88,7 @@ void GameController::update(float dt)
         dir /= len;
     }
 
-    const float speed = 200.f;
+    const float speed = 700.f;
     sf::Vector2f delta = dir * speed * dt;
 
     // =========================

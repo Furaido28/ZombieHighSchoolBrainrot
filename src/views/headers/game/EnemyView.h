@@ -7,14 +7,14 @@ class EnemyView {
 public:
     EnemyView();
 
-    void loadTextureForType(EnemyType type);
-    void drawHealthBar(sf::RenderWindow& window, const Enemy& enemy);
     void render(
         sf::RenderWindow& window,
         const Enemy& enemy,
-        const sf::Vector2f& playerPos);
+        const sf::Vector2f& playerPos
+    );
 
 private:
+    // ================= SPRITE =================
     sf::Sprite sprite;
 
     sf::Texture zombieBasicTexture;
@@ -25,23 +25,27 @@ private:
     sf::Texture boss03Texture;
     sf::Texture finalBossTexture;
 
-
-    // Barre de vie stylée
-    float healthBarWidth  = 36.f;
-    float healthBarHeight = 6.f;
-    float healthBarRadius = 3.f;
-
-    sf::RectangleShape hbBack;
-    sf::RectangleShape hbFront;
-    sf::RectangleShape hbOutline;
-
-    sf::CircleShape hbBackLeft, hbBackRight;
-    sf::CircleShape hbFrontLeft, hbFrontRight;
-    sf::CircleShape hbOutlineLeft, hbOutlineRight;
-
-    int frameWidth = 0;
+    int frameWidth  = 0;
     int frameHeight = 0;
 
     EnemyType currentType;
     bool textureInitialized = false;
+
+    void loadTextureForType(EnemyType type);
+
+    // ================= HEALTH BAR =================
+    void drawHealthBar(sf::RenderWindow& window, const Enemy& enemy);
+
+    float hpWidth  = 40.f;
+    float hpHeight = 6.f;
+    float hpRadius = hpHeight / 2.f;
+
+    sf::RectangleShape hbBack;
+    sf::RectangleShape hbFront;
+
+    sf::CircleShape hbBackLeft;
+    sf::CircleShape hbBackRight;
+
+    sf::CircleShape hbFrontLeft;
+    sf::CircleShape hbFrontRight;
 };

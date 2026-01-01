@@ -240,7 +240,7 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int w
             waveLabel = "Hard WAVE";
             break;
         default:
-            waveLabel = "./.";
+            waveLabel = "Boss Wave";
     }
 
     waveText.setString(waveLabel);
