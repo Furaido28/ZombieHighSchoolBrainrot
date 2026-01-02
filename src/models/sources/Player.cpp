@@ -90,7 +90,6 @@ sf::FloatRect Player::getGlobalBounds() const {
 }
 
 // --- GESTION DE LA DIRECTION ---
-
 void Player::setDirection(Direction dir) {
     currentDirection = dir;
 }
@@ -190,4 +189,13 @@ AttackInfo Player::tryAttack() {
     }
 
     return info;
+}
+void Player::addMovement(const sf::Vector2f& dir) {
+    movementIntent += dir;
+}
+
+sf::Vector2f Player::consumeMovement() {
+    sf::Vector2f result = movementIntent;
+    movementIntent = {0.f, 0.f};
+    return result;
 }

@@ -12,6 +12,7 @@
 #include "../../models/headers/Enemy/FastEnemy.h"
 #include "models/headers/Enemy/TankEnemy.h"
 #include "../../models/headers/Boss/Boss.h"
+#include "core/headers/InputHandler.h"
 #include "models/headers/Item.h"
 #include "views/headers/game/PlayerView.h"
 #include "views/headers/game/EnemyView.h"
@@ -59,9 +60,11 @@ private:
     bool isPositionFree(const sf::FloatRect& bbox) const;
     void placePlayerAtFirstFreeTile();
 
+    // Helper: On demande la taille directement au Player (MVC)
+    // Plus besoin de stocker "radius" ici, c'est le Player qui sait sa taille.
     sf::Vector2f playerSize() const { return player.getSize(); }
 
-    // Textures
+    //textures
     std::map<std::string, sf::Texture> itemTextures;
 
     Player player;
@@ -74,6 +77,11 @@ private:
 
     std::unique_ptr<WaveManager> waveManager;
     std::vector<WorldItem> worldItems;
+    float attackCooldown = 0.4f;
+    float attackTimer = 0.f;
+
+    //Command
+    InputHandler inputHandler;
 
     // --- NOUVEAU : Liste des projectiles ---
     std::vector<Projectile> projectiles;

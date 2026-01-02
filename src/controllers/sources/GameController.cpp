@@ -6,6 +6,14 @@
 #include <ctime>
 #include <algorithm> // Pour std::remove_if
 
+#include "core/headers/commands/AttackCommand.h"
+#include "core/headers/commands/MoveDownCommand.h"
+#include "core/headers/commands/MoveLeftCommand.h"
+#include "core/headers/commands/MoveRightCommand.h"
+#include "core/headers/commands/MoveUpCommand.h"
+#include "core/headers/commands/PickupItemCommand.h"
+#include "core/headers/commands/UseItemCommand.h"
+
 static bool circlesIntersect(
     const sf::Vector2f& aPos, float aRadius,
     const sf::Vector2f& bPos, float bRadius)
@@ -57,9 +65,47 @@ static void spawnWorldItem(
 // =========================
 // CONSTRUCTOR
 // =========================
-GameController::GameController()
-    : player(), playerView()
-{
+GameController::GameController() : player(), playerView() {
+    // =========================
+    // Unitialisation des commandes
+    // =========================
+
+    inputHandler.bind(sf::Keyboard::Z,
+    std::make_unique<MoveUpCommand>(player));
+
+    inputHandler.bind(sf::Keyboard::S,
+        std::make_unique<MoveDownCommand>(player));
+
+    inputHandler.bind(sf::Keyboard::Q,
+        std::make_unique<MoveLeftCommand>(player));
+
+    inputHandler.bind(sf::Keyboard::D,
+        std::make_unique<MoveRightCommand>(player));
+
+    inputHandler.bind(sf::Mouse::Left,
+    std::make_unique<AttackCommand>(
+            player,
+            enemies,
+            attackTimer,
+            attackCooldown
+        )
+    );
+
+    inputHandler.bind(sf::Mouse::Right,
+        std::make_unique<UseItemCommand>(player)
+    );
+
+    inputHandler.bind(sf::Keyboard::E,
+        std::make_unique<PickupItemCommand>(
+            player,
+            worldItems
+        )
+    );
+
+    // =========================
+    // LOAD MAPS
+    // =========================
+
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
     std::cout << "--- DEBUG: Tentative de chargement de la map ---" << std::endl;
@@ -172,24 +218,7 @@ const sf::Texture& GameController::getItemTexture(const std::string& name) const
 // INPUT EVENTS
 // =========================
 void GameController::handleEvent(const sf::Event& event) {
-    if (event.type == sf::Event::MouseButtonPressed &&
-        event.mouseButton.button == sf::Mouse::Right)
-    {
-        int slot = player.getInventory().getSelectedSlot();
-        auto& slots = player.getInventory().getSlots();
 
-        if (slots[slot].has_value()) {
-            Item& item = slots[slot].value();
-
-            if (item.type == ItemType::Consumable) {
-                if (player.getHealth() + item.value >100)
-                    player.setHealth(100);
-                else
-                    player.takeDamage(-item.value);
-                slots[slot].reset();
-            }
-        }
-    }
 }
 
 // =========================
@@ -201,65 +230,25 @@ void GameController::update(float dt)
     if (debugMeleeTimer > 0.f)
         debugMeleeTimer -= dt;
 
+    // =========================
     // 1. PLAYER INPUT
-    sf::Vector2f dir(0.f, 0.f);
-    bool isMoving = false;
+    // =========================
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
-        dir.y -= 1.f;
-        player.setDirection(Direction::Up);
-        isMoving = true;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-        dir.y += 1.f;
-        player.setDirection(Direction::Down);
-        isMoving = true;
-    }
+    // Reset mouvement
+    player.setMoving(false);
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-        dir.x -= 1.f;
-        player.setDirection(Direction::Left);
-        isMoving = true;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-        dir.x += 1.f;
-        player.setDirection(Direction::Right);
-        isMoving = true;
-    }
+    // Commandes
+    inputHandler.handleInput(dt);
 
-    player.setMoving(isMoving);
+    // Update logique
+    player.update(dt);
 
-    // 2. ITEM PICKUP (E)
-    static bool eWasPressed = false;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
-        if (!eWasPressed) {
-            for (auto it = worldItems.begin(); it != worldItems.end();) {
-                if (circlesIntersect(
-                    player.getPosition(), player.getRadius(),
-                    it->position, it->radius))
-                {
-                    bool picked = false;
-
-                    if (it->item.type == ItemType::KeyFragment)
-                        picked = player.getInventory().addKeyFragment(it->item);
-                    else
-                        picked = player.getInventory().addItem(it->item);
-
-                    if (picked) {
-                        it = worldItems.erase(it);
-                        continue;
-                    }
-                }
-                ++it;
-            }
-        }
-        eWasPressed = true;
-    }
-    else {
-        eWasPressed = false;
-    }
-
+    // =========================
     // 3. MOVEMENT + COLLISIONS
+    // =========================
+
+    sf::Vector2f dir = player.consumeMovement();
+
     if (dir.x != 0.f || dir.y != 0.f) {
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         dir /= len;
@@ -294,7 +283,10 @@ void GameController::update(float dt)
         }
     }
 
+    // =========================
     // 4. UPDATE PLAYER
+    // =========================
+
     player.update(dt);
 
     // --- NOUVEAU : Mise à jour de la visualisation de portée (Projectile) ---
@@ -314,6 +306,8 @@ void GameController::update(float dt)
     }
 
     // 5. ENEMY UPDATE & ATTACK
+    // =========================
+
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
@@ -329,6 +323,10 @@ void GameController::update(float dt)
         sf::Vector2f deltaE = newPos - oldPos;
         enemy->setPosition(oldPos); // Reset
 
+        // Revenir à la position valide
+        enemy->setPosition(oldPos);
+
+        // Tentative déplacement complet
         sf::FloatRect bbox = enemy->getGlobalBounds();
         sf::FloatRect future = bbox;
         future.left += deltaE.x;
@@ -338,16 +336,23 @@ void GameController::update(float dt)
             enemy->setPosition(oldPos + deltaE);
         }
         else {
+            // Glissement X
             sf::FloatRect bboxX = bbox;
             bboxX.left += deltaE.x;
+
             if (isPositionFree(bboxX)) {
                 enemy->setPosition({ oldPos.x + deltaE.x, oldPos.y });
-            } else {
+            }
+            else {
+                // Glissement Y
                 sf::FloatRect bboxY = bbox;
                 bboxY.top += deltaE.y;
+
                 if (isPositionFree(bboxY)) {
                     enemy->setPosition({ oldPos.x, oldPos.y + deltaE.y });
-                } else {
+                }
+                else {
+                    // Bloqué total → reste en place
                     enemy->setPosition(oldPos);
                 }
             }
@@ -365,6 +370,7 @@ void GameController::update(float dt)
     // ==========================================
     // 6. NEW WEAPON ATTACK SYSTEM (Directional)
     // ==========================================
+
     if ((sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space))) {
 
         // On demande au joueur s'il peut attaquer
@@ -458,6 +464,8 @@ void GameController::update(float dt)
 
 
     // 7. DEBUG – SKIP WAVE
+    // =========================
+
     static bool kWasPressed = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::K)) {
         if (!kWasPressed && waveManager) {
@@ -470,11 +478,15 @@ void GameController::update(float dt)
         kWasPressed = false;
     }
 
+    // =========================
     // 8. WAVES
+    // =========================
     if (waveManager)
         waveManager->update(dt, player, enemies);
 
+    // =========================
     // 9. CAMERA
+    // =========================
     gameView.setCenter(player.getPosition());
 }
 
