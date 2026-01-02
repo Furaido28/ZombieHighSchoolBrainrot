@@ -9,7 +9,7 @@ Player::Player()
       moving(false),
       attackCooldownTimer(0.f) // Init du cooldown à 0
 {
-    maxHealth = 100;
+    maxHealth = 5000000;
     health = maxHealth;
 }
 

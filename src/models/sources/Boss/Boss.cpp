@@ -1,5 +1,8 @@
 #include "models/headers/Boss/Boss.h"
 #include <cmath>
+#include <iostream>
+
+#include "models/headers/Item.h"
 
 Boss::Boss(const sf::Vector2f& startPos) : Enemy(startPos) {
     speed = 60.f;
@@ -54,3 +57,12 @@ void Boss::moveTowardPlayer(float dt, const sf::Vector2f& playerPos) {
         position += velocity * dt;
     }
 }
+void Boss::onDeath() {
+    if (keyFragmentDropped)
+        return;
+    keyFragmentDropped = true;
+    std::cout << "BOSS DEFEATED" << std::endl;
+
+    //TODO : notifier le GameController
+}
+

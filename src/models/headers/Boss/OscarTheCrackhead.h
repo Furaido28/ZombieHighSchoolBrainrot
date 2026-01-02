@@ -11,7 +11,6 @@ public:
     EnemyType getType() const override { return EnemyType::FinalBoss; }
 
     int getDamage() const override;
-    void attack(Player& player) override;
 
 protected:
     std::unique_ptr<BossPhase> createPhase(int phaseIndex) override;

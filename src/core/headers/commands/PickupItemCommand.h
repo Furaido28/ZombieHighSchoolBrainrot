@@ -5,17 +5,20 @@
 #include "models/headers/Item.h"
 #include <vector>
 
+#include "controllers/headers/GameController.h"
+
 struct WorldItem;
 
 class PickupItemCommand : public Command {
 public:
     PickupItemCommand(Player& player,
-                      std::vector<WorldItem>& worldItems)
-        : player(player), worldItems(worldItems) {}
+                      std::vector<WorldItem>& worldItems, GameController& controller)
+        : player(player), worldItems(worldItems), controller(controller) {}
 
     void execute(float dt) override;
 
 private:
     Player& player;
     std::vector<WorldItem>& worldItems;
+    GameController& controller;
 };

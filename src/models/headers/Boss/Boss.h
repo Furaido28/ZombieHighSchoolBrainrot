@@ -26,5 +26,7 @@ protected:
 
     // Mouvement commun
     void moveTowardPlayer(float dt, const sf::Vector2f& playerPos);
+    bool keyFragmentDropped = false;
+    virtual void onDeath();
 };
 

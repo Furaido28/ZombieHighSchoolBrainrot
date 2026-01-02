@@ -73,36 +73,20 @@ GameController::GameController() : player(), playerView() {
     Inventory& inv = player.getInventory();
 
     // =========================
-    // Unitialisation des commandes
+    // COMMANDES (UNE FOIS)
     // =========================
+    inputHandler.bind(sf::Keyboard::Z, std::make_unique<MoveUpCommand>(player));
+    inputHandler.bind(sf::Keyboard::S, std::make_unique<MoveDownCommand>(player));
+    inputHandler.bind(sf::Keyboard::Q, std::make_unique<MoveLeftCommand>(player));
+    inputHandler.bind(sf::Keyboard::D, std::make_unique<MoveRightCommand>(player));
 
-    inputHandler.bind(sf::Keyboard::Z,
-    std::make_unique<MoveUpCommand>(player));
-
-    inputHandler.bind(sf::Keyboard::S,
-        std::make_unique<MoveDownCommand>(player));
-
-    inputHandler.bind(sf::Keyboard::Q,
-        std::make_unique<MoveLeftCommand>(player));
-
-    inputHandler.bind(sf::Keyboard::D,
-        std::make_unique<MoveRightCommand>(player));
-
-    inputHandler.bind(sf::Mouse::Right,
-        std::make_unique<UseItemCommand>(player)
-    );
-
+    inputHandler.bind(sf::Mouse::Right, std::make_unique<UseItemCommand>(player));
     inputHandler.bind(sf::Keyboard::E,
-        std::make_unique<PickupItemCommand>(
-            player,
-            worldItems
-        )
-    );
+        std::make_unique<PickupItemCommand>(player, worldItems, *this));
 
     nextSlotCommand = std::make_unique<NextSlotCommand>(inv, tabPressed);
     prevSlotCommand = std::make_unique<PrevSlotCommand>(inv);
 
-    // Select Slot Command
     inputHandler.bind(sf::Keyboard::Num1, std::make_unique<SelectSlotCommand>(inv, 0));
     inputHandler.bind(sf::Keyboard::Num2, std::make_unique<SelectSlotCommand>(inv, 1));
     inputHandler.bind(sf::Keyboard::Num3, std::make_unique<SelectSlotCommand>(inv, 2));
@@ -114,109 +98,37 @@ GameController::GameController() : player(), playerView() {
     inputHandler.bind(sf::Keyboard::Num9, std::make_unique<SelectSlotCommand>(inv, 8));
 
     // =========================
-    // LOAD MAPS
+    // INIT GLOBALE (UNE FOIS)
     // =========================
-
     std::srand(static_cast<unsigned>(std::time(nullptr)));
-
-    std::cout << "--- DEBUG: Tentative de chargement de la map ---" << std::endl;
-
-    if (!map.loadFromFile("assets/maps/map2.txt", TILE_SIZE)) {
-        std::cerr << "DEBUG: ECHEC du chargement de la map !" << std::endl;
-        return;
-    }
-
-    std::cout << "DEBUG: Map chargee avec succes !" << std::endl;
-
-    waveManager = std::make_unique<WaveManager>(map);
-
-    mapView.load(map);
 
     gameView.setSize(1280.f, 720.f);
     gameView.zoom(1.0f);
 
     player.setSize(48.f, 48.f);
-    placePlayerAtFirstFreeTile();
 
     // =========================
-    // LOAD ITEM TEXTURES
+    // TEXTURES (UNE FOIS)
     // =========================
     itemTextures["medkit"].loadFromFile("assets/inventory_items/medkit.png");
     itemTextures["pen"].loadFromFile("assets/inventory_items/pen.png");
     itemTextures["book"].loadFromFile("assets/inventory_items/book.png");
     itemTextures["chalk"].loadFromFile("assets/inventory_items/chalk.png");
+    itemTextures["key-fragment"].loadFromFile("assets/inventory_items/key.png");
 
     // =========================
-    // GUARANTEED ITEMS
+    // DEBUG SHAPES
     // =========================
-    Item medkit;
-    medkit.name = "Medkit";
-    medkit.type = ItemType::Consumable;
-    medkit.value = 60;
-    medkit.sprite.setTexture(itemTextures["medkit"]);
-    spawnWorldItem(worldItems, map, medkit);
-
-    // --- CONFIGURATION DU STYLO (Melee rapide) ---
-    Item pen;
-    pen.name = "Pen";
-    pen.type = ItemType::Weapon;
-    pen.value = 0;
-    pen.damage = 15;
-    pen.range = 60.f;
-    pen.cooldown = 0.3f;
-    pen.isProjectile = false;
-    pen.sprite.setTexture(itemTextures["pen"]);
-    spawnWorldItem(worldItems, map, pen);
-
-    // =========================
-    // RANDOM EXTRA ITEMS
-    // =========================
-    if (std::rand() % 100 <70) {
-        int extraItems = 3 + std::rand() % 5;
-
-        for (int i = 0; i < extraItems; ++i) {
-            Item item;
-            int r = std::rand() % 3;
-
-            if (r == 0) {
-                item.name = "Medkit";
-                item.type = ItemType::Consumable;
-                item.value = 60;
-                item.sprite.setTexture(itemTextures["medkit"]);
-            }
-            else if (r == 1) {
-                // --- LIVRE (Melee lente mais zone large) ---
-                item.name = "Book";
-                item.type = ItemType::Weapon;
-                item.damage = 35;
-                item.range = 90.f;
-                item.cooldown = 0.8f;
-                item.isProjectile = false;
-                item.sprite.setTexture(itemTextures["book"]);
-            }
-            else {
-                // --- CRAIE (Projectile) ---
-                item.name = "Chalk";
-                item.type = ItemType::Weapon;
-                item.damage = 10;
-                item.range = 600.f;
-                item.cooldown = 0.5f;
-                item.isProjectile = true;
-                item.projectileSpeed = 500.f;
-                item.sprite.setTexture(itemTextures["chalk"]);
-            }
-
-            spawnWorldItem(worldItems, map, item);
-        }
-    }
-
-
-    // --- NOUVEAU : Initialisation des formes de debug ---
-    debugMeleeBox.setFillColor(sf::Color(255, 0, 0, 100)); // Rouge semi-transparent
-
+    debugMeleeBox.setFillColor(sf::Color(255, 0, 0, 100));
     debugProjectileRange.setFillColor(sf::Color::Transparent);
-    debugProjectileRange.setOutlineColor(sf::Color(0, 100, 255, 150)); // Bleu
+    debugProjectileRange.setOutlineColor(sf::Color(0, 100, 255, 150));
     debugProjectileRange.setOutlineThickness(2.f);
+
+    // =========================
+    // PREMIER NIVEAU
+    // =========================
+    currentLevel = 0;
+    initLevel(currentLevel);
 }
 
 // =========================ds
@@ -260,6 +172,12 @@ void GameController::handleEvent(const sf::Event& event) {
 // =========================
 void GameController::update(float dt)
 {
+    if (levelEnding) {
+        if (levelEndClock.getElapsedTime().asSeconds() >= levelEndDuration) {
+            goToNextLevel();
+        }
+        return;
+    }
     // --- NOUVEAU : Gestion du timer de debug ---
     if (debugMeleeTimer > 0.f)
         debugMeleeTimer -= dt;
@@ -576,4 +494,130 @@ void GameController::placePlayerAtFirstFreeTile() {
         }
     }
     player.setPosition(tileSizeF + playerSize().x, tileSizeF + playerSize().y);
+}
+void GameController::onKeyFragmentPicked() {
+    if (levelEnding) {
+        return;
+    }
+    levelEnding = true;
+    levelEndClock.restart();
+}
+bool GameController::isLevelEnding() const {
+    return levelEnding;
+}
+float GameController::getLevelEndRemainingTime() const {
+    if (!levelEnding)
+        return 0.f;
+    float elapsed = levelEndClock.getElapsedTime().asSeconds();
+    return std::max(0.f, levelEndDuration - elapsed);
+}
+
+static void clearInventorySlots(Inventory& inventory) {
+    auto& slots = inventory.getSlots();
+    for (auto& s : slots) s.reset();
+    inventory.selectSlot(0);
+}
+void GameController::initLevel(int levelIndex) {
+    // clean the game
+    enemies.clear();
+    worldItems.clear();
+    projectiles.clear();
+
+    //load map
+    if (!map.loadFromFile(levelMaps[levelIndex], TILE_SIZE)) {
+        std::cerr << "ERROR: FAILED TO LOAD TILE MAP" << levelMaps[levelIndex]<< std::endl;
+        return;
+    }
+
+    //Rebuild wave manager + map view
+    waveManager = std::make_unique<WaveManager>(map, *this);
+    mapView.load(map);
+
+    //Reset Player position + inventory (except key)
+    placePlayerAtFirstFreeTile();
+    clearInventorySlots(player.getInventory());
+    player.setHealth(100);
+
+    // --- 5) Respawn items ---
+    Item medkit;
+    medkit.name = "Medkit";
+    medkit.type = ItemType::Consumable;
+    medkit.value = 60;
+    medkit.sprite.setTexture(itemTextures["medkit"]);
+    spawnWorldItem(worldItems, map, medkit);
+
+    Item pen;
+    pen.name = "Pen";
+    pen.type = ItemType::Weapon;
+    pen.value = 0;
+    pen.damage = 15;
+    pen.range = 60.f;
+    pen.cooldown = 0.3f;
+    pen.isProjectile = false;
+    pen.sprite.setTexture(itemTextures["pen"]);
+    spawnWorldItem(worldItems, map, pen);
+
+    if (std::rand() % 100 < 70) {
+        int extraItems = 3 + std::rand() % 5;
+        for (int i = 0; i < extraItems; ++i) {
+            Item item;
+            int r = std::rand() % 3;
+
+            if (r == 0) {
+                item.name = "Medkit";
+                item.type = ItemType::Consumable;
+                item.value = 60;
+                item.sprite.setTexture(itemTextures["medkit"]);
+            } else if (r == 1) {
+                item.name = "Book";
+                item.type = ItemType::Weapon;
+                item.damage = 35;
+                item.range = 90.f;
+                item.cooldown = 0.8f;
+                item.isProjectile = false;
+                item.sprite.setTexture(itemTextures["book"]);
+            } else {
+                item.name = "Chalk";
+                item.type = ItemType::Weapon;
+                item.damage = 10;
+                item.range = 600.f;
+                item.cooldown = 0.5f;
+                item.isProjectile = true;
+                item.projectileSpeed = 500.f;
+                item.sprite.setTexture(itemTextures["chalk"]);
+            }
+
+            spawnWorldItem(worldItems, map, item);
+        }
+    }
+
+    // --- 6) Reset camera ---
+    gameView.setCenter(player.getPosition());
+}
+void GameController::goToNextLevel() {
+    levelEnding = false;
+    currentLevel++;
+    if (currentLevel >= (int)levelMaps.size()) {
+        currentLevel = 0;
+    }
+    initLevel(currentLevel);
+}
+
+void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
+    Item fragment;
+    fragment.name = "Key Fragment";
+    fragment.type = ItemType::KeyFragment;
+    fragment.value = 1;
+
+    //sprite & position
+    fragment.sprite.setTexture(itemTextures["key_fragment"]);
+    fragment.sprite.setPosition(pos);
+
+    WorldItem wi;
+    wi.item = fragment;
+    wi.position = pos;
+
+    worldItems.push_back(wi);
+
+    std::cout << "[GAME] Key Fragment spawned at boss position\n";
 }

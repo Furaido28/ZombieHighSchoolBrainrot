@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics.hpp>
 
@@ -28,7 +29,7 @@ public:
 
     // Combat
     virtual int getDamage() const = 0;
-    virtual void attack(Player& player) = 0;
+    void attack(Player& player);
 
     // Collision
     float getRadius() const;
@@ -37,6 +38,10 @@ public:
     bool canAttack() const;
     virtual void takeDamage(int amount);
     void applyArchetype(const EnemyArchetype& data);
+    void setDeathCallback(std::function<void(const Enemy&)> cb) {
+        deathCallback = std::move(cb);
+    }
+
 
 protected:
     sf::Vector2f position;
@@ -55,4 +60,7 @@ protected:
     float attackCooldown;
 
     sf::Vector2f normalize(const sf::Vector2f& v) const;
+    virtual void onDeath(){}
+    std::function<void(const Enemy&)> deathCallback;
+
 };

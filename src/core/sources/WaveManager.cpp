@@ -2,13 +2,14 @@
 
 #include <iostream>
 
+#include "controllers/headers/GameController.h"
 #include "models/headers/Boss/UdinDinDinDun.h"
 
 // ======================================================
 // CONSTRUCTOR
 // ======================================================
-WaveManager::WaveManager(const TileMap& mapRef)
-    : map(mapRef)
+WaveManager::WaveManager(const TileMap& mapRef, GameController& controller)
+    : map(mapRef), controller(controller)
 {
     // ---------- Scan map ----------
     for (unsigned y = 0; y < map.getHeight(); ++y) {
@@ -150,29 +151,57 @@ void WaveManager::spawnEnemy(Player& player,
              << std::endl;
 
         switch (bossType) {
-            case 1:
+            case 1: {
+                auto boss = std::make_unique<TralaleroTralala>(pos);
+                //Death callback
+                boss->setDeathCallback([this](const Enemy& enemy) {
+                    controller.spawnKeyFragmentAt(enemy.getPosition());
+                });
                 enemies.push_back(
                     std::make_unique<TralaleroTralala>(pos)
                 );
                 break;
+            }
 
-            case 2:
+
+            case 2: {
+                auto boss = std::make_unique<ChimpanziniBananini>(pos);
+                //Death callback
+                boss->setDeathCallback([this](const Enemy& enemy) {
+                    controller.spawnKeyFragmentAt(enemy.getPosition());
+                });
                 enemies.push_back(
                     std::make_unique<ChimpanziniBananini>(pos)
                 );
                 break;
+            }
 
-            case 3:
+
+            case 3: {
+                auto boss = std::make_unique<UdinDinDinDun>(pos);
+                //Death callback
+                boss->setDeathCallback([this](const Enemy& enemy) {
+                    controller.spawnKeyFragmentAt(enemy.getPosition());
+                });
                 enemies.push_back(
                     std::make_unique<UdinDinDinDun>(pos)
                 );
                 break;
+            }
 
-            case 4:
+
+            case 4: {
+                auto boss = std::make_unique<OscarTheCrackhead>(pos);
+                //Death callback
+                boss->setDeathCallback([this](const Enemy& enemy) {
+                    controller.spawnKeyFragmentAt(enemy.getPosition());
+                });
                 enemies.push_back(
                     std::make_unique<OscarTheCrackhead>(pos)
                 );
                 break;
+            }
+
         }
     }
 }
