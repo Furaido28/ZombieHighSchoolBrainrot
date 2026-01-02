@@ -14,5 +14,6 @@ public:
 
 private:
     GameController controller;
+    sf::View hudView;
     InventoryView inventoryView;
 };
