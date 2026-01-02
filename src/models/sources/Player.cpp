@@ -105,10 +105,13 @@ bool Player::isMoving() const { return moving; }
 Inventory &Player::getInventory() { return inventory; }
 
 // --- NOUVELLE LOGIQUE D'ATTAQUE ---
-
 AttackInfo Player::tryAttack() {
     AttackInfo info;
     info.valid = false; // Par défaut, pas d'attaque
+
+    if (!attackRequested) return info;
+
+    attackRequested = false;
 
     // 1. Vérification du Cooldown
     if (attackCooldownTimer > 0.f) {
@@ -198,4 +201,8 @@ sf::Vector2f Player::consumeMovement() {
     sf::Vector2f result = movementIntent;
     movementIntent = {0.f, 0.f};
     return result;
+}
+
+void Player::requestAttack() {
+    attackRequested = true;
 }

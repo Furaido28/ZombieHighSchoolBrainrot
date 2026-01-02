@@ -15,5 +15,4 @@ public:
 private:
     GameController controller;
     InventoryView inventoryView;
-    bool tabPressed = false;
 };

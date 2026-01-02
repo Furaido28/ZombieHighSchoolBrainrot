@@ -54,6 +54,7 @@ public:
     Player& getPlayer();
     void givePotionToPlayer();
     const sf::Texture& getItemTexture(const std::string& name) const;
+    bool isInventoryExpanded() const { return tabPressed; };
 
 private:
     // Méthodes internes de collision
@@ -81,7 +82,11 @@ private:
     float attackTimer = 0.f;
 
     //Command
+    bool tabPressed = false;
+
     InputHandler inputHandler;
+    std::unique_ptr<Command> nextSlotCommand;
+    std::unique_ptr<Command> prevSlotCommand;
 
     // --- NOUVEAU : Liste des projectiles ---
     std::vector<Projectile> projectiles;
