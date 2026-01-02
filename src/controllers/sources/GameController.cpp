@@ -171,42 +171,45 @@ GameController::GameController() : player(), playerView() {
     // =========================
     // RANDOM EXTRA ITEMS
     // =========================
-    int extraItems = 3 + std::rand() % 5;
+    if (std::rand() % 100 <70) {
+        int extraItems = 3 + std::rand() % 5;
 
-    for (int i = 0; i < extraItems; ++i) {
-        Item item;
-        int r = std::rand() % 3;
+        for (int i = 0; i < extraItems; ++i) {
+            Item item;
+            int r = std::rand() % 3;
 
-        if (r == 0) {
-            item.name = "Medkit";
-            item.type = ItemType::Consumable;
-            item.value = 60;
-            item.sprite.setTexture(itemTextures["medkit"]);
-        }
-        else if (r == 1) {
-            // --- LIVRE (Melee lente mais zone large) ---
-            item.name = "Book";
-            item.type = ItemType::Weapon;
-            item.damage = 35;
-            item.range = 90.f;
-            item.cooldown = 0.8f;
-            item.isProjectile = false;
-            item.sprite.setTexture(itemTextures["book"]);
-        }
-        else {
-            // --- CRAIE (Projectile) ---
-            item.name = "Chalk";
-            item.type = ItemType::Weapon;
-            item.damage = 10;
-            item.range = 600.f;
-            item.cooldown = 0.5f;
-            item.isProjectile = true;
-            item.projectileSpeed = 500.f;
-            item.sprite.setTexture(itemTextures["chalk"]);
-        }
+            if (r == 0) {
+                item.name = "Medkit";
+                item.type = ItemType::Consumable;
+                item.value = 60;
+                item.sprite.setTexture(itemTextures["medkit"]);
+            }
+            else if (r == 1) {
+                // --- LIVRE (Melee lente mais zone large) ---
+                item.name = "Book";
+                item.type = ItemType::Weapon;
+                item.damage = 35;
+                item.range = 90.f;
+                item.cooldown = 0.8f;
+                item.isProjectile = false;
+                item.sprite.setTexture(itemTextures["book"]);
+            }
+            else {
+                // --- CRAIE (Projectile) ---
+                item.name = "Chalk";
+                item.type = ItemType::Weapon;
+                item.damage = 10;
+                item.range = 600.f;
+                item.cooldown = 0.5f;
+                item.isProjectile = true;
+                item.projectileSpeed = 500.f;
+                item.sprite.setTexture(itemTextures["chalk"]);
+            }
 
-        spawnWorldItem(worldItems, map, item);
+            spawnWorldItem(worldItems, map, item);
+        }
     }
+
 
     // --- NOUVEAU : Initialisation des formes de debug ---
     debugMeleeBox.setFillColor(sf::Color(255, 0, 0, 100)); // Rouge semi-transparent
