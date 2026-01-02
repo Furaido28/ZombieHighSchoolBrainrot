@@ -18,6 +18,17 @@
 #include "views/headers/game/MapView.h"
 #include "core/headers/WaveManager.h"
 
+// Structure simple pour gérer un projectile en vol
+struct Projectile {
+    sf::Vector2f position;
+    sf::Vector2f velocity;
+    int damage;
+    float distanceTraveled = 0.f;
+    float maxRange;
+    sf::CircleShape shape; // Visuel simple (bille blanche)
+    bool active = true;
+};
+
 struct WorldItem {
     Item item;
     sf::Vector2f position;
@@ -48,11 +59,9 @@ private:
     bool isPositionFree(const sf::FloatRect& bbox) const;
     void placePlayerAtFirstFreeTile();
 
-    // Helper: On demande la taille directement au Player (MVC)
-    // Plus besoin de stocker "radius" ici, c'est le Player qui sait sa taille.
     sf::Vector2f playerSize() const { return player.getSize(); }
 
-    //textures
+    // Textures
     std::map<std::string, sf::Texture> itemTextures;
 
     Player player;
@@ -65,6 +74,13 @@ private:
 
     std::unique_ptr<WaveManager> waveManager;
     std::vector<WorldItem> worldItems;
-    float attackCooldown = 0.4f;
-    float attackTimer = 0.f;
+
+    // --- NOUVEAU : Liste des projectiles ---
+    std::vector<Projectile> projectiles;
+
+    // --- NOUVEAU : VISUALISATION DEBUG ---
+    sf::RectangleShape debugMeleeBox;   // Le rectangle rouge du coup
+    float debugMeleeTimer = 0.f;        // Combien de temps il reste affiché
+    sf::CircleShape debugProjectileRange; // Le cercle bleu de portée
+    bool showProjectileRange = false;     // Doit-on afficher le cercle ?
 };
