@@ -254,7 +254,7 @@ void GameController::update(float dt)
         dir /= len;
     }
 
-    sf::Vector2f delta = dir * 700.f * dt;
+    sf::Vector2f delta = dir * 300.f * dt;
 
     sf::FloatRect currentBBox = player.getGlobalBounds();
     sf::FloatRect futureBBox = currentBBox;
