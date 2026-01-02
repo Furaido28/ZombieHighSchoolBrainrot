@@ -35,6 +35,12 @@ public:
     bool isMoving() const;
     Inventory& getInventory();
 
+    // Ajoute une intention de mouvement (appelée par les commandes)
+    void addMovement(const sf::Vector2f& dir);
+
+    // Récupère et reset le mouvement (appelée par GameController)
+    sf::Vector2f consumeMovement();
+
 private:
     int health;
     int maxHealth;
@@ -47,4 +53,6 @@ private:
 
     // 3. Variable pour stocker l'état actuel
     Direction currentDirection;
+
+    sf::Vector2f movementIntent{0.f, 0.f};
 };
