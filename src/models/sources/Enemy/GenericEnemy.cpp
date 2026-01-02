@@ -5,15 +5,7 @@
 GenericEnemy::GenericEnemy(const sf::Vector2f& startPos, const EnemyArchetype& archetype)
     : Enemy(startPos), data(archetype)
 {
-    speed = data.speed;
-    maxHealth = data.maxHealth;
-    health = maxHealth;
-
-    attackCooldown = data.attackCooldown;
-
-    renderRadius = data.renderRadius;
-    collisionRadius = data.collisionRadius; // (tu as gardé ce nom dans Enemy)
-    radius = renderRadius;
+    applyArchetype(data);
 }
 
 void GenericEnemy::update(float dt, const sf::Vector2f& playerPos) {
