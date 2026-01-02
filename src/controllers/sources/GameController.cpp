@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <algorithm> // Pour std::remove_if
 
 #include "core/headers/commands/AttackCommand.h"
 #include "core/headers/commands/MoveDownCommand.h"
@@ -144,17 +145,22 @@ GameController::GameController() : player(), playerView() {
     medkit.sprite.setTexture(itemTextures["medkit"]);
     spawnWorldItem(worldItems, map, medkit);
 
+    // --- CONFIGURATION DU STYLO (Melee rapide) ---
     Item pen;
     pen.name = "Pen";
     pen.type = ItemType::Weapon;
-    pen.value = 15;
+    pen.value = 0;
+    pen.damage = 15;
+    pen.range = 60.f;
+    pen.cooldown = 0.3f;
+    pen.isProjectile = false;
     pen.sprite.setTexture(itemTextures["pen"]);
     spawnWorldItem(worldItems, map, pen);
 
     // =========================
     // RANDOM EXTRA ITEMS
     // =========================
-    int extraItems = 3 + std::rand() % 5; // 3 à 7 items
+    int extraItems = 3 + std::rand() % 5;
 
     for (int i = 0; i < extraItems; ++i) {
         Item item;
@@ -167,20 +173,36 @@ GameController::GameController() : player(), playerView() {
             item.sprite.setTexture(itemTextures["medkit"]);
         }
         else if (r == 1) {
+            // --- LIVRE (Melee lente mais zone large) ---
             item.name = "Book";
             item.type = ItemType::Weapon;
-            item.value = 30;
+            item.damage = 35;
+            item.range = 90.f;
+            item.cooldown = 0.8f;
+            item.isProjectile = false;
             item.sprite.setTexture(itemTextures["book"]);
         }
         else {
+            // --- CRAIE (Projectile) ---
             item.name = "Chalk";
             item.type = ItemType::Weapon;
-            item.value = 7;
+            item.damage = 10;
+            item.range = 600.f;
+            item.cooldown = 0.5f;
+            item.isProjectile = true;
+            item.projectileSpeed = 500.f;
             item.sprite.setTexture(itemTextures["chalk"]);
         }
 
         spawnWorldItem(worldItems, map, item);
     }
+
+    // --- NOUVEAU : Initialisation des formes de debug ---
+    debugMeleeBox.setFillColor(sf::Color(255, 0, 0, 100)); // Rouge semi-transparent
+
+    debugProjectileRange.setFillColor(sf::Color::Transparent);
+    debugProjectileRange.setOutlineColor(sf::Color(0, 100, 255, 150)); // Bleu
+    debugProjectileRange.setOutlineThickness(2.f);
 }
 
 // =========================
@@ -202,12 +224,11 @@ void GameController::handleEvent(const sf::Event& event) {
 // =========================
 // UPDATE
 // =========================
-void GameController::update(float dt) {
-    // =========================
-    // 0. TIMERS
-    // =========================
-    if (attackTimer > 0.f)
-        attackTimer -= dt;
+void GameController::update(float dt)
+{
+    // --- NOUVEAU : Gestion du timer de debug ---
+    if (debugMeleeTimer > 0.f)
+        debugMeleeTimer -= dt;
 
     // =========================
     // 1. PLAYER INPUT
@@ -268,14 +289,27 @@ void GameController::update(float dt) {
 
     player.update(dt);
 
-    // =========================
+    // --- NOUVEAU : Mise à jour de la visualisation de portée (Projectile) ---
+    showProjectileRange = false;
+    int slot = player.getInventory().getSelectedSlot();
+    auto& slots = player.getInventory().getSlots();
+
+    if (slot >= 0 && slot < (int)slots.size() && slots[slot].has_value()) {
+        const Item& equippedItem = slots[slot].value();
+        if (equippedItem.type == ItemType::Weapon && equippedItem.isProjectile) {
+            showProjectileRange = true;
+            float range = equippedItem.range;
+            debugProjectileRange.setRadius(range);
+            debugProjectileRange.setOrigin(range, range);
+            debugProjectileRange.setPosition(player.getPosition());
+        }
+    }
+
     // 5. ENEMY UPDATE & ATTACK
     // =========================
 
     for (auto& enemy : enemies) {
-
-        if (!enemy->isAlive())
-            continue;
+        if (!enemy->isAlive()) continue;
 
         sf::Vector2f oldPos = enemy->getPosition();
 
@@ -284,12 +318,10 @@ void GameController::update(float dt) {
         else
             enemy->update(dt, enemy->getPosition());
 
-        // ===========================================
-        // COLLISION DÉCOR – ENNEMIS (AVEC GLISSEMENT)
-        // ===========================================
-
+        // Collision Enemy vs Map
         sf::Vector2f newPos = enemy->getPosition();
         sf::Vector2f deltaE = newPos - oldPos;
+        enemy->setPosition(oldPos); // Reset
 
         // Revenir à la position valide
         enemy->setPosition(oldPos);
@@ -326,7 +358,7 @@ void GameController::update(float dt) {
             }
         }
 
-        // attaque joueur
+        // Enemy Attack Player
         if (circlesIntersect(
             player.getPosition(), player.getRadius(),
             enemy->getPosition(), enemy->getRadius()))
@@ -335,7 +367,102 @@ void GameController::update(float dt) {
         }
     }
 
-    // =========================
+    // ==========================================
+    // 6. NEW WEAPON ATTACK SYSTEM (Directional)
+    // ==========================================
+
+    if ((sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space))) {
+
+        // On demande au joueur s'il peut attaquer
+        AttackInfo attack = player.tryAttack();
+
+        if (attack.valid) {
+            if (attack.isProjectile) {
+                // --- Création d'un Projectile ---
+                Projectile p;
+                p.position = attack.startPosition;
+                p.velocity = attack.velocity;
+                p.damage = attack.damage;
+                p.maxRange = 600.f;
+                p.active = true;
+
+                // Visuel simple
+                p.shape.setRadius(5.f);
+                p.shape.setFillColor(sf::Color::White);
+                p.shape.setOrigin(5.f, 5.f);
+                p.shape.setPosition(p.position);
+
+                projectiles.push_back(p);
+            }
+            else {
+                // --- NOUVEAU : VISUALISATION MELEE (Correction du Bug) ---
+                // sf::FloatRect utilise left/top/width/height, pas getSize()/getPosition()
+                debugMeleeBox.setSize(sf::Vector2f(attack.meleeHitbox.width, attack.meleeHitbox.height));
+                debugMeleeBox.setPosition(sf::Vector2f(attack.meleeHitbox.left, attack.meleeHitbox.top));
+                debugMeleeTimer = 0.15f;
+
+                // --- Attaque de Mêlée (Hitbox) ---
+                for (auto& enemy : enemies) {
+                    if (!enemy->isAlive()) continue;
+
+                    if (attack.meleeHitbox.intersects(enemy->getGlobalBounds())) {
+                        enemy->takeDamage(attack.damage);
+
+                        // Petit effet de recul
+                        sf::Vector2f recul = enemy->getPosition() - player.getPosition();
+                        float len = std::sqrt(recul.x*recul.x + recul.y*recul.y);
+                        if (len > 0.1f) {
+                             sf::Vector2f push = (recul/len) * 15.f;
+                             enemy->setPosition(enemy->getPosition() + push);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ==========================================
+    // 6.5 PROJECTILE UPDATE LOOP
+    // ==========================================
+    for (auto& p : projectiles) {
+        if (!p.active) continue;
+
+        // Déplacement
+        sf::Vector2f moveAmount = p.velocity * dt;
+        p.position += moveAmount;
+        p.distanceTraveled += std::sqrt(moveAmount.x * moveAmount.x + moveAmount.y * moveAmount.y);
+        p.shape.setPosition(p.position);
+
+        // 1. Collision Mur
+        sf::FloatRect pBox(p.position.x - 2, p.position.y - 2, 4, 4);
+        if (!isPositionFree(pBox)) {
+            p.active = false;
+            continue;
+        }
+
+        // 2. Portée Max
+        if (p.distanceTraveled >= p.maxRange) {
+            p.active = false;
+            continue;
+        }
+
+        // 3. Collision Ennemis
+        for (auto& enemy : enemies) {
+            if (!enemy->isAlive()) continue;
+
+            if (enemy->getGlobalBounds().contains(p.position)) {
+                enemy->takeDamage(p.damage);
+                p.active = false; // Détruit le projectile
+                break;
+            }
+        }
+    }
+
+    // Nettoyage des projectiles inactifs
+    projectiles.erase(std::remove_if(projectiles.begin(), projectiles.end(),
+        [](const Projectile& p) { return !p.active; }), projectiles.end());
+
+
     // 7. DEBUG – SKIP WAVE
     // =========================
 
@@ -373,8 +500,22 @@ void GameController::render(sf::RenderWindow& window) {
     for (auto& wi : worldItems)
         window.draw(wi.item.sprite);
 
+    // Dessin des ennemis
     for (auto& enemy : enemies)
         enemyView.render(window, *enemy, player.getPosition());
+
+    // --- DESSIN DES PROJECTILES ---
+    for (const auto& p : projectiles) {
+        window.draw(p.shape);
+    }
+
+    // --- NOUVEAU : DESSIN DEBUG ---
+    if (showProjectileRange) {
+        window.draw(debugProjectileRange);
+    }
+    if (debugMeleeTimer > 0.f) {
+        window.draw(debugMeleeBox);
+    }
 
     playerView.renderWorld(window, player);
 
@@ -386,7 +527,9 @@ void GameController::render(sf::RenderWindow& window) {
     playerView.renderHUD(window, player, wave, timeLeft);
 }
 
-
+// =========================
+// UTILS
+// =========================
 bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
     float tileSizeF = (float)map.getTileSize();
 
