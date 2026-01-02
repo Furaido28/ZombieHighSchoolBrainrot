@@ -48,7 +48,7 @@ EnemyView::EnemyView()
     // BASIC
     loadDirectionalTextures(EnemyType::Basic, "Basic", "basic_enemy", 33, 29, 33, 33, 0.05f, 6);
     // FAST
-    loadDirectionalTextures(EnemyType::Fast, "Fast", "fast_enemy", 23, 23, 24, 34, 0.08f, 5);
+    loadDirectionalTextures(EnemyType::Fast, "Fast", "fast_enemy", 23, 23, 24, 34, 0.04f, 5);
     // TANK
     loadDirectionalTextures(EnemyType::Tank, "Tank", "tank_enemy", 31, 33, 50, 39, 0.05f, 6);
 
