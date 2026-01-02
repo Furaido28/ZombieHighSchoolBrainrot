@@ -81,7 +81,11 @@ private:
     float attackTimer = 0.f;
 
     //Command
+    bool tabPressed = false;
+
     InputHandler inputHandler;
+    std::unique_ptr<Command> nextSlotCommand;
+    std::unique_ptr<Command> prevSlotCommand;
 
     // --- NOUVEAU : Liste des projectiles ---
     std::vector<Projectile> projectiles;

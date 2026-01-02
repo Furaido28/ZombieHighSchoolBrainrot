@@ -11,7 +11,11 @@
 #include "core/headers/commands/MoveLeftCommand.h"
 #include "core/headers/commands/MoveRightCommand.h"
 #include "core/headers/commands/MoveUpCommand.h"
+#include "core/headers/commands/NextSlotCommand.h"
 #include "core/headers/commands/PickupItemCommand.h"
+#include "core/headers/commands/PrevSlotCommand.h"
+#include "core/headers/commands/SelectSlotCommand.h"
+#include "core/headers/commands/SetInventoryExpandedCommand.h"
 #include "core/headers/commands/UseItemCommand.h"
 
 static bool circlesIntersect(
@@ -66,6 +70,8 @@ static void spawnWorldItem(
 // CONSTRUCTOR
 // =========================
 GameController::GameController() : player(), playerView() {
+    Inventory& inv = player.getInventory();
+
     // =========================
     // Unitialisation des commandes
     // =========================
@@ -83,12 +89,7 @@ GameController::GameController() : player(), playerView() {
         std::make_unique<MoveRightCommand>(player));
 
     inputHandler.bind(sf::Mouse::Left,
-    std::make_unique<AttackCommand>(
-            player,
-            enemies,
-            attackTimer,
-            attackCooldown
-        )
+    std::make_unique<AttackCommand>(player)
     );
 
     inputHandler.bind(sf::Mouse::Right,
@@ -101,6 +102,27 @@ GameController::GameController() : player(), playerView() {
             worldItems
         )
     );
+
+    inputHandler.bind(sf::Keyboard::Tab,
+        std::make_unique<SetInventoryExpandedCommand>(
+            tabPressed,
+            true
+        )
+    );
+
+    nextSlotCommand = std::make_unique<NextSlotCommand>(inv, tabPressed);
+    prevSlotCommand = std::make_unique<PrevSlotCommand>(inv);
+
+    // Select Slot Command
+    inputHandler.bind(sf::Keyboard::Num1, std::make_unique<SelectSlotCommand>(inv, 0));
+    inputHandler.bind(sf::Keyboard::Num2, std::make_unique<SelectSlotCommand>(inv, 1));
+    inputHandler.bind(sf::Keyboard::Num3, std::make_unique<SelectSlotCommand>(inv, 2));
+    inputHandler.bind(sf::Keyboard::Num4, std::make_unique<SelectSlotCommand>(inv, 3));
+    inputHandler.bind(sf::Keyboard::Num5, std::make_unique<SelectSlotCommand>(inv, 4));
+    inputHandler.bind(sf::Keyboard::Num6, std::make_unique<SelectSlotCommand>(inv, 5));
+    inputHandler.bind(sf::Keyboard::Num7, std::make_unique<SelectSlotCommand>(inv, 6));
+    inputHandler.bind(sf::Keyboard::Num8, std::make_unique<SelectSlotCommand>(inv, 7));
+    inputHandler.bind(sf::Keyboard::Num9, std::make_unique<SelectSlotCommand>(inv, 8));
 
     // =========================
     // LOAD MAPS
@@ -218,8 +240,20 @@ const sf::Texture& GameController::getItemTexture(const std::string& name) const
 // INPUT EVENTS
 // =========================
 void GameController::handleEvent(const sf::Event& event) {
+    if (event.type == sf::Event::MouseWheelScrolled) {
+        if (event.mouseWheelScroll.delta > 0)
+            nextSlotCommand->execute(0.f);
+        else
+            prevSlotCommand->execute(0.f);
+    }
 
+    if (event.type == sf::Event::KeyReleased &&
+        event.key.code == sf::Keyboard::Tab)
+    {
+        tabPressed = false;
+    }
 }
+
 
 // =========================
 // UPDATE
@@ -305,6 +339,7 @@ void GameController::update(float dt)
         }
     }
 
+    // =========================
     // 5. ENEMY UPDATE & ATTACK
     // =========================
 
@@ -367,55 +402,47 @@ void GameController::update(float dt)
         }
     }
 
-    // ==========================================
-    // 6. NEW WEAPON ATTACK SYSTEM (Directional)
-    // ==========================================
+    // =========================
+    // 6. PLAYER ATTACK
+    // =========================
+    AttackInfo attack = player.tryAttack();
 
-    if ((sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space))) {
+    if (attack.valid) {
 
-        // On demande au joueur s'il peut attaquer
-        AttackInfo attack = player.tryAttack();
+        if (attack.isProjectile) {
+            // -------- PROJECTILE --------
+            Projectile p;
+            p.position = attack.startPosition;
+            p.velocity = attack.velocity;
+            p.damage = attack.damage;
+            p.distanceTraveled = 0.f;
+            p.maxRange = 600.f; // ou item.range si tu veux
+            p.active = true;
 
-        if (attack.valid) {
-            if (attack.isProjectile) {
-                // --- Création d'un Projectile ---
-                Projectile p;
-                p.position = attack.startPosition;
-                p.velocity = attack.velocity;
-                p.damage = attack.damage;
-                p.maxRange = 600.f;
-                p.active = true;
+            p.shape.setRadius(4.f);
+            p.shape.setOrigin(4.f, 4.f);
+            p.shape.setFillColor(sf::Color::White);
+            p.shape.setPosition(p.position);
 
-                // Visuel simple
-                p.shape.setRadius(5.f);
-                p.shape.setFillColor(sf::Color::White);
-                p.shape.setOrigin(5.f, 5.f);
-                p.shape.setPosition(p.position);
+            projectiles.push_back(p);
+        }
+        else {
+            // -------- MELEE --------
+            debugMeleeBox.setPosition(
+                attack.meleeHitbox.left,
+                attack.meleeHitbox.top
+            );
+            debugMeleeBox.setSize({
+                attack.meleeHitbox.width,
+                attack.meleeHitbox.height
+            });
+            debugMeleeTimer = 0.1f;
 
-                projectiles.push_back(p);
-            }
-            else {
-                // --- NOUVEAU : VISUALISATION MELEE (Correction du Bug) ---
-                // sf::FloatRect utilise left/top/width/height, pas getSize()/getPosition()
-                debugMeleeBox.setSize(sf::Vector2f(attack.meleeHitbox.width, attack.meleeHitbox.height));
-                debugMeleeBox.setPosition(sf::Vector2f(attack.meleeHitbox.left, attack.meleeHitbox.top));
-                debugMeleeTimer = 0.15f;
+            for (auto& enemy : enemies) {
+                if (!enemy->isAlive()) continue;
 
-                // --- Attaque de Mêlée (Hitbox) ---
-                for (auto& enemy : enemies) {
-                    if (!enemy->isAlive()) continue;
-
-                    if (attack.meleeHitbox.intersects(enemy->getGlobalBounds())) {
-                        enemy->takeDamage(attack.damage);
-
-                        // Petit effet de recul
-                        sf::Vector2f recul = enemy->getPosition() - player.getPosition();
-                        float len = std::sqrt(recul.x*recul.x + recul.y*recul.y);
-                        if (len > 0.1f) {
-                             sf::Vector2f push = (recul/len) * 15.f;
-                             enemy->setPosition(enemy->getPosition() + push);
-                        }
-                    }
+                if (attack.meleeHitbox.intersects(enemy->getGlobalBounds())) {
+                    enemy->takeDamage(attack.damage);
                 }
             }
         }

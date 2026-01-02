@@ -8,6 +8,7 @@ GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
 
 void GameScene::handleEvent(const sf::Event& event) {
     controller.handleEvent(event);
+
     if (event.type == sf::Event::MouseWheelScrolled) {
         Inventory& inv = controller.getPlayer().getInventory();
         int current = inv.getSelectedSlot();
