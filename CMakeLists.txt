@@ -14,15 +14,7 @@ file(GLOB_RECURSE SOURCES
         src/*.cpp
 )
 
-add_executable(ZombieHighSchoolBrainrot ${SOURCES}
-        src/models/headers/Enemy/EnemyArchetype.h
-        src/models/headers/Enemy/EnemyFlyweightFactory.h
-        src/models/sources/Enemy/EnemyFlyweightFactory.cpp
-        src/models/headers/Enemy/GenericEnemy.h
-        src/models/sources/Enemy/GenericEnemy.cpp
-        src/models/headers/Item/WeaponArchetype.h
-        src/models/headers/Item/WeaponFactory.h
-        src/models/sources/Item/WeaponFactory.cpp)
+add_executable(ZombieHighSchoolBrainrot ${SOURCES})
 
 target_include_directories(ZombieHighSchoolBrainrot PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src

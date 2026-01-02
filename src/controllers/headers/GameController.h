@@ -18,7 +18,6 @@
 #include "views/headers/game/EnemyView.h"
 #include "views/headers/game/MapView.h"
 #include "core/headers/WaveManager.h"
-#include "models/headers/Item/WeaponFactory.h"
 
 // Structure simple pour gérer un projectile en vol
 struct Projectile {
