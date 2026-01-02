@@ -54,6 +54,7 @@ public:
     Player& getPlayer();
     void givePotionToPlayer();
     const sf::Texture& getItemTexture(const std::string& name) const;
+    bool isInventoryExpanded() const { return tabPressed; };
 
 private:
     // Méthodes internes de collision

@@ -88,10 +88,6 @@ GameController::GameController() : player(), playerView() {
     inputHandler.bind(sf::Keyboard::D,
         std::make_unique<MoveRightCommand>(player));
 
-    inputHandler.bind(sf::Mouse::Left,
-    std::make_unique<AttackCommand>(player)
-    );
-
     inputHandler.bind(sf::Mouse::Right,
         std::make_unique<UseItemCommand>(player)
     );
@@ -100,13 +96,6 @@ GameController::GameController() : player(), playerView() {
         std::make_unique<PickupItemCommand>(
             player,
             worldItems
-        )
-    );
-
-    inputHandler.bind(sf::Keyboard::Tab,
-        std::make_unique<SetInventoryExpandedCommand>(
-            tabPressed,
-            true
         )
     );
 
@@ -240,6 +229,24 @@ const sf::Texture& GameController::getItemTexture(const std::string& name) const
 // INPUT EVENTS
 // =========================
 void GameController::handleEvent(const sf::Event& event) {
+    if (event.type == sf::Event::KeyPressed &&
+        event.key.code == sf::Keyboard::Tab)
+    {
+        tabPressed = true;
+    }
+
+    if (event.type == sf::Event::KeyReleased &&
+        event.key.code == sf::Keyboard::Tab)
+    {
+        tabPressed = false;
+    }
+
+    if (event.type == sf::Event::MouseButtonPressed &&
+        event.mouseButton.button == sf::Mouse::Left)
+    {
+        player.requestAttack();
+    }
+
     if (event.type == sf::Event::MouseWheelScrolled) {
         if (event.mouseWheelScroll.delta > 0)
             nextSlotCommand->execute(0.f);
@@ -253,7 +260,6 @@ void GameController::handleEvent(const sf::Event& event) {
         tabPressed = false;
     }
 }
-
 
 // =========================
 // UPDATE
