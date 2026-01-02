@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "models/headers/Player.h"
 
 class PlayerView {
@@ -48,4 +49,8 @@ private:
 
     sf::Text waveText;
     sf::Text timerText;
+
+    sf::SoundBuffer walkBuffer;
+    sf::Sound walkSound;
+    bool wasMoving = false;
 };
