@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <ctime>
 
+#include "core/headers/commands/AttackCommand.h"
 #include "core/headers/commands/MoveDownCommand.h"
 #include "core/headers/commands/MoveLeftCommand.h"
 #include "core/headers/commands/MoveRightCommand.h"
@@ -77,6 +78,15 @@ GameController::GameController() : player(), playerView() {
 
     inputHandler.bind(sf::Keyboard::D,
         std::make_unique<MoveRightCommand>(player));
+
+    inputHandler.bind(sf::Mouse::Left,
+    std::make_unique<AttackCommand>(
+        player,
+        enemies,
+        attackTimer,
+        attackCooldown
+    )
+);
 
     // =========================
     // LOAD MAPS
@@ -356,39 +366,6 @@ void GameController::update(float dt)
             enemy->getPosition(), enemy->getRadius()))
         {
             enemy->attack(player);
-        }
-    }
-
-    // =========================
-    // 6. WEAPON ATTACK (COOLDOWN)
-    // =========================
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && attackTimer <= 0.f) {
-
-        int slot = player.getInventory().getSelectedSlot();
-        auto& slots = player.getInventory().getSlots();
-
-        if (slots[slot].has_value()) {
-            Item& item = slots[slot].value();
-
-            if (item.type == ItemType::Weapon) {
-                bool hit = false;
-
-                for (auto& enemy : enemies) {
-                    if (!enemy->isAlive())
-                        continue;
-
-                    if (circlesIntersect(
-                        player.getPosition(), 80.f,
-                        enemy->getPosition(), enemy->getRadius()))
-                    {
-                        enemy->takeDamage(item.value);
-                        hit = true;
-                    }
-                }
-
-                if (hit)
-                    attackTimer = attackCooldown;
-            }
         }
     }
 
