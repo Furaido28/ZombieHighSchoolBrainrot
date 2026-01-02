@@ -215,12 +215,21 @@ void GameController::update(float dt)
     // 2. ITEM PICKUP (E)
     // =========================
     static bool eWasPressed = false;
+
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
         if (!eWasPressed) {
+
             for (auto it = worldItems.begin(); it != worldItems.end();) {
+
+                sf::FloatRect bounds = it->item.sprite.getGlobalBounds();
+                sf::Vector2f itemCenter(
+                    bounds.left + bounds.width / 2.f,
+                    bounds.top  + bounds.height / 2.f
+                );
+
                 if (circlesIntersect(
                     player.getPosition(), player.getRadius(),
-                    it->position, it->radius))
+                    itemCenter, it->radius))
                 {
                     bool picked = false;
 
@@ -251,7 +260,7 @@ void GameController::update(float dt)
         dir /= len;
     }
 
-    sf::Vector2f delta = dir * 700.f * dt;
+    sf::Vector2f delta = dir * 300.f * dt;
 
     sf::FloatRect currentBBox = player.getGlobalBounds();
     sf::FloatRect futureBBox = currentBBox;

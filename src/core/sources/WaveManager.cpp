@@ -125,19 +125,19 @@ void WaveManager::spawnEnemy(Player& player,
 
     // ---------- Ennemis normaux ----------
     if (index < w.simple) {
-        enemies.push_back(
-            std::make_unique<BasicEnemy>(getSpawnPosition(player))
-        );
+        auto pos = getSpawnPosition(player);
+        const auto& data = enemyFactory.get(EnemyType::Basic);
+        enemies.push_back(std::make_unique<GenericEnemy>(pos, data));
     }
     else if (index < w.simple + w.medium) {
-        enemies.push_back(
-            std::make_unique<FastEnemy>(getSpawnPosition(player))
-        );
+        auto pos = getSpawnPosition(player);
+        const auto& data = enemyFactory.get(EnemyType::Fast);
+        enemies.push_back(std::make_unique<GenericEnemy>(pos, data));
     }
     else if (index < w.simple + w.medium + w.difficult) {
-        enemies.push_back(
-            std::make_unique<TankEnemy>(getSpawnPosition(player))
-        );
+        auto pos = getSpawnPosition(player);
+        const auto& data = enemyFactory.get(EnemyType::Tank);
+        enemies.push_back(std::make_unique<GenericEnemy>(pos, data));
     }
     // ---------- BOSS ----------
     else if (w.hard > 0) {

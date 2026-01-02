@@ -17,11 +17,12 @@
 #include "views/headers/game/EnemyView.h"
 #include "views/headers/game/MapView.h"
 #include "core/headers/WaveManager.h"
+#include "models/headers/Item/WeaponFactory.h"
 
 struct WorldItem {
     Item item;
     sf::Vector2f position;
-    float radius = 20.f;
+    float radius = 40.f;
 
     sf::FloatRect getBounds() const {
         return {
@@ -67,4 +68,5 @@ private:
     std::vector<WorldItem> worldItems;
     float attackCooldown = 0.4f;
     float attackTimer = 0.f;
+    WeaponFactory weaponFactory;
 };

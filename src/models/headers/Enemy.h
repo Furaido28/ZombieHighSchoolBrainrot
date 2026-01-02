@@ -53,7 +53,7 @@ protected:
 
     float radius;
     float renderRadius;
-    float collisonRadius;
+    float collisionRadius;
 
     // Attaque
     sf::Clock attackClock;

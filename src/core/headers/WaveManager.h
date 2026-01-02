@@ -4,9 +4,8 @@
 #include <SFML/System/Vector2.hpp>
 
 #include "models/headers/Enemy.h"
-#include "models/headers/Enemy/BasicEnemy.h"
-#include "models/headers/Enemy/FastEnemy.h"
-#include "models/headers/Enemy/TankEnemy.h"
+#include "models/headers/Enemy/EnemyFlyweightFactory.h"
+#include "models/headers/Enemy/GenericEnemy.h"
 
 #include "models/headers/Boss/TralaleroTralala.h"
 #include "models/headers/Boss/ChimpanziniBananini.h"
@@ -79,4 +78,5 @@ private:
 
     sf::Vector2f getSpawnPosition(const Player& player);
     sf::Vector2f getBossSpawnPosition(int &outBossType) const;
+    EnemyFlyweightFactory enemyFactory;
 };
