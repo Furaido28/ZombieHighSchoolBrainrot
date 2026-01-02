@@ -2,6 +2,25 @@
 
 #include <SFML/Graphics.hpp>
 #include "../../../models/headers/Enemy.h"
+#include <map>
+#include <string>
+
+// --- STRUCTURES D'ANIMATION ---
+struct DirectionData {
+    sf::Texture texture;
+    int frameCount = 1;
+    int cols = 1;
+};
+
+struct EnemyAnimations {
+    DirectionData front;
+    DirectionData back;
+    DirectionData left;
+    DirectionData right;
+
+    float frameDuration = 0.15f;
+    bool isLoaded = false;
+};
 
 class EnemyView {
 public:
@@ -17,9 +36,11 @@ private:
     // ================= SPRITE =================
     sf::Sprite sprite;
 
-    sf::Texture zombieBasicTexture;
-    sf::Texture zombieFastTexture;
-    sf::Texture zombieTankTexture;
+    // Map pour les ennemis animés (Basic, Fast, Tank)
+    std::map<EnemyType, EnemyAnimations> animationsMap;
+    sf::Clock globalClock;
+
+    // Textures pour les Boss uniquement
     sf::Texture boss01Texture;
     sf::Texture boss02Texture;
     sf::Texture boss03Texture;
@@ -32,6 +53,10 @@ private:
     bool textureInitialized = false;
 
     void loadTextureForType(EnemyType type);
+
+    // Fonction de chargement des spritesheets
+    void loadDirectionalTextures(EnemyType type, const std::string& folder, const std::string& filePrefix,
+                                 int fFront, int fBack, int fLeft, int fRight, float speed, int cols = 6);
 
     // ================= HEALTH BAR =================
     void drawHealthBar(sf::RenderWindow& window, const Enemy& enemy);
