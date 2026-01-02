@@ -52,6 +52,8 @@ protected:
     float maxHealth;
 
     float radius;
+    float renderRadius;
+    float collisonRadius;
 
     // Attaque
     sf::Clock attackClock;

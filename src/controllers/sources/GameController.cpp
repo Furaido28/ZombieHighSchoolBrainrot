@@ -160,7 +160,10 @@ void GameController::handleEvent(const sf::Event& event) {
             Item& item = slots[slot].value();
 
             if (item.type == ItemType::Consumable) {
-                player.takeDamage(-item.value);
+                if (player.getHealth() + item.value >100)
+                    player.setHealth(100);
+                else
+                    player.takeDamage(-item.value);
                 slots[slot].reset();
             }
         }
@@ -297,10 +300,47 @@ void GameController::update(float dt)
         else
             enemy->update(dt, enemy->getPosition());
 
-        // collision décor
-        if (!isPositionFree(enemy->getGlobalBounds())) {
-            enemy->setPosition(oldPos);
+        // =========================
+        // COLLISION DÉCOR – ENNEMIS (AVEC GLISSEMENT)
+        // =========================
+        sf::Vector2f newPos = enemy->getPosition();
+        sf::Vector2f deltaE = newPos - oldPos;
+
+        // Revenir à la position valide
+        enemy->setPosition(oldPos);
+
+        // Tentative déplacement complet
+        sf::FloatRect bbox = enemy->getGlobalBounds();
+        sf::FloatRect future = bbox;
+        future.left += deltaE.x;
+        future.top  += deltaE.y;
+
+        if (isPositionFree(future)) {
+            enemy->setPosition(oldPos + deltaE);
         }
+        else {
+            // Glissement X
+            sf::FloatRect bboxX = bbox;
+            bboxX.left += deltaE.x;
+
+            if (isPositionFree(bboxX)) {
+                enemy->setPosition({ oldPos.x + deltaE.x, oldPos.y });
+            }
+            else {
+                // Glissement Y
+                sf::FloatRect bboxY = bbox;
+                bboxY.top += deltaE.y;
+
+                if (isPositionFree(bboxY)) {
+                    enemy->setPosition({ oldPos.x, oldPos.y + deltaE.y });
+                }
+                else {
+                    // Bloqué total → reste en place
+                    enemy->setPosition(oldPos);
+                }
+            }
+        }
+
 
         // attaque joueur
         if (circlesIntersect(
