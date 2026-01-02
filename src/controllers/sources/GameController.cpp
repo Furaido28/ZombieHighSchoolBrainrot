@@ -10,6 +10,8 @@
 #include "core/headers/commands/MoveLeftCommand.h"
 #include "core/headers/commands/MoveRightCommand.h"
 #include "core/headers/commands/MoveUpCommand.h"
+#include "core/headers/commands/PickupItemCommand.h"
+#include "core/headers/commands/UseItemCommand.h"
 
 static bool circlesIntersect(
     const sf::Vector2f& aPos, float aRadius,
@@ -81,12 +83,23 @@ GameController::GameController() : player(), playerView() {
 
     inputHandler.bind(sf::Mouse::Left,
     std::make_unique<AttackCommand>(
-        player,
-        enemies,
-        attackTimer,
-        attackCooldown
-    )
-);
+            player,
+            enemies,
+            attackTimer,
+            attackCooldown
+        )
+    );
+
+    inputHandler.bind(sf::Mouse::Right,
+        std::make_unique<UseItemCommand>(player)
+    );
+
+    inputHandler.bind(sf::Keyboard::E,
+        std::make_unique<PickupItemCommand>(
+            player,
+            worldItems
+        )
+    );
 
     // =========================
     // LOAD MAPS
@@ -183,31 +196,13 @@ const sf::Texture& GameController::getItemTexture(const std::string& name) const
 // INPUT EVENTS
 // =========================
 void GameController::handleEvent(const sf::Event& event) {
-    if (event.type == sf::Event::MouseButtonPressed &&
-        event.mouseButton.button == sf::Mouse::Right)
-    {
-        int slot = player.getInventory().getSelectedSlot();
-        auto& slots = player.getInventory().getSlots();
 
-        if (slots[slot].has_value()) {
-            Item& item = slots[slot].value();
-
-            if (item.type == ItemType::Consumable) {
-                if (player.getHealth() + item.value >100)
-                    player.setHealth(100);
-                else
-                    player.takeDamage(-item.value);
-                slots[slot].reset();
-            }
-        }
-    }
 }
 
 // =========================
 // UPDATE
 // =========================
-void GameController::update(float dt)
-{
+void GameController::update(float dt) {
     // =========================
     // 0. TIMERS
     // =========================
@@ -228,40 +223,9 @@ void GameController::update(float dt)
     player.update(dt);
 
     // =========================
-    // 2. ITEM PICKUP (E)
-    // =========================
-    static bool eWasPressed = false;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
-        if (!eWasPressed) {
-            for (auto it = worldItems.begin(); it != worldItems.end();) {
-                if (circlesIntersect(
-                    player.getPosition(), player.getRadius(),
-                    it->position, it->radius))
-                {
-                    bool picked = false;
-
-                    if (it->item.type == ItemType::KeyFragment)
-                        picked = player.getInventory().addKeyFragment(it->item);
-                    else
-                        picked = player.getInventory().addItem(it->item);
-
-                    if (picked) {
-                        it = worldItems.erase(it);
-                        continue;
-                    }
-                }
-                ++it;
-            }
-        }
-        eWasPressed = true;
-    }
-    else {
-        eWasPressed = false;
-    }
-
-    // =========================
     // 3. MOVEMENT + COLLISIONS
     // =========================
+
     sf::Vector2f dir = player.consumeMovement();
 
     if (dir.x != 0.f || dir.y != 0.f) {
@@ -301,11 +265,13 @@ void GameController::update(float dt)
     // =========================
     // 4. UPDATE PLAYER
     // =========================
+
     player.update(dt);
 
     // =========================
     // 5. ENEMY UPDATE & ATTACK
     // =========================
+
     for (auto& enemy : enemies) {
 
         if (!enemy->isAlive())
@@ -318,9 +284,10 @@ void GameController::update(float dt)
         else
             enemy->update(dt, enemy->getPosition());
 
-        // =========================
+        // ===========================================
         // COLLISION DÉCOR – ENNEMIS (AVEC GLISSEMENT)
-        // =========================
+        // ===========================================
+
         sf::Vector2f newPos = enemy->getPosition();
         sf::Vector2f deltaE = newPos - oldPos;
 
@@ -359,7 +326,6 @@ void GameController::update(float dt)
             }
         }
 
-
         // attaque joueur
         if (circlesIntersect(
             player.getPosition(), player.getRadius(),
@@ -372,6 +338,7 @@ void GameController::update(float dt)
     // =========================
     // 7. DEBUG – SKIP WAVE
     // =========================
+
     static bool kWasPressed = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::K)) {
         if (!kWasPressed && waveManager) {
