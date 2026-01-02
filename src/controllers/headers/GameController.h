@@ -48,10 +48,18 @@ public:
     void handleEvent(const sf::Event& event);
     void update(float dt);
     void render(sf::RenderWindow& window);
-    Player& getPlayer();
+
     void givePotionToPlayer();
-    const sf::Texture& getItemTexture(const std::string& name) const;
+    const sf::Texture& getItemTexture(const std::string& name) const { return itemTextures.at(name); };
     bool isInventoryExpanded() const { return tabPressed; };
+
+    Player& getPlayer() { return player; };
+    PlayerView& getPlayerView() { return playerView; };
+
+    int getWaveNumber() const { return waveManager->getCurrentWave(); };
+    float getWaveTimeLeft() const { return waveManager->getTimeLeft(); };
+
+    const sf::View& getGameView() const { return gameView; }
 
 private:
     // Méthodes internes de collision

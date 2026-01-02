@@ -219,16 +219,7 @@ GameController::GameController() : player(), playerView() {
     debugProjectileRange.setOutlineThickness(2.f);
 }
 
-// =========================
-// ACCESSORS
-// =========================
-Player& GameController::getPlayer() { return player; }
-
-const sf::Texture& GameController::getItemTexture(const std::string& name) const {
-    return itemTextures.at(name);
-}
-
-// =========================
+// =========================ds
 // INPUT EVENTS
 // =========================
 void GameController::handleEvent(const sf::Event& event) {
@@ -531,36 +522,25 @@ void GameController::update(float dt)
 // =========================
 void GameController::render(sf::RenderWindow& window) {
     window.setView(gameView);
+
     window.draw(mapView);
 
     for (auto& wi : worldItems)
         window.draw(wi.item.sprite);
 
-    // Dessin des ennemis
     for (auto& enemy : enemies)
         enemyView.render(window, *enemy, player.getPosition());
 
-    // --- DESSIN DES PROJECTILES ---
-    for (const auto& p : projectiles) {
+    for (const auto& p : projectiles)
         window.draw(p.shape);
-    }
 
-    // --- NOUVEAU : DESSIN DEBUG ---
-    if (showProjectileRange) {
+    if (showProjectileRange)
         window.draw(debugProjectileRange);
-    }
-    if (debugMeleeTimer > 0.f) {
+
+    if (debugMeleeTimer > 0.f)
         window.draw(debugMeleeBox);
-    }
 
     playerView.renderWorld(window, player);
-
-    window.setView(window.getDefaultView());
-
-    int wave = waveManager ? waveManager->getCurrentWave() : 0;
-    float timeLeft = waveManager ? waveManager->getTimeLeft() : 0.f;
-
-    playerView.renderHUD(window, player, wave, timeLeft);
 }
 
 // =========================
