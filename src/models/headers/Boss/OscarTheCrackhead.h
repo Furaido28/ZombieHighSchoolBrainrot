@@ -1,11 +1,10 @@
 #pragma once
 
 #include "Boss.h"
-
 #include "models/headers/Player.h"
+#include <memory>
 
 class OscarTheCrackhead : public Boss {
-
 public:
     explicit OscarTheCrackhead(const sf::Vector2f& pos);
 
@@ -15,6 +14,5 @@ public:
     void attack(Player& player) override;
 
 protected:
-    void updatePhaseLogic(float dt, const sf::Vector2f& playerPos) override;
-
+    std::unique_ptr<BossPhase> createPhase(int phaseIndex) override;
 };

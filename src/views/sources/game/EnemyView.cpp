@@ -82,7 +82,6 @@ EnemyView::EnemyView()
 // ======================================================
 void EnemyView::loadTextureForType(EnemyType type)
 {
-    if (animationsMap.count(type) && animationsMap[type].isLoaded) return;
     if (textureInitialized && type == currentType) return;
 
     currentType = type;
@@ -147,6 +146,9 @@ void EnemyView::drawHealthBar(sf::RenderWindow& window, const Enemy& enemy)
 // ======================================================
 // RENDER (LOGIQUE COMPLÈTE)
 // ======================================================
+// ======================================================
+// RENDER (LOGIQUE COMPLÈTE)
+// ======================================================
 void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::Vector2f& playerPos)
 {
     EnemyType type = enemy.getType();
@@ -154,30 +156,25 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
     // =========================================================
     // CAS 1 : ENNEMIS ANIMÉS (BASIC, FAST, TANK)
     // =========================================================
-    if (animationsMap.count(type) && animationsMap[type].isLoaded) {
-
+    if (type == EnemyType::Basic ||
+        type == EnemyType::Fast  ||
+        type == EnemyType::Tank)
+    {
         EnemyAnimations& anims = animationsMap[type];
         sf::Vector2f v = enemy.getVelocity();
 
-        // Est-ce qu'il bouge ? (Seuil minimal pour éviter le jitter)
         bool isMoving = (v.x * v.x + v.y * v.y) > 1.0f;
 
         DirectionData* dirData = &anims.front;
 
-        // Choix Direction
         if (std::abs(v.x) > std::abs(v.y)) {
-            if (v.x > 0) dirData = &anims.right;
-            else dirData = &anims.left;
+            dirData = (v.x > 0) ? &anims.right : &anims.left;
         } else {
-            // Si immobile, on garde Front ou Back par défaut,
-            // mais l'animation sera figée à 0 plus bas.
             if (v.y > 0) dirData = &anims.front;
             else if (v.y < 0) dirData = &anims.back;
         }
 
-        // Calcul Index Animation (Seulement si mouvement)
-        int frameIndex = 0; // Par défaut frame 0 (Idle)
-
+        int frameIndex = 0;
         if (isMoving && dirData->frameCount > 1) {
             float time = globalClock.getElapsedTime().asSeconds();
             frameIndex = (int)(time / anims.frameDuration) % dirData->frameCount;
@@ -185,33 +182,58 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
 
         sprite.setTexture(dirData->texture);
 
-        // --- DÉCOUPAGE GRILLE (GRID) ---
-        if (dirData->cols > 0)
-            frameWidth = dirData->texture.getSize().x / dirData->cols;
-        else
-            frameWidth = dirData->texture.getSize().x;
-
-        int rows = (dirData->frameCount + dirData->cols - 1) / dirData->cols;
-        if (rows < 1) rows = 1;
-        frameHeight = dirData->texture.getSize().y / rows;
+        frameWidth  = dirData->texture.getSize().x / dirData->cols;
+        int rows    = (dirData->frameCount + dirData->cols - 1) / dirData->cols;
+        frameHeight = dirData->texture.getSize().y / std::max(1, rows);
 
         int col = frameIndex % dirData->cols;
         int row = frameIndex / dirData->cols;
 
         sprite.setOrigin(frameWidth / 2.f, frameHeight / 2.f);
-        sprite.setTextureRect(sf::IntRect(col * frameWidth, row * frameHeight, frameWidth, frameHeight));
+        sprite.setTextureRect({ col * frameWidth, row * frameHeight, frameWidth, frameHeight });
     }
     // =========================================================
-    // CAS 2 : BOSS (LEGACY)
+    // CAS 2 : BOSS (CORRIGÉ)
     // =========================================================
-    else {
-        loadTextureForType(type);
+    else
+    {
+        // RESET total pour éviter héritage précédent
+        sprite.setTextureRect(sf::IntRect());
+
+        // FORCE la texture du boss
+        const sf::Texture* tex = nullptr;
+        switch (type) {
+            case EnemyType::Boss01:    tex = &boss01Texture; break;
+            case EnemyType::Boss02:    tex = &boss02Texture; break;
+            case EnemyType::Boss03:    tex = &boss03Texture; break;
+            case EnemyType::FinalBoss: tex = &finalBossTexture; break;
+            default: break;
+        }
+
+        if (tex) {
+            sprite.setTexture(*tex, true);
+
+            // 🔥 RECALCUL OBLIGATOIRE
+            frameWidth  = tex->getSize().x / 4;
+            frameHeight = tex->getSize().y;
+            sprite.setOrigin(frameWidth / 2.f, frameHeight / 2.f);
+        }
+
+        // Direction
         sf::Vector2f v = enemy.getVelocity();
         int dirIndex = 0;
-        if (std::abs(v.x) > std::abs(v.y)) dirIndex = (v.x < 0.f) ? 1 : 2;
-        else dirIndex = (v.y < 0.f) ? 3 : 0;
 
-        sprite.setTextureRect({ dirIndex * frameWidth, 0, frameWidth, frameHeight });
+        if (std::abs(v.x) > std::abs(v.y))
+            dirIndex = (v.x < 0.f) ? 1 : 2;
+        else
+            dirIndex = (v.y < 0.f) ? 3 : 0;
+
+        sprite.setTextureRect({
+            dirIndex * frameWidth,
+            0,
+            frameWidth,
+            frameHeight
+        });
     }
 
     // =========================================================
@@ -220,11 +242,10 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
     sprite.setPosition(enemy.getPosition());
 
     float scale = 1.0f;
-    if (frameWidth > 0) {
+    if (frameWidth > 0)
         scale = (enemy.getRadius() * 2.f) / (float)frameWidth;
-    }
-    sprite.setScale(scale, scale);
 
+    sprite.setScale(scale, scale);
     window.draw(sprite);
 
     // =========================================================

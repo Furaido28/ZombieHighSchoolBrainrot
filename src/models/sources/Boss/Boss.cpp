@@ -3,25 +3,46 @@
 
 Boss::Boss(const sf::Vector2f& startPos) : Enemy(startPos) {
     speed = 60.f;
-    radius = 100.f;
+    renderRadius = 100.f;
+    collisionRadius = 48.f;
 }
 
-void Boss::update(float dt, const sf::Vector2f& playerPos) {
-    phaseTimer += dt;
-
+void Boss::update(float dt, const sf::Vector2f& playerPos)
+{
     updatePhase();
-    updatePhaseLogic(dt, playerPos);
+
+    if (currentPhase)
+        currentPhase->update(*this, dt, playerPos);
 }
+
 
 void Boss::updatePhase()
 {
     float ratio = health / maxHealth;
+    int newPhase = 0;
 
-    if (ratio > 0.75f) currentPhase = 0;
-    else if (ratio > 0.5f) currentPhase = 1;
-    else if (ratio > 0.25f) currentPhase = 2;
-    else currentPhase = 3;
+    if (ratio > 0.75f) newPhase = 0;
+    else if (ratio > 0.5f) newPhase = 1;
+    else if (ratio > 0.25f) newPhase = 2;
+    else newPhase = 3;
+
+    if (newPhase != currentPhaseIndex) {
+        currentPhaseIndex = newPhase;
+        setPhase(createPhase(newPhase));
+    }
 }
+
+void Boss::setPhase(std::unique_ptr<BossPhase> phase)
+{
+    if (currentPhase)
+        currentPhase->onExit(*this);
+
+    currentPhase = std::move(phase);
+
+    if (currentPhase)
+        currentPhase->onEnter(*this);
+}
+
 
 void Boss::moveTowardPlayer(float dt, const sf::Vector2f& playerPos) {
     sf::Vector2f dir = playerPos - position;

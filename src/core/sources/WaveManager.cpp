@@ -144,6 +144,10 @@ void WaveManager::spawnEnemy(Player& player,
 
         int bossType = 1;
         sf::Vector2f pos = getBossSpawnPosition(bossType);
+        std::cout << "[SPAWN] Boss requested | type tile = "
+             << bossType
+             << " | position = (" << pos.x << ", " << pos.y << ")"
+             << std::endl;
 
         switch (bossType) {
             case 1:

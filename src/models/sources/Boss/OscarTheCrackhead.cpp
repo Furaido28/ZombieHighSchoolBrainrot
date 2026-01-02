@@ -1,37 +1,36 @@
 #include "models/headers/Boss/OscarTheCrackhead.h"
 
+#include "models/headers/Boss/phases/BossPhaseNormal.h"
+#include "models/headers/Boss/phases/BossPhaseEnraged.h"
+#include "models/headers/Boss/phases/BossPhaseFrenzy.h"
+
 OscarTheCrackhead::OscarTheCrackhead(const sf::Vector2f& pos)
     : Boss(pos)
 {
-    maxHealth = 600.f;
+    maxHealth = 1200.f;
     health = maxHealth;
-    attackCooldown = 1.5f;
+    attackCooldown = 0.9f;
 }
 
-void OscarTheCrackhead::updatePhaseLogic(float dt, const sf::Vector2f& playerPos) {
-    switch (currentPhase) {
-        case 0:
-            speed = 50.f;
-            break;
-        case 1:
-            speed = 80.f;
-            break;
-        case 2:
-            speed = 120.f;
-            break;
-        case 3:
-            speed = 160.f;
-            break;
+std::unique_ptr<BossPhase>
+OscarTheCrackhead::createPhase(int phaseIndex)
+{
+    switch (phaseIndex) {
+        case 0: return std::make_unique<BossPhaseNormal>();
+        case 1: return std::make_unique<BossPhaseEnraged>();
+        case 2: return std::make_unique<BossPhaseFrenzy>();
+        default: return std::make_unique<BossPhaseFrenzy>();
     }
-
-    moveTowardPlayer(dt, playerPos);
 }
 
-int OscarTheCrackhead::getDamage() const {
-    return 25 + currentPhase * 10;
+int OscarTheCrackhead::getDamage() const
+{
+    // Final boss tape toujours plus fort
+    return currentPhase ? currentPhase->getDamage() + 15 : 40;
 }
 
-void OscarTheCrackhead::attack(Player& player) {
+void OscarTheCrackhead::attack(Player& player)
+{
     if (!player.isAlive()) return;
     if (!canAttack()) return;
 

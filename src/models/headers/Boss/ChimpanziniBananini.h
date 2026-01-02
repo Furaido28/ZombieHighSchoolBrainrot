@@ -15,6 +15,6 @@ public:
     void attack(Player& player) override;
 
 protected:
-    void updatePhaseLogic(float dt, const sf::Vector2f& playerPos) override;
+    std::unique_ptr<BossPhase> createPhase(int phaseIndex) override;
 
 };
