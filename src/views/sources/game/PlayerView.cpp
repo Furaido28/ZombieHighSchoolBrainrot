@@ -71,6 +71,15 @@ PlayerView::PlayerView() {
     timerText.setCharacterSize(16);
     timerText.setFillColor(sf::Color::White);
     timerText.setStyle(sf::Text::Bold);
+
+    // --- WALK SOUND ---
+    if (!walkBuffer.loadFromFile("assets/sound/sound_effect/bruit-de-pas.ogg")) {
+        std::cerr << "Erreur sound_effect/bruit-de-pas.ogg\n";
+    }
+
+    walkSound.setBuffer(walkBuffer);
+    walkSound.setLoop(true);
+    walkSound.setVolume(10.f);
 }
 
 void PlayerView::playAnimation(
@@ -109,6 +118,18 @@ void PlayerView::renderWorld(sf::RenderWindow& window, const Player& player) {
 
     Direction dir = player.getDirection();
     bool moving = player.isMoving();
+
+    // =========================
+    // WALK SOUND LOGIC
+    // =========================
+    if (moving && !wasMoving) {
+        walkSound.play();
+    }
+    else if (!moving && wasMoving) {
+        walkSound.stop();
+    }
+
+    wasMoving = moving;
 
     if (moving) {
         if (dir == Direction::Left)
