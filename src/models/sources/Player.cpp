@@ -94,3 +94,13 @@ Direction Player::getDirection() const {
 void Player::setMoving(bool m) { moving = m; }
 bool Player::isMoving() const { return moving; }
 Inventory &Player::getInventory() {return inventory;}
+
+void Player::addMovement(const sf::Vector2f& dir) {
+    movementIntent += dir;
+}
+
+sf::Vector2f Player::consumeMovement() {
+    sf::Vector2f result = movementIntent;
+    movementIntent = {0.f, 0.f};
+    return result;
+}

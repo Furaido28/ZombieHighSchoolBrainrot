@@ -12,6 +12,7 @@
 #include "../../models/headers/Enemy/FastEnemy.h"
 #include "models/headers/Enemy/TankEnemy.h"
 #include "../../models/headers/Boss/Boss.h"
+#include "core/headers/InputHandler.h"
 #include "models/headers/Item.h"
 #include "views/headers/game/PlayerView.h"
 #include "views/headers/game/EnemyView.h"
@@ -67,4 +68,7 @@ private:
     std::vector<WorldItem> worldItems;
     float attackCooldown = 0.4f;
     float attackTimer = 0.f;
+
+    //Command
+    InputHandler inputHandler;
 };

@@ -5,6 +5,11 @@
 #include <cstdlib>
 #include <ctime>
 
+#include "core/headers/commands/MoveDownCommand.h"
+#include "core/headers/commands/MoveLeftCommand.h"
+#include "core/headers/commands/MoveRightCommand.h"
+#include "core/headers/commands/MoveUpCommand.h"
+
 static bool circlesIntersect(
     const sf::Vector2f& aPos, float aRadius,
     const sf::Vector2f& bPos, float bRadius)
@@ -56,9 +61,27 @@ static void spawnWorldItem(
 // =========================
 // CONSTRUCTOR
 // =========================
-GameController::GameController()
-    : player(), playerView()
-{
+GameController::GameController() : player(), playerView() {
+    // =========================
+    // Unitialisation des commandes
+    // =========================
+
+    inputHandler.bind(sf::Keyboard::Z,
+    std::make_unique<MoveUpCommand>(player));
+
+    inputHandler.bind(sf::Keyboard::S,
+        std::make_unique<MoveDownCommand>(player));
+
+    inputHandler.bind(sf::Keyboard::Q,
+        std::make_unique<MoveLeftCommand>(player));
+
+    inputHandler.bind(sf::Keyboard::D,
+        std::make_unique<MoveRightCommand>(player));
+
+    // =========================
+    // LOAD MAPS
+    // =========================
+
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
     std::cout << "--- DEBUG: Tentative de chargement de la map ---" << std::endl;
@@ -184,32 +207,15 @@ void GameController::update(float dt)
     // =========================
     // 1. PLAYER INPUT
     // =========================
-    sf::Vector2f dir(0.f, 0.f);
-    bool isMoving = false;
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
-        dir.y -= 1.f;
-        player.setDirection(Direction::Up);
-        isMoving = true;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-        dir.y += 1.f;
-        player.setDirection(Direction::Down);
-        isMoving = true;
-    }
+    // Reset mouvement
+    player.setMoving(false);
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-        dir.x -= 1.f;
-        player.setDirection(Direction::Left);
-        isMoving = true;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-        dir.x += 1.f;
-        player.setDirection(Direction::Right);
-        isMoving = true;
-    }
+    // Commandes
+    inputHandler.handleInput(dt);
 
-    player.setMoving(isMoving);
+    // Update logique
+    player.update(dt);
 
     // =========================
     // 2. ITEM PICKUP (E)
@@ -246,6 +252,8 @@ void GameController::update(float dt)
     // =========================
     // 3. MOVEMENT + COLLISIONS
     // =========================
+    sf::Vector2f dir = player.consumeMovement();
+
     if (dir.x != 0.f || dir.y != 0.f) {
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         dir /= len;
