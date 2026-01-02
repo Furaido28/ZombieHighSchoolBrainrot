@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SFML/Audio.hpp>
+
 #include "../../core/headers/Scene.h"
 #include "../../controllers/headers/MenuController.h"
 
@@ -13,4 +15,5 @@ public:
 
 private:
     MenuController controller;
+    sf::Music backgroundMusic;
 };

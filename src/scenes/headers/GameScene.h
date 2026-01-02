@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SFML/Audio.hpp>
+
 #include "../../core/headers/Scene.h"
 #include "../../controllers/headers/GameController.h"
 #include "../../views/headers/game/InventoryView.h"
@@ -15,5 +17,6 @@ public:
 private:
     GameController controller;
     sf::View hudView;
+    sf::Music backgroundMusic;
     InventoryView inventoryView;
 };

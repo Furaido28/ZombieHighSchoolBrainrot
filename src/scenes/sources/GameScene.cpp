@@ -1,4 +1,7 @@
 #include "../headers/GameScene.h"
+
+#include <iostream>
+
 #include "../headers/MenuScene.h"
 #include "../../core/headers/SceneManager.h"
 
@@ -10,6 +13,14 @@ GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
         window->getSize().x / 2.f,
         window->getSize().y / 2.f
     );
+
+    if (!backgroundMusic.openFromFile("assets/sound/music/game.ogg")) {
+        std::cerr << "Erreur mmusic/game.ogg\n";
+    }
+
+    backgroundMusic.setLoop(true);
+    backgroundMusic.setVolume(15.f);
+    backgroundMusic.play();
 }
 
 void GameScene::handleEvent(const sf::Event& event) {
