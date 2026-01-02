@@ -9,7 +9,7 @@ Enemy::Enemy(const sf::Vector2f& startPos){
     maxHealth = 50.f;
     health = maxHealth;
     renderRadius = 50.f;
-    collisonRadius = 24.f;
+    collisionRadius = 24.f;
     radius = renderRadius;
     attackCooldown = 1.f;
 }
@@ -44,10 +44,10 @@ bool Enemy::isAlive() const {
 
 sf::FloatRect Enemy::getGlobalBounds() const {
     return {
-        position.x - collisonRadius,
-        position.y - collisonRadius,
-        collisonRadius * 2.f,
-        collisonRadius * 2.f
+        position.x - collisionRadius,
+        position.y - collisionRadius,
+        collisionRadius * 2.f,
+        collisionRadius * 2.f
     };
 }
 

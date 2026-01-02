@@ -33,7 +33,7 @@ struct Projectile {
 struct WorldItem {
     Item item;
     sf::Vector2f position;
-    float radius = 20.f;
+    float radius = 40.f;
 
     sf::FloatRect getBounds() const {
         return {
