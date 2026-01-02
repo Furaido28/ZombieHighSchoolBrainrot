@@ -19,7 +19,7 @@ GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
     }
 
     backgroundMusic.setLoop(true);
-    backgroundMusic.setVolume(15.f);
+    backgroundMusic.setVolume(5.f);
     backgroundMusic.play();
 }
 

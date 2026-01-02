@@ -41,7 +41,7 @@ PlayerView::PlayerView() {
     hpOutline.setOutlineColor(sf::Color::Black);
 
     if (!hudFont.loadFromFile("assets/fonts/arial.ttf"))
-        std::cerr << "❌ Erreur police HUD (healthbar)\n";
+        std::cerr << "Erreur police HUD (healthbar)\n";
 
     hpText.setFont(hudFont);
     hpText.setCharacterSize(14);
@@ -79,7 +79,7 @@ PlayerView::PlayerView() {
 
     walkSound.setBuffer(walkBuffer);
     walkSound.setLoop(true);
-    walkSound.setVolume(10.f);
+    walkSound.setVolume(2.5f);
 }
 
 void PlayerView::playAnimation(
