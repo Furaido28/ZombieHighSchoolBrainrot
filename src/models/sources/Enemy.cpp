@@ -70,3 +70,13 @@ void Enemy::takeDamage(int amount) {
     if (health <0)
         health = 0;
 }
+
+void Enemy::applyArchetype(const EnemyArchetype &data) {
+    speed = data.speed;
+    maxHealth = data.maxHealth;
+    health = maxHealth;
+    attackCooldown = data.attackCooldown;
+    renderRadius = data.renderRadius;
+    collisionRadius = data.collisionRadius;
+    radius = renderRadius;
+}

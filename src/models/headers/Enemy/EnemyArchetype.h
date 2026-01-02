@@ -1,5 +1,5 @@
 #pragma once
-#include "models/headers/Enemy.h"
+#include "EnemyType.h"
 
 struct EnemyArchetype {
     EnemyType type;

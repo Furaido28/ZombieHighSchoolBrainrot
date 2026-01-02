@@ -2,17 +2,11 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics.hpp>
 
+#include "Enemy/EnemyArchetype.h"
+#include "Enemy/EnemyType.h"
+
 class Player;
 
-enum class EnemyType {
-    Basic,
-    Fast,
-    Tank,
-    Boss01,
-    Boss02,
-    Boss03,
-    FinalBoss
-};
 
 class Enemy {
 public:
@@ -42,6 +36,7 @@ public:
 
     bool canAttack() const;
     virtual void takeDamage(int amount);
+    void applyArchetype(const EnemyArchetype& data);
 
 protected:
     sf::Vector2f position;
