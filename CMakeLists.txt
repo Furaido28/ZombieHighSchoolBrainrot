@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # SFML
-set(SFML_DIR "C:/libs/SFML-2.6.1/lib/cmake/SFML")
-find_package(SFML 2.6 COMPONENTS system window graphics audio REQUIRED)
+set(SFML_DIR "C:/libs/SFML-2.5.1/lib/cmake/SFML")
+find_package(SFML 2.5 COMPONENTS system window graphics audio REQUIRED)
 
 # Tous les .cpp du projet
 file(GLOB_RECURSE SOURCES
