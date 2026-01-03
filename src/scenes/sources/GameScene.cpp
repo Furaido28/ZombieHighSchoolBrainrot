@@ -6,6 +6,7 @@
 #include "../headers/MenuScene.h"
 #include "../../core/headers/SceneManager.h"
 #include "core/headers/AudioManager.h"
+#include "scenes/headers/DefeatScene.h"
 #include "scenes/headers/OptionsScene.h"
 #include "views/headers/menu/OptionsMenu.h"
 
@@ -96,6 +97,11 @@ void GameScene::handleEvent(const sf::Event& event) {
 
 
 void GameScene::update(float dt) {
+    if (controller.isPlayerDead()) {
+        manager->pushScene<DefeatScene>(window);
+        return;
+    }
+
     if (!paused) {
         controller.update(dt);
         inventoryView.update(controller.isInventoryExpanded());

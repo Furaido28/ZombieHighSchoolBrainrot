@@ -621,3 +621,7 @@ void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
 
     std::cout << "[GAME] Key Fragment spawned at boss position\n";
 }
+
+bool GameController::isPlayerDead() const {
+    return !player.isAlive();
+}

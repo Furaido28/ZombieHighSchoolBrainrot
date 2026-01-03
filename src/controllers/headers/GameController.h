@@ -67,6 +67,8 @@ public:
     WaveManager* getWaveManager(){return waveManager.get();}
     const WaveManager* getWaveManager()const {return waveManager.get();}
 
+    bool isPlayerDead() const;
+
 private:
     int currentLevel = 0;
     std::vector<std::string> levelMaps = {
