@@ -49,6 +49,7 @@ private:
     sf::Texture heartTexture;
     sf::Sprite heartSprite;
 
+    sf::Text preWaveText;
     sf::Text waveText;
     sf::Text timerText;
 

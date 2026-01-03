@@ -65,6 +65,11 @@ PlayerView::PlayerView(GameController& controller): controller(controller) {
 
     heartSprite.setScale(scale, scale);
 
+    preWaveText.setFont(hudFont);
+    preWaveText.setCharacterSize(18);
+    preWaveText.setFillColor(sf::Color(255, 200, 50));
+    preWaveText.setStyle(sf::Text::Bold);
+
     waveText.setFont(hudFont);
     waveText.setCharacterSize(18);
     waveText.setFillColor(sf::Color::White);
@@ -248,68 +253,93 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int w
     );
 
     // =========================
-    // TEXTE DE VAGUE
+    // TEXTE DE VAGUE / TIMERS
     // =========================
-    std::string waveLabel;
+    auto wm = controller.getWaveManager();
 
-    switch (waveNumber) {
-        case 1:
-            waveLabel = "Simple WAVE";
-            break;
-        case 2:
-            waveLabel = "Medium WAVE";
-            break;
-        case 3:
-            waveLabel = "Difficult WAVE";
-            break;
-        case 4:
-            waveLabel = "Hard WAVE";
-            break;
-        default:break;
+    if (wm && !wm->isFinished()) {
+
+        // =========================
+        // TEXTE DE VAGUE (uniquement en jeu)
+        // =========================
+        if (!(wm->getCurrentWave() == 1 && wm->getTimeBeforeFirstWave() > 0.f)) {
+
+            std::string waveLabel;
+
+            switch (waveNumber) {
+                case 1: waveLabel = "Simple WAVE"; break;
+                case 2: waveLabel = "Medium WAVE"; break;
+                case 3: waveLabel = "Difficult WAVE"; break;
+                case 4: waveLabel = "Hard WAVE"; break;
+                default: waveLabel = ""; break;
+            }
+
+            waveText.setString(waveLabel);
+
+            waveText.setPosition(
+                window.getSize().x - waveText.getLocalBounds().width - 20.f,
+                20.f
+            );
+
+            window.draw(waveText);
+        }
+
+        // =========================
+        // PRE-WAVE TIMER
+        // =========================
+        if (wm->getCurrentWave() == 1 && wm->getTimeBeforeFirstWave() > 0.f) {
+
+            int seconds = static_cast<int>(wm->getTimeBeforeFirstWave());
+
+            std::string preWaveStr =
+                std::string("First wave in : ") +
+                (seconds < 10 ? "0" : "") +
+                std::to_string(seconds);
+
+            preWaveText.setString(preWaveStr);
+
+            sf::FloatRect bounds = preWaveText.getLocalBounds();
+            preWaveText.setOrigin(bounds.width / 2.f, 0.f);
+
+            preWaveText.setPosition(
+                window.getSize().x / 2.f,
+                20.f
+            );
+
+            window.draw(preWaveText);
+        }
+        // =========================
+        // IN-WAVE TIMER
+        // =========================
+        else {
+            int seconds = static_cast<int>(timeLeft);
+            int minutes = seconds / 60;
+            seconds %= 60;
+
+            std::string timerStr =
+                (minutes < 10 ? "0" : "") + std::to_string(minutes) + ":" +
+                (seconds < 10 ? "0" : "") + std::to_string(seconds);
+
+            timerText.setString(timerStr);
+
+            sf::FloatRect bounds = timerText.getLocalBounds();
+            timerText.setOrigin(bounds.left + bounds.width, bounds.top);
+
+            timerText.setPosition(
+                window.getSize().x - 20.f,
+                waveText.getPosition().y + waveText.getCharacterSize() + 5.f
+            );
+
+            window.draw(timerText);
+        }
     }
 
-    waveText.setString(waveLabel);
-
-    sf::Vector2u waveTextwinSize = window.getSize();
-    float waveTextmargin = 20.f;
-
-    waveText.setPosition(
-        waveTextwinSize.x - waveText.getLocalBounds().width - waveTextmargin,
-        waveTextmargin
-    );
-
-    window.draw(waveText);
-
+    // =========================
+    // HUD DRAW (toujours à la fin)
+    // =========================
     window.draw(hpBack);
     window.draw(hpFront);
     window.draw(hpOutline);
     window.draw(heartSprite);
     window.draw(hpText);
-
-    // =========================
-    // TIMER DE VAGUE
-    // =========================
-    int seconds = static_cast<int>(timeLeft);
-    int minutes = seconds / 60;
-    seconds %= 60;
-
-    std::string timerStr =
-        (minutes < 10 ? "0" : "") + std::to_string(minutes) + ":" +
-        (seconds < 10 ? "0" : "") + std::to_string(seconds);
-
-    timerText.setString(timerStr);
-
-    sf::FloatRect bounds = timerText.getLocalBounds();
-    timerText.setOrigin(bounds.left + bounds.width, bounds.top);
-
-    timerText.setPosition(
-        window.getSize().x - 20.f,
-        waveText.getPosition().y + waveText.getCharacterSize() + 5.f
-    );
-
-    auto wm = controller.getWaveManager();
-    if (wm && !wm->isFinished()) {
-        window.draw(timerText);
-    }
-
 }
