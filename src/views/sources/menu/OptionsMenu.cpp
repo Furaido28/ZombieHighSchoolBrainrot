@@ -22,7 +22,7 @@ OptionsMenu::OptionsMenu(float width, float height)
     std::vector<std::string> names = {
         "General Volume",
         "Music Volume",
-        "SFX Volume"
+        "Effect Volume"
     };
 
     labels.resize(3);
