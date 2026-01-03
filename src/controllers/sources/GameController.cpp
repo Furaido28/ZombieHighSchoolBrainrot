@@ -474,7 +474,7 @@ bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
     for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
             char t = map.getTile(x, y);
-            if (t == '#' || t=='R' || t=='B' || t=='A' || t=='r') return false;
+            if (t == '#' || t=='R' || t=='B' || t=='A' || t=='r' || t=='T' || t=='~') return false;
         }
     }
     return true;
