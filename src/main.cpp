@@ -3,7 +3,10 @@
 #include "scenes/headers/MenuScene.h"
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(1280, 720), "Zombie High School Brainrot");
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Zombie High School Brainrot", sf::Style::None);
+
+    // Astuce : On force la position en haut à gauche (0,0) pour être sûr qu'elle couvre tout
+    window.setPosition(sf::Vector2i(0, 0));
     window.setFramerateLimit(60);
 
     SceneManager manager;
