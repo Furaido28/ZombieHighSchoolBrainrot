@@ -1,5 +1,6 @@
 #include "../headers/GameScene.h"
 
+#include <cmath>
 #include <iostream>
 
 #include "../headers/MenuScene.h"
@@ -21,6 +22,9 @@ GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
     backgroundMusic.setLoop(true);
     backgroundMusic.setVolume(5.f);
     backgroundMusic.play();
+    if (!font.loadFromFile("assets/fonts/font.ttf")) {
+        std::cerr << "ERROR: FAILED TO LOAD UI FONT" << std::endl;
+    }
 }
 
 void GameScene::handleEvent(const sf::Event& event) {
@@ -73,6 +77,31 @@ void GameScene::render() {
 
     inventoryView.draw(*window);
 
+
+    if (controller.isLevelEnding()) {
+        sf::RectangleShape overlay;
+        overlay.setSize({
+            static_cast<float>(window->getSize().x),
+            static_cast<float>(window->getSize().y)
+        });
+        overlay.setFillColor(sf::Color(0, 0, 0, 160));
+        window->draw(overlay);
+
+        sf::Text text;
+        text.setFont(font);
+        text.setCharacterSize(72);
+        text.setString("Next Level in 10 seconds\n");
+        text.setFillColor(sf::Color::White);
+        text.setStyle(sf::Text::Bold);
+
+        sf::FloatRect b = text.getLocalBounds();
+        text.setOrigin(b.width / 2.f, b.height / 2.f);
+        text.setPosition(
+            window->getSize().x / 2.f,
+            window->getSize().y / 2.f
+        );
+        window->draw(text);
+    }
     window->display();
 }
 

@@ -19,6 +19,8 @@
 #include <vector>
 #include <memory>
 
+
+class GameController;
 class Enemy;
 class Player;
 class TileMap;
@@ -42,7 +44,7 @@ struct BossTile {
 
 class WaveManager {
 public:
-    explicit WaveManager(const TileMap& mapRef);
+    explicit WaveManager(const TileMap& mapRef, GameController& controller);
 
     void update(float dt, Player& player,
                 std::vector<std::unique_ptr<Enemy>>& enemies);
@@ -54,6 +56,7 @@ public:
     // TODO retirer plus tard
     bool debugSkipRequested = false;
     void requestSkip();
+    bool isFinished() const;
 
 private:
     // ---------- MAP ----------
@@ -79,4 +82,5 @@ private:
     sf::Vector2f getSpawnPosition(const Player& player);
     sf::Vector2f getBossSpawnPosition(int &outBossType) const;
     EnemyFlyweightFactory enemyFactory;
+    GameController& controller;
 };

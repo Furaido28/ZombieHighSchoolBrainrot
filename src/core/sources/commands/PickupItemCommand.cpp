@@ -31,7 +31,13 @@ void PickupItemCommand::execute(float)
 
             if (it->item.type == ItemType::KeyFragment)
                 picked = player.getInventory().addKeyFragment(it->item);
-            else
+            if (picked) {
+                if (it->item.type == ItemType::KeyFragment) {
+                    controller.onKeyFragmentPicked();
+                }
+                it = worldItems.erase(it);
+                continue;
+            } else
                 picked = player.getInventory().addItem(it->item);
 
             if (picked) {

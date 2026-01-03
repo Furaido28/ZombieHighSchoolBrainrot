@@ -19,4 +19,7 @@ private:
     sf::View hudView;
     sf::Music backgroundMusic;
     InventoryView inventoryView;
+    sf::Font font;
+    sf::Clock levelEndVisualClock;
+    bool visualTimerStarted = false;
 };

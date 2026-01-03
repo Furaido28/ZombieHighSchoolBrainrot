@@ -24,11 +24,3 @@ ChimpanziniBananini::createPhase(int phaseIndex)
 int ChimpanziniBananini::getDamage() const {
     return currentPhase ? currentPhase->getDamage() : 10;
 }
-
-void ChimpanziniBananini::attack(Player& player) {
-    if (!player.isAlive()) return;
-    if (!canAttack()) return;
-
-    player.takeDamage(getDamage());
-    attackClock.restart();
-}

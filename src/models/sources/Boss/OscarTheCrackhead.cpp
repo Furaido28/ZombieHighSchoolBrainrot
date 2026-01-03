@@ -28,12 +28,3 @@ int OscarTheCrackhead::getDamage() const
     // Final boss tape toujours plus fort
     return currentPhase ? currentPhase->getDamage() + 15 : 40;
 }
-
-void OscarTheCrackhead::attack(Player& player)
-{
-    if (!player.isAlive()) return;
-    if (!canAttack()) return;
-
-    player.takeDamage(getDamage());
-    attackClock.restart();
-}

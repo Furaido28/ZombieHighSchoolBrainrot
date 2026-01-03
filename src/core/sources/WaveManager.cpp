@@ -2,13 +2,14 @@
 
 #include <iostream>
 
+#include "controllers/headers/GameController.h"
 #include "models/headers/Boss/UdinDinDinDun.h"
 
 // ======================================================
 // CONSTRUCTOR
 // ======================================================
-WaveManager::WaveManager(const TileMap& mapRef)
-    : map(mapRef)
+WaveManager::WaveManager(const TileMap& mapRef, GameController& controller)
+    : map(mapRef), controller(controller)
 {
     // ---------- Scan map ----------
     for (unsigned y = 0; y < map.getHeight(); ++y) {
@@ -27,13 +28,12 @@ WaveManager::WaveManager(const TileMap& mapRef)
         }
     }
 
-    // ---------- 3 cycles × 4 waves ----------
-    for (int cycle = 0; cycle < 3; ++cycle) {
-        waves.push_back({6, 0, 0, 0});
-        waves.push_back({10, 4, 0, 0});
-        waves.push_back({14, 8, 3, 0});
-        waves.push_back({20, 8, 6, 1});
-    }
+    // ---------- 4 waves ----------
+    waves.push_back({6, 0, 0, 0});
+    waves.push_back({10, 4, 0, 0});
+    waves.push_back({14, 8, 3, 0});
+    waves.push_back({20, 8, 6, 1});
+
 
     spawnClock.restart();
     waveClock.restart();
@@ -50,7 +50,8 @@ int WaveManager::getCurrentWave() const {
     return currentWave + 1;
 }
 
-float WaveManager::getTimeLeft() const {
+    float WaveManager::getTimeLeft() const {
+    if (isFinished())return 0.f;
     float remaining =
         maxWaveDuration - waveClock.getElapsedTime().asSeconds();
     return std::max(0.f, remaining);
@@ -150,29 +151,57 @@ void WaveManager::spawnEnemy(Player& player,
              << std::endl;
 
         switch (bossType) {
-            case 1:
+            case 1: {
+                auto boss = std::make_unique<TralaleroTralala>(pos);
+                //Death callback
+                boss->setDeathCallback([this](const Enemy& enemy) {
+                    controller.spawnKeyFragmentAt(enemy.getPosition());
+                });
                 enemies.push_back(
-                    std::make_unique<TralaleroTralala>(pos)
+                    std::move(boss)
                 );
                 break;
+            }
 
-            case 2:
-                enemies.push_back(
-                    std::make_unique<ChimpanziniBananini>(pos)
-                );
-                break;
 
-            case 3:
+            case 2: {
+                auto boss = std::make_unique<ChimpanziniBananini>(pos);
+                //Death callback
+                boss->setDeathCallback([this](const Enemy& enemy) {
+                    controller.spawnKeyFragmentAt(enemy.getPosition());
+                });
                 enemies.push_back(
-                    std::make_unique<UdinDinDinDun>(pos)
+                    std::move(boss)
                 );
                 break;
+            }
 
-            case 4:
+
+            case 3: {
+                auto boss = std::make_unique<UdinDinDinDun>(pos);
+                //Death callback
+                boss->setDeathCallback([this](const Enemy& enemy) {
+                    controller.spawnKeyFragmentAt(enemy.getPosition());
+                });
                 enemies.push_back(
-                    std::make_unique<OscarTheCrackhead>(pos)
+                    std::move(boss)
                 );
                 break;
+            }
+
+
+            case 4: {
+                auto boss = std::make_unique<OscarTheCrackhead>(pos);
+                //Death callback
+                boss->setDeathCallback([this](const Enemy& enemy) {
+                    controller.spawnKeyFragmentAt(enemy.getPosition());
+                });
+                enemies.push_back(
+                    std::move(boss)
+                );
+                break;
+            }
+
         }
     }
 }
@@ -231,3 +260,7 @@ sf::Vector2f WaveManager::getBossSpawnPosition(int& outBossType) const
 void WaveManager::requestSkip() {
     debugSkipRequested = true;
 }
+bool WaveManager::isFinished() const {
+    return currentWave >= static_cast<int>(waves.size());
+}
+

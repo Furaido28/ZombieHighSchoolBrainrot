@@ -11,10 +11,10 @@
 #include "../../models/headers/Boss/Boss.h"
 #include "core/headers/InputHandler.h"
 #include "models/headers/Item.h"
-#include "views/headers/game/PlayerView.h"
 #include "views/headers/game/EnemyView.h"
 #include "views/headers/game/MapView.h"
 #include "core/headers/WaveManager.h"
+#include "views/headers/game/PlayerView.h"
 
 // Structure simple pour gérer un projectile en vol
 struct Projectile {
@@ -54,14 +54,29 @@ public:
     bool isInventoryExpanded() const { return tabPressed; };
 
     Player& getPlayer() { return player; };
-    PlayerView& getPlayerView() { return playerView; };
+    PlayerView& getPlayerView() { return playerView; }
 
     int getWaveNumber() const { return waveManager->getCurrentWave(); };
     float getWaveTimeLeft() const { return waveManager->getTimeLeft(); };
 
     const sf::View& getGameView() const { return gameView; }
+    void onKeyFragmentPicked();
+    bool isLevelEnding() const;
+    float getLevelEndRemainingTime() const;
+    void spawnKeyFragmentAt(const sf::Vector2f& pos);
+    WaveManager* getWaveManager(){return waveManager.get();}
+    const WaveManager* getWaveManager()const {return waveManager.get();}
 
 private:
+    int currentLevel = 0;
+    std::vector<std::string> levelMaps = {
+        "assets/maps/map1.txt",
+        "assets/maps/map2.txt",
+        "assets/maps/map3.txt",
+        "assets/maps/map4.txt"
+    };
+    void initLevel(int levelIndex);
+    void goToNextLevel();
     // Méthodes internes de collision
     bool isPositionFree(const sf::FloatRect& bbox) const;
     void placePlayerAtFirstFreeTile();
@@ -101,4 +116,7 @@ private:
     float debugMeleeTimer = 0.f;        // Combien de temps il reste affiché
     sf::CircleShape debugProjectileRange; // Le cercle bleu de portée
     bool showProjectileRange = false;     // Doit-on afficher le cercle ?
+    bool levelEnding = false;
+    sf::Clock levelEndClock;
+    float levelEndDuration = 10.f;
 };

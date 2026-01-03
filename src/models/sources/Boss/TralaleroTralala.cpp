@@ -27,11 +27,3 @@ int TralaleroTralala::getDamage() const
     return currentPhase ? currentPhase->getDamage() : 20;
 }
 
-void TralaleroTralala::attack(Player& player)
-{
-    if (!player.isAlive()) return;
-    if (!canAttack()) return;
-
-    player.takeDamage(getDamage());
-    attackClock.restart();
-}

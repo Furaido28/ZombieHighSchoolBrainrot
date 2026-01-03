@@ -1,6 +1,7 @@
 #include "models/headers/Enemy/GenericEnemy.h"
 #include "models/headers/Player.h"
 #include <cmath>
+#include <iostream>
 
 GenericEnemy::GenericEnemy(const sf::Vector2f& startPos, const EnemyArchetype& archetype)
     : Enemy(startPos), data(archetype)
@@ -19,10 +20,3 @@ void GenericEnemy::update(float dt, const sf::Vector2f& playerPos) {
     }
 }
 
-void GenericEnemy::attack(Player& player) {
-    if (!isAlive()) return;
-    if (!canAttack()) return;
-
-    player.takeDamage(getDamage());
-    attackClock.restart();
-}

@@ -2,11 +2,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+
 #include "models/headers/Player.h"
 
+class GameController;
 class PlayerView {
 public:
-    PlayerView();
+    PlayerView(GameController& controller);
 
     // Dessin du joueur dans le monde (avec caméra)
     void renderWorld(sf::RenderWindow& window, const Player& player);
@@ -53,4 +55,5 @@ private:
     sf::SoundBuffer walkBuffer;
     sf::Sound walkSound;
     bool wasMoving = false;
+    GameController& controller;
 };

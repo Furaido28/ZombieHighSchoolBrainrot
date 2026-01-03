@@ -28,11 +28,3 @@ int UdinDinDinDun::getDamage() const
     return currentPhase ? currentPhase->getDamage() + 10 : 30;
 }
 
-void UdinDinDinDun::attack(Player& player)
-{
-    if (!player.isAlive()) return;
-    if (!canAttack()) return;
-
-    player.takeDamage(getDamage());
-    attackClock.restart();
-}

@@ -1,6 +1,9 @@
 #include "models/headers/Enemy.h"
 
 #include <cmath>
+#include <iostream>
+
+#include "models/headers/Player.h"
 
 Enemy::Enemy(const sf::Vector2f& startPos){
     setPosition(startPos);
@@ -67,10 +70,28 @@ void Enemy::takeDamage(int amount) {
         return;
     }
     health -= amount;
-    if (health <0)
+    if (health <0) {
         health = 0;
-}
+        onDeath();
+        if (deathCallback) {
+            std::cout << "[DEBUG] Enemy deathCallback triggered\n";
+            deathCallback(*this);
+        }
+    }
 
+}
+void Enemy::attack(Player &player) {
+    if (!isAlive()) return;
+    if (!canAttack()) return;
+
+    int healthValue = player.getHealth();
+    if (std::rand() % 100 < 45)
+        player.takeDamage(getDamage());
+    attackClock.restart();
+    if (healthValue != player.getHealth()) {
+        std::cout << "HIT !" << std::endl;
+    }
+}
 void Enemy::applyArchetype(const EnemyArchetype &data) {
     speed = data.speed;
     maxHealth = data.maxHealth;

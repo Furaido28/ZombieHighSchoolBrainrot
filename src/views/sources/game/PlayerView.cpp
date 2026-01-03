@@ -2,9 +2,11 @@
 #include <iostream>
 #include <algorithm>
 
+#include "core/headers/WaveManager.h"
 #include "models/headers/Player.h"
+#include "controllers/headers/GameController.h"
 
-PlayerView::PlayerView() {
+PlayerView::PlayerView(GameController& controller): controller(controller) {
     // --- Textures ---
     if (!textureIdle.loadFromFile("assets/animation/player/player_sheet.png"))
         std::cerr << "Erreur player_sheet.png\n";
@@ -260,8 +262,7 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int w
         case 4:
             waveLabel = "Hard WAVE";
             break;
-        default:
-            waveLabel = "Boss Wave";
+        default:break;
     }
 
     waveText.setString(waveLabel);
@@ -303,5 +304,9 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int w
         waveText.getPosition().y + waveText.getCharacterSize() + 5.f
     );
 
-    window.draw(timerText);
+    auto wm = controller.getWaveManager();
+    if (wm && !wm->isFinished()) {
+        window.draw(timerText);
+    }
+
 }
