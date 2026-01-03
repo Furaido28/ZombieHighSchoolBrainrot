@@ -5,6 +5,7 @@
 
 #include "../headers/MenuScene.h"
 #include "../../core/headers/SceneManager.h"
+#include "core/headers/AudioManager.h"
 
 GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
     : Scene(manager, window), inventoryView(controller.getPlayer().getInventory()) {
@@ -20,8 +21,11 @@ GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
     }
 
     backgroundMusic.setLoop(true);
-    backgroundMusic.setVolume(5.f);
+    backgroundMusic.setVolume(
+        AudioManager::getInstance().getFinalMusicVolume()
+    );
     backgroundMusic.play();
+
     if (!font.loadFromFile("assets/fonts/font.ttf")) {
         std::cerr << "ERROR: FAILED TO LOAD UI FONT" << std::endl;
     }

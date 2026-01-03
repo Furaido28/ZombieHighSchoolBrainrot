@@ -5,6 +5,7 @@
 #include "core/headers/WaveManager.h"
 #include "models/headers/Player.h"
 #include "controllers/headers/GameController.h"
+#include "core/headers/AudioManager.h"
 
 PlayerView::PlayerView(GameController& controller): controller(controller) {
     // --- Textures ---
@@ -81,7 +82,9 @@ PlayerView::PlayerView(GameController& controller): controller(controller) {
 
     walkSound.setBuffer(walkBuffer);
     walkSound.setLoop(true);
-    walkSound.setVolume(2.5f);
+    walkSound.setVolume(
+        AudioManager::getInstance().getSoundEffectVolume()
+    );
 }
 
 void PlayerView::playAnimation(

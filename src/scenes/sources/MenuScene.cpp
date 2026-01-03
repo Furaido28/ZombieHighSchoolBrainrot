@@ -4,6 +4,8 @@
 
 #include "../headers/GameScene.h"
 #include "../../core/headers/SceneManager.h"
+#include "core/headers/AudioManager.h"
+#include "scenes/headers/OptionsScene.h"
 
 MenuScene::MenuScene(SceneManager* manager, sf::RenderWindow* window)
     : Scene(manager, window),
@@ -14,7 +16,9 @@ MenuScene::MenuScene(SceneManager* manager, sf::RenderWindow* window)
     }
 
     backgroundMusic.setLoop(true);
-    backgroundMusic.setVolume(0.5f);
+    backgroundMusic.setVolume(
+        AudioManager::getInstance().getFinalMusicVolume()
+    );
     backgroundMusic.play();
 }
 
@@ -29,7 +33,7 @@ void MenuScene::handleEvent(const sf::Event& event) {
     }
 
     if (c == 1)
-        ; // A VENIR : OptionsScene
+        manager->changeScene<OptionsScene>(window);
 
     if (c == 2) {
         backgroundMusic.stop();

@@ -32,8 +32,8 @@ struct Wave {
     int hard;
 };
 
-/* 1 -> TralaleroTralala
- * 2 -> ChimpanziniBananini
+/* 1 -> ChimpanziniBananini
+ * 2 -> TralaleroTralala
  * 3 -> UdinDinDinDun
  * 4 -> OscarTheCrackhead
  */
