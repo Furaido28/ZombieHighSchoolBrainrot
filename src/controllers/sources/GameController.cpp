@@ -549,18 +549,49 @@ bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
 
 void GameController::placePlayerAtFirstFreeTile() {
     float tileSizeF = (float)map.getTileSize();
+    bool spawnFound = false;
+
+    // 1. On cherche d'abord le symbole '$' (Spawn Point)
     for (unsigned y = 0; y < map.getHeight(); ++y) {
         for (unsigned x = 0; x < map.getWidth(); ++x) {
-            if (map.getTile((int)x, (int)y) == '.') {
+            char tile = map.getTile((int)x, (int)y);
+
+            if (tile == '$') {
+                // On a trouvé le point de spawn !
                 float cx = x * tileSizeF + tileSizeF / 2.f;
                 float cy = y * tileSizeF + tileSizeF / 2.f;
                 player.setPosition(cx, cy);
-                return;
+                spawnFound = true;
+
+                // Optionnel : On peut remplacer le '$' par un sol normal '.' une fois le spawn trouvé
+                // pour ne pas qu'il reste un symbole bizarre si on repasse dessus.
+                // map.setTile(x, y, '.');
+
+                std::cout << "[GAME] Player spawned at specific point ($): " << x << ", " << y << std::endl;
+                return; // On arrête de chercher, on a trouvé.
             }
         }
     }
+
+    // 2. Si aucun '$' n'est trouvé, on utilise l'ancienne méthode (premier sol libre '.')
+    if (!spawnFound) {
+        std::cout << "[GAME] No spawn point ($) found. Searching for first free tile..." << std::endl;
+        for (unsigned y = 0; y < map.getHeight(); ++y) {
+            for (unsigned x = 0; x < map.getWidth(); ++x) {
+                if (map.getTile((int)x, (int)y) == '.') {
+                    float cx = x * tileSizeF + tileSizeF / 2.f;
+                    float cy = y * tileSizeF + tileSizeF / 2.f;
+                    player.setPosition(cx, cy);
+                    return;
+                }
+            }
+        }
+    }
+
+    // 3. Sécurité ultime si la map est pleine de murs (ne devrait pas arriver)
     player.setPosition(tileSizeF + playerSize().x, tileSizeF + playerSize().y);
 }
+
 void GameController::onKeyFragmentPicked() {
     if (levelEnding) {
         return;
