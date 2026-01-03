@@ -23,9 +23,9 @@ Menu::Menu(float width, float height) {
     }
 
     std::vector<std::string> labels = {
-        "JOUER",
+        "PLAY",
         "OPTIONS",
-        "QUITTER"
+        "EXIT"
     };
 
     const float spacing = 75.f;
