@@ -6,10 +6,15 @@
 #include "../headers/MenuScene.h"
 #include "../../core/headers/SceneManager.h"
 #include "core/headers/AudioManager.h"
+#include "scenes/headers/OptionsScene.h"
+#include "views/headers/menu/OptionsMenu.h"
 
 GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
-    : Scene(manager, window), inventoryView(controller.getPlayer().getInventory()) {
-
+    : Scene(manager, window),
+      inventoryView(controller.getPlayer().getInventory()),
+      paused(false),
+      pauseMenu(window->getSize().x, window->getSize().y)
+{
     hudView.setSize(window->getSize().x, window->getSize().y);
     hudView.setCenter(
         window->getSize().x / 2.f,
@@ -32,6 +37,52 @@ GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
 }
 
 void GameScene::handleEvent(const sf::Event& event) {
+    if (event.type == sf::Event::KeyPressed &&
+    event.key.code == sf::Keyboard::Escape)
+        {
+        paused = !paused;
+
+        if (paused) {
+            pauseMenu.reset();
+        }
+
+        return;
+        }
+
+    // Si en pause → menu pause uniquement
+    if (paused) {
+        pauseMenu.handleEvent(event);
+
+        if (pauseMenu.handleMouse(event, *window)) {
+            int choice = pauseMenu.getSelectedIndex();
+
+            if (choice == 0) paused = false;
+            else if (choice == 1)
+                manager->pushScene<OptionsScene>(
+                    window,
+                    OptionsReturnTarget::Game
+                );
+            else if (choice == 2)
+                manager->resetToMenu(window);
+        }
+
+        if (event.type == sf::Event::KeyPressed &&
+            event.key.code == sf::Keyboard::Enter) {
+            int choice = pauseMenu.getSelectedIndex();
+
+            if (choice == 0) paused = false;
+            else if (choice == 1)
+                manager->pushScene<OptionsScene>(
+                    window,
+                    OptionsReturnTarget::Game
+                );
+            else if (choice == 2)
+                manager->resetToMenu(window);
+        }
+
+        return;
+    }
+
     controller.handleEvent(event);
 
     if (event.type == sf::Event::Resized) {
@@ -41,18 +92,14 @@ void GameScene::handleEvent(const sf::Event& event) {
             event.size.height / 2.f
         );
     }
-
-    if (event.type == sf::Event::KeyPressed &&
-        event.key.code == sf::Keyboard::Escape)
-    {
-        manager->changeScene<MenuScene>(window);
-    }
 }
 
 
 void GameScene::update(float dt) {
-    controller.update(dt);
-    inventoryView.update(controller.isInventoryExpanded());
+    if (!paused) {
+        controller.update(dt);
+        inventoryView.update(controller.isInventoryExpanded());
+    }
 }
 
 void GameScene::render() {
@@ -106,6 +153,21 @@ void GameScene::render() {
         );
         window->draw(text);
     }
+
+    // =====================
+    // PAUSE MENU
+    // =====================
+    if (paused) {
+        sf::RectangleShape overlay;
+        overlay.setSize({
+            static_cast<float>(window->getSize().x),
+            static_cast<float>(window->getSize().y)
+        });
+        overlay.setFillColor(sf::Color(0, 0, 0, 180));
+        window->draw(overlay);
+
+        pauseMenu.draw(*window);
+    }
+
     window->display();
 }
-
