@@ -58,6 +58,8 @@ public:
     void requestSkip();
     bool isFinished() const;
 
+    float getTimeBeforeFirstWave() const;
+
 private:
     // ---------- MAP ----------
     const TileMap& map;
@@ -72,8 +74,13 @@ private:
     float spawnDelay = 1.f;
     float maxWaveDuration = 150.f;
 
+    sf::Clock preWaveClock;
+    const float preWaveDelay = 10.f;
+    bool firstWaveStarted = false;
+
     sf::Clock spawnClock;
     sf::Clock waveClock;
+
 
     // ---------- INTERNAL ----------
     void spawnEnemy(Player& player,

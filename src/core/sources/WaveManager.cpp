@@ -34,6 +34,8 @@ WaveManager::WaveManager(const TileMap& mapRef, GameController& controller)
     waves.push_back({14, 8, 3, 0});
     waves.push_back({20, 8, 6, 1});
 
+    preWaveClock.restart();
+    firstWaveStarted = false;
 
     spawnClock.restart();
     waveClock.restart();
@@ -65,6 +67,14 @@ void WaveManager::update(float dt, Player& player,
 {
     if (!player.isAlive())
         return;
+
+    if (!firstWaveStarted) {
+        if (preWaveClock.getElapsedTime().asSeconds() < preWaveDelay) {
+            return; // on ne lance rien encore
+        }
+        firstWaveStarted = true;
+        waveClock.restart();
+    }
 
     if (currentWave >= static_cast<int>(waves.size()))
         return;
@@ -264,3 +274,10 @@ bool WaveManager::isFinished() const {
     return currentWave >= static_cast<int>(waves.size());
 }
 
+float WaveManager::getTimeBeforeFirstWave() const {
+    if (firstWaveStarted) return 0.f;
+    return std::max(
+        0.f,
+        preWaveDelay - preWaveClock.getElapsedTime().asSeconds()
+    );
+}
