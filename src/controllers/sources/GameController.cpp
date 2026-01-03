@@ -126,7 +126,8 @@ GameController::GameController() : player(), playerView(*this) {
     screamerTexture.loadFromFile("assets/luckybox_popup.png");
     screamerSprite.setTexture(screamerTexture);
     sf::Vector2u size = screamerTexture.getSize();
-    screamerSprite.setTextureRect(sf::IntRect(200,0,size.x-200,size.y));
+
+
     screamerSprite.setScale(0.3,0.3);
 
     // Son screamer
@@ -449,7 +450,7 @@ void GameController::update(float dt)
     // =========================
     // 8. WAVES
     // =========================
-    if (waveManager)
+    if (waveManager && !levelEnding)
         waveManager->update(dt, player, enemies);
 
     // =========================
@@ -495,19 +496,22 @@ void GameController::render(sf::RenderWindow& window) {
         window.setView(window.getDefaultView());
 
         sf::Vector2u winSize = window.getSize();
-        sf::Vector2u texSize = screamerTexture.getSize();
 
-        // Origine au centre de l’image
+        // CORRECTION ICI : On prend les limites réelles du sprite (après le découpage IntRect)
+        sf::FloatRect bounds = screamerSprite.getLocalBounds();
+
+        // Origine au centre de la zone visible
         screamerSprite.setOrigin(
-            texSize.x / 2.f,
-            texSize.y / 2.f
+            bounds.width / 2.f,
+            bounds.height / 2.f
         );
 
         // 🔽 FACTEUR DE TAILLE (ex: 80% de l’écran)
         float desiredCoverage = 0.8f;
 
-        float scaleX = static_cast<float>(winSize.x) / static_cast<float>(texSize.x);
-        float scaleY = static_cast<float>(winSize.y) / static_cast<float>(texSize.y);
+        // On calcule l'échelle par rapport à la taille visible (bounds) et non la texture totale
+        float scaleX = static_cast<float>(winSize.x) / bounds.width;
+        float scaleY = static_cast<float>(winSize.y) / bounds.height;
         float scale = std::min(scaleX, scaleY) * desiredCoverage;
 
         screamerSprite.setScale(scale, scale);
@@ -563,6 +567,9 @@ void GameController::onKeyFragmentPicked() {
     }
     levelEnding = true;
     levelEndClock.restart();
+
+    enemies.clear();      // Supprime tous les zombies instantanément
+    std::cout << "[GAME] Level Complete - Enemies cleared.\n";
 }
 bool GameController::isLevelEnding() const {
     return levelEnding;
@@ -597,7 +604,11 @@ void GameController::initLevel(int levelIndex) {
 
     //Reset Player position + inventory (except key)
     placePlayerAtFirstFreeTile();
-    clearInventorySlots(player.getInventory());
+
+    if (levelIndex == 0) {
+        clearInventorySlots(player.getInventory());
+    }
+
     player.setHealth(100);
 
     // --- 5) Respawn items ---
