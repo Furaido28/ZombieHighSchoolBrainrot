@@ -28,13 +28,12 @@ WaveManager::WaveManager(const TileMap& mapRef, GameController& controller)
         }
     }
 
-    // ---------- 3 cycles × 4 waves ----------
-    for (int cycle = 0; cycle < 3; ++cycle) {
-        waves.push_back({6, 0, 0, 0});
-        waves.push_back({10, 4, 0, 0});
-        waves.push_back({14, 8, 3, 0});
-        waves.push_back({20, 8, 6, 1});
-    }
+    // ---------- 4 waves ----------
+    waves.push_back({6, 0, 0, 0});
+    waves.push_back({10, 4, 0, 0});
+    waves.push_back({14, 8, 3, 0});
+    waves.push_back({20, 8, 6, 1});
+
 
     spawnClock.restart();
     waveClock.restart();
@@ -51,7 +50,8 @@ int WaveManager::getCurrentWave() const {
     return currentWave + 1;
 }
 
-float WaveManager::getTimeLeft() const {
+    float WaveManager::getTimeLeft() const {
+    if (isFinished())return 0.f;
     float remaining =
         maxWaveDuration - waveClock.getElapsedTime().asSeconds();
     return std::max(0.f, remaining);
@@ -158,7 +158,7 @@ void WaveManager::spawnEnemy(Player& player,
                     controller.spawnKeyFragmentAt(enemy.getPosition());
                 });
                 enemies.push_back(
-                    std::make_unique<TralaleroTralala>(pos)
+                    std::move(boss)
                 );
                 break;
             }
@@ -171,7 +171,7 @@ void WaveManager::spawnEnemy(Player& player,
                     controller.spawnKeyFragmentAt(enemy.getPosition());
                 });
                 enemies.push_back(
-                    std::make_unique<ChimpanziniBananini>(pos)
+                    std::move(boss)
                 );
                 break;
             }
@@ -184,7 +184,7 @@ void WaveManager::spawnEnemy(Player& player,
                     controller.spawnKeyFragmentAt(enemy.getPosition());
                 });
                 enemies.push_back(
-                    std::make_unique<UdinDinDinDun>(pos)
+                    std::move(boss)
                 );
                 break;
             }
@@ -197,7 +197,7 @@ void WaveManager::spawnEnemy(Player& player,
                     controller.spawnKeyFragmentAt(enemy.getPosition());
                 });
                 enemies.push_back(
-                    std::make_unique<OscarTheCrackhead>(pos)
+                    std::move(boss)
                 );
                 break;
             }
@@ -260,3 +260,7 @@ sf::Vector2f WaveManager::getBossSpawnPosition(int& outBossType) const
 void WaveManager::requestSkip() {
     debugSkipRequested = true;
 }
+bool WaveManager::isFinished() const {
+    return currentWave >= static_cast<int>(waves.size());
+}
+

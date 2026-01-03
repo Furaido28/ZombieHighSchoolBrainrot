@@ -9,7 +9,7 @@ Player::Player()
       moving(false),
       attackCooldownTimer(0.f) // Init du cooldown à 0
 {
-    maxHealth = 5000000;
+    maxHealth = 100;
     health = maxHealth;
 }
 
@@ -33,7 +33,7 @@ int Player::getMaxHealth() const {
 }
 
 void Player::setHealth(int value) {
-    health = value;
+    health = 5000000;
 }
 
 bool Player::isInvincible() const{

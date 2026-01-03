@@ -69,7 +69,7 @@ static void spawnWorldItem(
 // =========================
 // CONSTRUCTOR
 // =========================
-GameController::GameController() : player(), playerView() {
+GameController::GameController() : player(), playerView(*this) {
     Inventory& inv = player.getInventory();
 
     // =========================
@@ -172,12 +172,6 @@ void GameController::handleEvent(const sf::Event& event) {
 // =========================
 void GameController::update(float dt)
 {
-    if (levelEnding) {
-        if (levelEndClock.getElapsedTime().asSeconds() >= levelEndDuration) {
-            goToNextLevel();
-        }
-        return;
-    }
     // --- NOUVEAU : Gestion du timer de debug ---
     if (debugMeleeTimer > 0.f)
         debugMeleeTimer -= dt;
@@ -433,6 +427,11 @@ void GameController::update(float dt)
     // 9. CAMERA
     // =========================
     gameView.setCenter(player.getPosition());
+    if (levelEnding) {
+        if (levelEndClock.getElapsedTime().asSeconds() >= levelEndDuration) {
+            goToNextLevel();
+        }
+    }
 }
 
 // =========================
@@ -610,12 +609,13 @@ void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
     fragment.value = 1;
 
     //sprite & position
-    fragment.sprite.setTexture(itemTextures["key_fragment"]);
+    fragment.sprite.setTexture(itemTextures["key-fragment"]);
     fragment.sprite.setPosition(pos);
 
     WorldItem wi;
     wi.item = fragment;
     wi.position = pos;
+    wi.radius = 24.f;
 
     worldItems.push_back(wi);
 

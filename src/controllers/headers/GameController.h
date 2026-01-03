@@ -11,10 +11,10 @@
 #include "../../models/headers/Boss/Boss.h"
 #include "core/headers/InputHandler.h"
 #include "models/headers/Item.h"
-#include "views/headers/game/PlayerView.h"
 #include "views/headers/game/EnemyView.h"
 #include "views/headers/game/MapView.h"
 #include "core/headers/WaveManager.h"
+#include "views/headers/game/PlayerView.h"
 
 // Structure simple pour gérer un projectile en vol
 struct Projectile {
@@ -54,7 +54,7 @@ public:
     bool isInventoryExpanded() const { return tabPressed; };
 
     Player& getPlayer() { return player; };
-    PlayerView& getPlayerView() { return playerView; };
+    PlayerView& getPlayerView() { return playerView; }
 
     int getWaveNumber() const { return waveManager->getCurrentWave(); };
     float getWaveTimeLeft() const { return waveManager->getTimeLeft(); };
@@ -64,6 +64,8 @@ public:
     bool isLevelEnding() const;
     float getLevelEndRemainingTime() const;
     void spawnKeyFragmentAt(const sf::Vector2f& pos);
+    WaveManager* getWaveManager(){return waveManager.get();}
+    const WaveManager* getWaveManager()const {return waveManager.get();}
 
 private:
     int currentLevel = 0;

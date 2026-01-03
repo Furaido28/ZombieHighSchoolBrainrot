@@ -74,6 +74,7 @@ void Enemy::takeDamage(int amount) {
         health = 0;
         onDeath();
         if (deathCallback) {
+            std::cout << "[DEBUG] Enemy deathCallback triggered\n";
             deathCallback(*this);
         }
     }

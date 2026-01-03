@@ -56,6 +56,7 @@ public:
     // TODO retirer plus tard
     bool debugSkipRequested = false;
     void requestSkip();
+    bool isFinished() const;
 
 private:
     // ---------- MAP ----------
