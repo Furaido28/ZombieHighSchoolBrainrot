@@ -1,18 +1,18 @@
-#include "scenes/headers/DefeatScene.h"
+#include "scenes/headers/VictoryScene.h"
 #include "scenes/headers/MenuScene.h"
 #include "core/headers/SceneManager.h"
 
-DefeatScene::DefeatScene(SceneManager* manager, sf::RenderWindow* window)
+VictoryScene::VictoryScene(SceneManager* manager, sf::RenderWindow* window)
     : Scene(manager, window),
       menu(window->getSize().x, window->getSize().y) {}
 
-void DefeatScene::handleEvent(const sf::Event& event) {
+void VictoryScene::handleEvent(const sf::Event& event) {
     if (menu.handleEvent(event, *window)) {
         manager->resetToMenu(window);
     }
 }
 
-void DefeatScene::render() {
+void VictoryScene::render() {
     sf::RectangleShape overlay;
     overlay.setSize({
         static_cast<float>(window->getSize().x),
@@ -22,9 +22,7 @@ void DefeatScene::render() {
 
     window->draw(overlay);
 
-    // 🎉 Menu victoire
     menu.draw(*window);
 
     window->display();
 }
-

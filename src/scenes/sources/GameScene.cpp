@@ -8,6 +8,7 @@
 #include "core/headers/AudioManager.h"
 #include "scenes/headers/DefeatScene.h"
 #include "scenes/headers/OptionsScene.h"
+#include "scenes/headers/VictoryScene.h"
 #include "views/headers/menu/OptionsMenu.h"
 
 GameScene::GameScene(SceneManager* manager, sf::RenderWindow* window)
