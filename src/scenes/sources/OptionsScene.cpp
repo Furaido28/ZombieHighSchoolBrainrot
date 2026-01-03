@@ -19,6 +19,10 @@ void OptionsScene::handleEvent(const sf::Event& event) {
     }
 
     menu.handleMouse(event, *window);
+
+    if (menu.buttonBackClicked(event, *window)) {
+        manager->changeScene<MenuScene>(window);
+    }
 }
 
 void OptionsScene::update(float) {}

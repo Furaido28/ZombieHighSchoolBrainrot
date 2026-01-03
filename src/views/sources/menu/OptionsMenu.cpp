@@ -7,6 +7,7 @@ OptionsMenu::OptionsMenu(float width, float height)
       selectedIndex(0) {
 
     activeSlider = -1;
+    hoveredSlider = -1;
 
     font.loadFromFile("assets/fonts/font.ttf");
 
@@ -102,34 +103,88 @@ void OptionsMenu::draw(sf::RenderWindow& window) {
 
 void OptionsMenu::handleMouse(const sf::Event& event, sf::RenderWindow& window) {
     auto& audio = AudioManager::getInstance();
-    sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+    sf::Vector2f mousePos = window.mapPixelToCoords(
+        sf::Mouse::getPosition(window)
+    );
 
+    hoveredSlider = -1;
+
+    // Détection hover
+    for (int i = 0; i < sliders.size(); ++i) {
+        if (sliders[i].contains(mousePos)) {
+            hoveredSlider = i;
+        }
+    }
+
+    // Click slider
     if (event.type == sf::Event::MouseButtonPressed &&
-        event.mouseButton.button == sf::Mouse::Left) {
+        event.mouseButton.button == sf::Mouse::Left &&
+        hoveredSlider != -1) {
 
-        for (int i = 0; i < sliders.size(); ++i) {
-            if (sliders[i].contains(mousePos)) {
-                activeSlider = i;
-                sliders[i].updateFromMouse(mousePos);
-                selectedIndex = i;
-            }
-        }
+        activeSlider = hoveredSlider;
+        selectedIndex = hoveredSlider;
+        sliders[activeSlider].updateFromMouse(mousePos);
         }
 
+    // Drag
+    if (event.type == sf::Event::MouseMoved && activeSlider != -1) {
+        sliders[activeSlider].updateFromMouse(mousePos);
+    }
+
+    // Release
     if (event.type == sf::Event::MouseButtonReleased &&
         event.mouseButton.button == sf::Mouse::Left) {
         activeSlider = -1;
         }
 
-    if (event.type == sf::Event::MouseMoved && activeSlider != -1) {
-        sliders[activeSlider].updateFromMouse(mousePos);
-    }
-
+    // Appliquer volumes
     audio.setGeneralVolume(sliders[0].getValue());
     audio.setMusicVolume(sliders[1].getValue());
     audio.setSoundEffectVolume(sliders[2].getValue());
+
+    // 🎨 Couleur labels
+    for (int i = 0; i < labels.size(); ++i) {
+        if (i == activeSlider || i == hoveredSlider || i == selectedIndex)
+            labels[i].setFillColor(sf::Color(255,230,120));
+        else
+            labels[i].setFillColor(sf::Color::White);
+    }
+
+    // Hover BACK
+    if (isMouseOnBack(mousePos)) {
+        backText.setFillColor(sf::Color(255,230,120));
+        selectedIndex = 3;
+    } else if (selectedIndex != 3) {
+        backText.setFillColor(sf::Color::White);
+    }
+
+    // Click BACK
+    if (event.type == sf::Event::MouseButtonPressed &&
+        event.mouseButton.button == sf::Mouse::Left &&
+        isMouseOnBack(mousePos)) {
+
+        // Signal retour (géré par OptionsScene)
+        selectedIndex = 3;
+    }
 }
 
 int OptionsMenu::getSelectedIndex() const {
     return selectedIndex;
+}
+
+bool OptionsMenu::isMouseOnBack(sf::Vector2f mousePos) const {
+    return backText.getGlobalBounds().contains(mousePos);
+}
+
+bool OptionsMenu::buttonBackClicked(const sf::Event& event, sf::RenderWindow& window) const {
+    if (event.type == sf::Event::MouseButtonReleased &&
+        event.mouseButton.button == sf::Mouse::Left) {
+
+        sf::Vector2f mousePos = window.mapPixelToCoords(
+            sf::Mouse::getPosition(window)
+        );
+
+        return backText.getGlobalBounds().contains(mousePos);
+        }
+    return false;
 }

@@ -13,6 +13,7 @@ public:
     void draw(sf::RenderWindow& window);
     int getSelectedIndex() const;
 
+    bool buttonBackClicked(const sf::Event& event, sf::RenderWindow& window) const;
 private:
     void updateLayout();
 
@@ -26,5 +27,10 @@ private:
     sf::Text backText;
     int selectedIndex;
     int activeSlider;
+
+    int hoveredSlider;
+
+    bool isMouseOnBack(sf::Vector2f mousePos) const;
+
 };
 
