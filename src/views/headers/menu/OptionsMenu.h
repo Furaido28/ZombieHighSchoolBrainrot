@@ -32,7 +32,9 @@ private:
 
     sf::RectangleShape backRect;
 
-    bool isMouseOnBack(sf::Vector2f mousePos) const;
+    sf::Texture backgroundTexture;
+    sf::Sprite backgroundSprite;
 
+    bool isMouseOnBack(sf::Vector2f mousePos) const;
 };
 

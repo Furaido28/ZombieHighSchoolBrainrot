@@ -1,4 +1,7 @@
 #include "views/headers/menu/OptionsMenu.h"
+
+#include <iostream>
+
 #include "core/headers/AudioManager.h"
 
 OptionsMenu::OptionsMenu(float width, float height)
@@ -8,6 +11,11 @@ OptionsMenu::OptionsMenu(float width, float height)
 
     activeSlider = -1;
     hoveredSlider = -1;
+
+    if (!backgroundTexture.loadFromFile("assets/menus/options_screen.jpg")) {
+        std::cerr << "Erreur chargement options_screen.jpg\n";
+    }
+    backgroundSprite.setTexture(backgroundTexture);
 
     font.loadFromFile("assets/fonts/font.ttf");
 
@@ -88,6 +96,15 @@ void OptionsMenu::updateLayout() {
     );
 
     backRect.setPosition(backText.getPosition());
+
+    sf::Vector2u texSize = backgroundTexture.getSize();
+    if (texSize.x > 0 && texSize.y > 0) {
+        backgroundSprite.setScale(
+            windowWidth / texSize.x,
+            windowHeight / texSize.y
+        );
+    }
+    backgroundSprite.setPosition(0.f, 0.f);
 }
 
 void OptionsMenu::handleInput(sf::Keyboard::Key key) {
@@ -123,6 +140,8 @@ void OptionsMenu::handleInput(sf::Keyboard::Key key) {
 }
 
 void OptionsMenu::draw(sf::RenderWindow& window) {
+    window.draw(backgroundSprite);
+
     for (int i = 0; i < 3; ++i) {
         window.draw(labels[i]);
         sliders[i].draw(window);
