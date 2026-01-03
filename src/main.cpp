@@ -10,7 +10,8 @@ int main() {
     window.setFramerateLimit(60);
 
     SceneManager manager;
-    manager.changeScene<MenuScene>(&window);
+
+    manager.pushScene<MenuScene>(&window);
 
     sf::Image icon;
     if (icon.loadFromFile("assets/icon.png")) {

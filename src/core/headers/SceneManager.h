@@ -1,21 +1,24 @@
-#pragma once
-
 #include <memory>
+#include <stack>
+
 #include "Scene.h"
 
 class SceneManager {
 public:
-    SceneManager() = default;
-
     template<typename T, typename... Args>
-    void changeScene(sf::RenderWindow* window, Args&&... args) {
-        currentScene = std::make_unique<T>(this, window, std::forward<Args>(args)...);
+    void pushScene(sf::RenderWindow* window, Args&&... args) {
+        sceneStack.push(std::make_unique<T>(this, window, std::forward<Args>(args)...));
+    }
+
+    void popScene() {
+        if (!sceneStack.empty())
+            sceneStack.pop();
     }
 
     Scene* getCurrentScene() {
-        return currentScene.get();
+        return sceneStack.empty() ? nullptr : sceneStack.top().get();
     }
 
 private:
-    std::unique_ptr<Scene> currentScene;
+    std::stack<std::unique_ptr<Scene>> sceneStack;
 };

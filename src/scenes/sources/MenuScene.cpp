@@ -29,11 +29,14 @@ void MenuScene::handleEvent(const sf::Event& event) {
 
     if (c == 0) {
         backgroundMusic.stop();
-        manager->changeScene<GameScene>(window);
+        manager->pushScene<GameScene>(window);
     }
 
-    if (c == 1)
-        manager->changeScene<OptionsScene>(window);
+    if (c == 1) manager->pushScene<OptionsScene>(
+        window,
+        OptionsReturnTarget::Menu
+    );
+
 
     if (c == 2) {
         backgroundMusic.stop();

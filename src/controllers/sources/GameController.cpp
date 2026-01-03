@@ -76,8 +76,8 @@ GameController::GameController() : player(), playerView(*this) {
     // COMMANDES (UNE FOIS)
     // =========================
     inputHandler.bind(sf::Keyboard::Z, std::make_unique<MoveUpCommand>(player));
-    inputHandler.bind(sf::Keyboard::S, std::make_unique<MoveDownCommand>(player));
     inputHandler.bind(sf::Keyboard::Q, std::make_unique<MoveLeftCommand>(player));
+    inputHandler.bind(sf::Keyboard::S, std::make_unique<MoveDownCommand>(player));
     inputHandler.bind(sf::Keyboard::D, std::make_unique<MoveRightCommand>(player));
 
     inputHandler.bind(sf::Mouse::Right, std::make_unique<UseItemCommand>(player));
