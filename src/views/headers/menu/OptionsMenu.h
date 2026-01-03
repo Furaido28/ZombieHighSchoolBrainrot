@@ -30,6 +30,8 @@ private:
 
     int hoveredSlider;
 
+    sf::RectangleShape backRect;
+
     bool isMouseOnBack(sf::Vector2f mousePos) const;
 
 };
