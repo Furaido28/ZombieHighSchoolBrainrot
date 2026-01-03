@@ -37,7 +37,7 @@ static sf::Vector2f getRandomFreeTileCenter(const TileMap& map) {
 
     for (unsigned y = 0; y < map.getHeight(); ++y) {
         for (unsigned x = 0; x < map.getWidth(); ++x) {
-            if (map.getTile(x, y) == '.') {
+            if (map.getTile(x, y) == '.' || map.getTile(x, y) == '*') {
                 freeTiles.emplace_back(x, y);
             }
         }

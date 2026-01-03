@@ -16,7 +16,7 @@ WaveManager::WaveManager(const TileMap& mapRef, GameController& controller)
         for (unsigned x = 0; x < map.getWidth(); ++x) {
             char tile = map.getTile(x, y);
 
-            if (tile == '.') {
+            if (tile == '.' || tile == '*'){
                 freeTiles.emplace_back(x, y);
             }
             else if (tile >= '1' && tile <= '4') {
@@ -29,10 +29,11 @@ WaveManager::WaveManager(const TileMap& mapRef, GameController& controller)
     }
 
     // ---------- 4 waves ----------
-    waves.push_back({6, 0, 0, 0});
-    waves.push_back({10, 4, 0, 0});
-    waves.push_back({14, 8, 3, 0});
-    waves.push_back({20, 8, 6, 1});
+    waves.push_back({6, 0, 0, 1});
+    // waves.push_back({6, 0, 0, 0});
+    // waves.push_back({10, 4, 0, 0});
+    // waves.push_back({14, 8, 3, 0});
+    // waves.push_back({20, 8, 6, 1});
 
     preWaveClock.restart();
     firstWaveStarted = false;
