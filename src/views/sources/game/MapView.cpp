@@ -37,7 +37,8 @@ bool MapView::load(const TileMap& map) {
             else if (tileType == 'A') tileIndex = 5; // BANC ensanglanté
             else if (tileType == '*') tileIndex = 10; // Grass
             else if (tileType == 'T') tileIndex = 11; // Arbre
-            else if (tileType == 'r') tileIndex = 11; // Roche
+            else if (tileType == 'r') tileIndex = 12; // Roche
+            else if (tileType == '~') tileIndex = 13; // Eau
 
             // --- GESTION DU SANG ALEATOIRE ---
             else if (tileType == ',') {
