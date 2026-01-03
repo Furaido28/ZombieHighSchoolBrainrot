@@ -22,7 +22,9 @@ add_executable(ZombieHighSchoolBrainrot ${SOURCES}
         src/models/sources/Boss/phases/BossPhaseNormal.cpp
         src/models/sources/Boss/phases/BossPhaseEnraged.cpp
         src/models/sources/Boss/phases/BossPhaseFrenzy.cpp
-        src/models/headers/Enemy/EnemyType.h)
+        src/models/headers/Enemy/EnemyType.h
+        src/core/headers/LuckyBoxSystem.h
+        src/core/sources/LuckyBoxSystem.cpp)
 
 target_include_directories(ZombieHighSchoolBrainrot PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src

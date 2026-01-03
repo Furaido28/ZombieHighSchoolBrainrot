@@ -16,6 +16,7 @@ public:
     const std::vector<Item>& getKeyFragments() const;
     void selectSlot(int index);
     int getSelectedSlot() const;
+    void removeRandomItem();
 
 
 private:

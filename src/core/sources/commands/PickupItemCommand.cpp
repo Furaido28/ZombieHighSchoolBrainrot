@@ -27,6 +27,15 @@ void PickupItemCommand::execute(float)
             player.getPosition(), player.getRadius(),
             itemCenter, it->radius))
         {
+            //===================
+            // --- LUCKY BOX ---
+            //===================
+            if (it->item.type == ItemType::LuckyBox) {
+                int index = std::distance(worldItems.begin(), it);
+                controller.openLuckyBox(index);
+                return;
+            }
+
             bool picked = false;
 
             if (it->item.type == ItemType::KeyFragment)
@@ -37,7 +46,8 @@ void PickupItemCommand::execute(float)
                 }
                 it = worldItems.erase(it);
                 continue;
-            } else
+            }
+            else
                 picked = player.getInventory().addItem(it->item);
 
             if (picked) {

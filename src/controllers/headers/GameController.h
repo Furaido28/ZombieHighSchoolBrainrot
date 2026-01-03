@@ -66,6 +66,7 @@ public:
     void spawnKeyFragmentAt(const sf::Vector2f& pos);
     WaveManager* getWaveManager(){return waveManager.get();}
     const WaveManager* getWaveManager()const {return waveManager.get();}
+    void openLuckyBox(int itemIndex);
 
 private:
     int currentLevel = 0;
@@ -119,4 +120,17 @@ private:
     bool levelEnding = false;
     sf::Clock levelEndClock;
     float levelEndDuration = 10.f;
+
+    // =========================
+    // LUCKYBOX SCREAMER EFFECT
+    // =========================
+    bool screamerActive = false;
+    float screamerTimer = 0.f;
+    float screamerDuration = 0.6f; // durée du jumpscare
+
+    sf::Texture screamerTexture;
+    sf::Sprite screamerSprite;
+
+    sf::SoundBuffer screamerSoundBuffer;
+    sf::Sound screamerSound;
 };

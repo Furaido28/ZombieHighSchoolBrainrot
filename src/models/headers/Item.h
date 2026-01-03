@@ -6,8 +6,8 @@
 enum class ItemType {
     Consumable,
     Weapon,
-    Quest,
-    KeyFragment
+    KeyFragment,
+    LuckyBox
 };
 
 struct Item {
@@ -15,6 +15,7 @@ struct Item {
     ItemType type;
     sf::Sprite sprite;
     int value;
+    bool isPickable = true;
 
     // --- NOUVELLES STATS DE COMBAT ---
     int damage = 0;             // Dégâts infligés

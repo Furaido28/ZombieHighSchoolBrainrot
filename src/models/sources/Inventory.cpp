@@ -44,4 +44,29 @@ int Inventory::getSelectedSlot() const {
     return selectedSlot;
 }
 
+void Inventory::removeRandomItem() {
+    // Get the index of not empty slots
+    std::vector<int> filledSlots;
+    for (int i =0; i< (int)slots.size(); i++) {
+        if (slots[i].has_value()) {
+            filledSlots.push_back(i);
+        }
+    }
+
+    //if there is no items in player's inventory
+    if (filledSlots.empty())
+        return;
+
+    //random pick
+    int randomIndex = std::rand()%filledSlots.size();
+    int slotToRemove = filledSlots[randomIndex];
+
+    //remove the item
+    slots[slotToRemove].reset();
+
+    //ajust the selectef slot if it was the one who has benn removed
+    if (selectedSlot == slotToRemove) {
+        selectedSlot = 0;
+    }
+}
 
