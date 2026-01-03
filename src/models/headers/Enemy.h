@@ -62,5 +62,6 @@ protected:
     sf::Vector2f normalize(const sf::Vector2f& v) const;
     virtual void onDeath(){}
     std::function<void(const Enemy&)> deathCallback;
+    bool deadHandled = false;
 
 };

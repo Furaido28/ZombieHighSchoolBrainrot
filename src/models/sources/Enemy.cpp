@@ -70,8 +70,9 @@ void Enemy::takeDamage(int amount) {
         return;
     }
     health -= amount;
-    if (health <0) {
-        health = 0;
+    if (health <=0 && !deadHandled) {
+        deadHandled = true;
+        health == 0;
         onDeath();
         if (deathCallback) {
             std::cout << "[DEBUG] Enemy deathCallback triggered\n";

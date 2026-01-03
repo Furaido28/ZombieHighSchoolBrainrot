@@ -6,6 +6,7 @@
 #include <ctime>
 #include <algorithm> // Pour std::remove_if
 
+#include "core/headers/LuckyBoxSystem.h"
 #include "core/headers/commands/AttackCommand.h"
 #include "core/headers/commands/MoveDownCommand.h"
 #include "core/headers/commands/MoveLeftCommand.h"
@@ -115,6 +116,25 @@ GameController::GameController() : player(), playerView(*this) {
     itemTextures["book"].loadFromFile("assets/inventory_items/book.png");
     itemTextures["chalk"].loadFromFile("assets/inventory_items/chalk.png");
     itemTextures["key-fragment"].loadFromFile("assets/inventory_items/key.png");
+    itemTextures["laptop"].loadFromFile("assets/inventory_items/laptop.png");
+    itemTextures["deo"].loadFromFile("assets/inventory_items/deo.png");
+    itemTextures["luckybox"].loadFromFile("assets/inventory_items/luckybox.png");
+
+    // =========================
+    // SCREAMER ASSETS
+    // =========================
+    screamerTexture.loadFromFile("assets/luckybox_popup.png");
+    screamerSprite.setTexture(screamerTexture);
+    sf::Vector2u size = screamerTexture.getSize();
+    screamerSprite.setTextureRect(sf::IntRect(200,0,size.x-200,size.y));
+    screamerSprite.setScale(0.3,0.3);
+
+    // Son screamer
+    screamerSoundBuffer.loadFromFile(
+        "assets/sound/sound_effect/luckybox_scream.ogg"
+    );
+    screamerSound.setBuffer(screamerSoundBuffer);
+    screamerSound.setVolume(100.f); // MAX SFML (très fort)
 
     // =========================
     // DEBUG SHAPES
@@ -172,6 +192,12 @@ void GameController::handleEvent(const sf::Event& event) {
 // =========================
 void GameController::update(float dt)
 {
+    if(screamerActive){
+        screamerTimer -= dt;
+        if (screamerTimer <= 0.f) {
+            screamerActive = false;
+        }
+    }
     // --- NOUVEAU : Gestion du timer de debug ---
     if (debugMeleeTimer > 0.f)
         debugMeleeTimer -= dt;
@@ -354,7 +380,10 @@ void GameController::update(float dt)
                 if (!enemy->isAlive()) continue;
 
                 if (attack.meleeHitbox.intersects(enemy->getGlobalBounds())) {
-                    enemy->takeDamage(attack.damage);
+                    if (attack.damage == 0)
+                        enemy->takeDamage(static_cast<int>(enemy->getHealth()*0.75));
+                    else
+                        enemy->takeDamage(attack.damage);
                 }
             }
         }
@@ -458,6 +487,40 @@ void GameController::render(sf::RenderWindow& window) {
         window.draw(debugMeleeBox);
 
     playerView.renderWorld(window, player);
+
+    // =========================
+    // SCREAMER RENDER (CENTERED)
+    // =========================
+    if (screamerActive) {
+        window.setView(window.getDefaultView());
+
+        sf::Vector2u winSize = window.getSize();
+        sf::Vector2u texSize = screamerTexture.getSize();
+
+        // Origine au centre de l’image
+        screamerSprite.setOrigin(
+            texSize.x / 2.f,
+            texSize.y / 2.f
+        );
+
+        // 🔽 FACTEUR DE TAILLE (ex: 80% de l’écran)
+        float desiredCoverage = 0.8f;
+
+        float scaleX = static_cast<float>(winSize.x) / static_cast<float>(texSize.x);
+        float scaleY = static_cast<float>(winSize.y) / static_cast<float>(texSize.y);
+        float scale = std::min(scaleX, scaleY) * desiredCoverage;
+
+        screamerSprite.setScale(scale, scale);
+
+        // Centrage écran
+        screamerSprite.setPosition(
+            winSize.x / 2.f,
+            winSize.y / 2.f
+        );
+
+        window.draw(screamerSprite);
+    }
+
 }
 
 // =========================
@@ -556,6 +619,7 @@ void GameController::initLevel(int levelIndex) {
     pen.sprite.setTexture(itemTextures["pen"]);
     spawnWorldItem(worldItems, map, pen);
 
+
     if (std::rand() % 100 < 70) {
         int extraItems = 3 + std::rand() % 5;
         for (int i = 0; i < extraItems; ++i) {
@@ -568,13 +632,24 @@ void GameController::initLevel(int levelIndex) {
                 item.value = 60;
                 item.sprite.setTexture(itemTextures["medkit"]);
             } else if (r == 1) {
-                item.name = "Book";
-                item.type = ItemType::Weapon;
-                item.damage = 35;
-                item.range = 90.f;
-                item.cooldown = 0.8f;
-                item.isProjectile = false;
-                item.sprite.setTexture(itemTextures["book"]);
+                if (currentLevel == 0) {
+                    item.name = "pen";
+                    item.type = ItemType::Weapon;
+                    item.damage = 15;
+                    item.range = 60.f;
+                    item.cooldown = 0.3f;
+                    item.isProjectile = false;
+                    item.sprite.setTexture(itemTextures["pen"]);
+                }
+                else {
+                    item.name = "book";
+                    item.type = ItemType::Weapon;
+                    item.damage = 35;
+                    item.range = 80.f;
+                    item.cooldown = 0.8f;
+                    item.isProjectile = false;
+                    item.sprite.setTexture(itemTextures["book"]);
+                }
             } else {
                 item.name = "Chalk";
                 item.type = ItemType::Weapon;
@@ -590,6 +665,24 @@ void GameController::initLevel(int levelIndex) {
         }
     }
 
+    //================
+    //LUCKY BOX SPAWN
+    //================
+
+    // 1. ONE LUCKY BOX PER LEVEL
+    Item luckyBox;
+    luckyBox.name = "Lucky Box";
+    luckyBox.type = ItemType::LuckyBox;
+    luckyBox.isPickable = false;
+
+    // 2. SPRITE
+    luckyBox.sprite.setTexture(itemTextures["luckybox"]);
+
+    // SPAWN THE BOX
+    spawnWorldItem(worldItems, map, luckyBox);
+
+    std::cout << "[GAME] LuckyBox spawned in level " << currentLevel << std::endl;
+
     // --- 6) Reset camera ---
     gameView.setCenter(player.getPosition());
 }
@@ -603,6 +696,7 @@ void GameController::goToNextLevel() {
 }
 
 void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
+    if (levelEnding)return;
     Item fragment;
     fragment.name = "Key Fragment";
     fragment.type = ItemType::KeyFragment;
@@ -620,6 +714,167 @@ void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
     worldItems.push_back(wi);
 
     std::cout << "[GAME] Key Fragment spawned at boss position\n";
+}
+
+void GameController::openLuckyBox(int itemIndex) {
+    if (itemIndex < 0 || itemIndex >= (int)worldItems.size()) return;
+
+    //check if the item is a luckybox
+    if (worldItems[itemIndex].item.type != ItemType::LuckyBox) return;
+
+    //Roll
+    LuckyOutcome outcome = LuckyBoxSystem::roll();
+    //erase the box
+    worldItems.erase(worldItems.begin() + itemIndex);
+
+    // =========================
+    // TRIGGER SCREAMER
+    // =========================
+    screamerActive = true;
+    screamerTimer = screamerDuration;
+
+    screamerSound.stop(); // sécurité
+    screamerSound.play();
+
+    // Helper to create any items
+    auto makeMedkit = [&]() {
+        Item medkit;
+        medkit.name = "Medkit";
+        medkit.type = ItemType::Consumable;
+        medkit.value = 60;
+        medkit.sprite.setTexture(itemTextures["medkit"]);
+        return medkit;
+    };
+
+    auto makePen = [&]() {
+        Item pen;
+        pen.name = "Pen";
+        pen.type = ItemType::Weapon;
+        pen.value = 0;
+        pen.damage = 15;
+        pen.range = 60.f;
+        pen.cooldown = 0.3f;
+        pen.isProjectile = false;
+        pen.sprite.setTexture(itemTextures["pen"]);
+        return pen;
+    };
+
+    auto makeBook = [&]() {
+        Item book;
+        book.name = "Book";
+        book.type = ItemType::Weapon;
+        book.damage = 35;
+        book.range = 90.f;
+        book.cooldown = 0.8f;
+        book.isProjectile = false;
+        book.sprite.setTexture(itemTextures["book"]);
+        return book;
+    };
+
+    auto makeChalk = [&]() {
+        Item chalk;
+        chalk.name = "Chalk";
+        chalk.type = ItemType::Weapon;
+        chalk.damage = 10;
+        chalk.range = 600.f;
+        chalk.cooldown = 0.5f;
+        chalk.isProjectile = true;
+        chalk.projectileSpeed = 500.f;
+        chalk.sprite.setTexture(itemTextures["chalk"]);
+        return chalk;
+    };
+
+    auto makeLaptop = [&]() {
+        Item laptop;
+        laptop.name = "Laptop";
+        laptop.type = ItemType::Weapon;
+
+
+        laptop.damage = 80;
+        laptop.range = 100.f;
+        laptop.cooldown = 1.2f;
+        laptop.isProjectile = false;
+
+        laptop.sprite.setTexture(itemTextures["laptop"]);
+        return laptop;
+    };
+    auto makeDeo = [&]() {
+        Item deo;
+        deo.name = "Deo";
+        deo.type = ItemType::Weapon;
+
+        deo.damage = 0;
+        deo.range = 150.f;
+        deo.cooldown = 10000000.f;
+        deo.isProjectile = false;
+        deo.sprite.setTexture(itemTextures["deo"]);
+        return deo;
+    };
+
+    //apply the result of the roll
+    Inventory& inv = player.getInventory();
+
+    switch (outcome) {
+        case LuckyOutcome::Heal :{
+            int currentHp = player.getHealth();
+            int maxHp = 100;
+
+            if(currentHp < maxHp) {
+                if (rand()%100 < 50) {
+                    player.setHealth(100);
+                }
+                else {
+                    if (currentHp +50 > 100) {
+                        player.setHealth(100);
+                    }
+                    else {
+                        player.setHealth(currentHp+50);
+                    }
+                }
+            }
+            else {
+                inv.addItem(makeMedkit());
+            }
+            std::cout << "[LUCKYBOX] Outcome : Heal\n";
+            break;
+        }
+        case LuckyOutcome::Medkit:
+            inv.addItem(makeMedkit());
+            std::cout << "[LUCKYBOX] Outcome : Medkit\n";
+            break;
+
+        case LuckyOutcome::Pen:
+            inv.addItem(makePen());
+            std::cout << "[LuckyBox] Outcome: Pen\n";
+            break;
+
+        case LuckyOutcome::Book:
+            inv.addItem(makeBook());
+            std::cout << "[LuckyBox] Outcome: Book\n";
+            break;
+
+        case LuckyOutcome::Chalk:
+            inv.addItem(makeChalk());
+            std::cout << "[LuckyBox] Outcome: Chalk\n";
+            break;
+
+        case LuckyOutcome::Computer:
+            inv.addItem(makeLaptop());
+            std::cout << "[LuckyBox] Outcome: Laptop\n";
+            break;
+        case LuckyOutcome::Deo:
+            inv.addItem(makeDeo());
+            std::cout << "[LuckyBox] Outcome: Deo\n";
+            break;
+        case LuckyOutcome::LoseHealth:
+            player.takeDamage(static_cast<int>(player.getHealth()/2));
+            std::cout << "[LuckyBox] Outcome: LoseHealth\n";
+            break;
+        case LuckyOutcome::LoseRandomItem:
+            inv.removeRandomItem();
+            std::cout << "[LuckyBox] Outcome: LoseRandomItem\n";
+            break;
+    }
 }
 
 bool GameController::isPlayerDead() const {
