@@ -77,8 +77,8 @@ GameController::GameController() : player(), playerView(*this) {
     // COMMANDES (UNE FOIS)
     // =========================
     inputHandler.bind(sf::Keyboard::Z, std::make_unique<MoveUpCommand>(player));
-    inputHandler.bind(sf::Keyboard::S, std::make_unique<MoveDownCommand>(player));
     inputHandler.bind(sf::Keyboard::Q, std::make_unique<MoveLeftCommand>(player));
+    inputHandler.bind(sf::Keyboard::S, std::make_unique<MoveDownCommand>(player));
     inputHandler.bind(sf::Keyboard::D, std::make_unique<MoveRightCommand>(player));
 
     inputHandler.bind(sf::Mouse::Right, std::make_unique<UseItemCommand>(player));
@@ -537,7 +537,7 @@ bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
     for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
             char t = map.getTile(x, y);
-            if (t == '#' || t=='R' || t=='B') return false;
+            if (t == '#' || t=='R' || t=='B' || t=='A' || t=='r' || t=='T' || t=='~') return false;
         }
     }
     return true;

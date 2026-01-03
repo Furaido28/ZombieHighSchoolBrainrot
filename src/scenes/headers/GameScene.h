@@ -5,6 +5,7 @@
 #include "../../core/headers/Scene.h"
 #include "../../controllers/headers/GameController.h"
 #include "../../views/headers/game/InventoryView.h"
+#include "views/headers/menu/PauseMenu.h"
 
 class GameScene : public Scene {
 public:
@@ -22,4 +23,7 @@ private:
     sf::Font font;
     sf::Clock levelEndVisualClock;
     bool visualTimerStarted = false;
+
+    bool paused;
+    PauseMenu pauseMenu;
 };
