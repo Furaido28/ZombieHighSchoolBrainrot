@@ -24,7 +24,7 @@ public:
         while (!sceneStack.empty())
             sceneStack.pop();
 
-        sceneStack.push(std::make_unique<MenuScene>(this, window));
+        pushScene<MenuScene>(window);
     }
 
 private:

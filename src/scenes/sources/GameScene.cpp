@@ -53,8 +53,7 @@ void GameScene::handleEvent(const sf::Event& event) {
     if (paused) {
         pauseMenu.handleEvent(event);
 
-        if (event.type == sf::Event::KeyPressed &&
-            event.key.code == sf::Keyboard::Enter) {
+        if (pauseMenu.handleMouse(event, *window)) {
             int choice = pauseMenu.getSelectedIndex();
 
             if (choice == 0) paused = false;
@@ -67,7 +66,8 @@ void GameScene::handleEvent(const sf::Event& event) {
                 manager->resetToMenu(window);
         }
 
-        if (pauseMenu.handleMouse(event, *window)) {
+        if (event.type == sf::Event::KeyPressed &&
+            event.key.code == sf::Keyboard::Enter) {
             int choice = pauseMenu.getSelectedIndex();
 
             if (choice == 0) paused = false;

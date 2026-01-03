@@ -19,5 +19,8 @@ private:
     std::vector<sf::Text> items;
     int selectedIndex;
 
+    sf::RectangleShape selectionRect;
+    void updateSelectionRect();
+
     bool isMouseOverItem(sf::Vector2f mousePos, int index) const;
 };

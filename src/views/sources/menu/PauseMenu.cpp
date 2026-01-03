@@ -27,6 +27,13 @@ PauseMenu::PauseMenu(float width, float height)
 
         items.push_back(text);
     }
+
+    selectionRect.setFillColor(sf::Color::Transparent);
+    selectionRect.setOutlineThickness(2.f);
+    selectionRect.setOutlineColor(sf::Color(255, 230, 120, 150));
+
+    updateSelectionRect();
+
 }
 
 void PauseMenu::handleEvent(const sf::Event& event) {
@@ -45,6 +52,8 @@ void PauseMenu::handleEvent(const sf::Event& event) {
         selectedIndex++;
         items[selectedIndex].setFillColor(sf::Color(255,230,120));
         }
+
+    updateSelectionRect();
 }
 
 
@@ -53,7 +62,7 @@ bool PauseMenu::handleMouse(const sf::Event& event, sf::RenderWindow& window) {
     sf::Vector2f mousePos =
         window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-    // 🔁 Hover
+    // Hover
     bool hoverAny = false;
 
     for (int i = 0; i < items.size(); ++i) {
@@ -62,7 +71,10 @@ bool PauseMenu::handleMouse(const sf::Event& event, sf::RenderWindow& window) {
                 items[selectedIndex].setFillColor(sf::Color::White);
                 selectedIndex = i;
                 items[i].setFillColor(sf::Color(255,230,120));
+
+                updateSelectionRect();
             }
+
             hoverAny = true;
         }
     }
@@ -84,6 +96,7 @@ bool PauseMenu::handleMouse(const sf::Event& event, sf::RenderWindow& window) {
         for (int i = 0; i < items.size(); ++i) {
             if (isMouseOverItem(mousePos, i)) {
                 selectedIndex = i;
+                updateSelectionRect();
                 return true;
             }
         }
@@ -93,6 +106,8 @@ bool PauseMenu::handleMouse(const sf::Event& event, sf::RenderWindow& window) {
 }
 
 void PauseMenu::draw(sf::RenderWindow& window) {
+    window.draw(selectionRect);
+
     for (auto& item : items)
         window.draw(item);
 }
@@ -109,8 +124,32 @@ void PauseMenu::reset() {
             i == 0 ? sf::Color(255,230,120) : sf::Color::White
         );
     }
+
+    updateSelectionRect();
 }
 
 bool PauseMenu::isMouseOverItem(sf::Vector2f mousePos, int index) const {
     return items[index].getGlobalBounds().contains(mousePos);
+}
+
+void PauseMenu::updateSelectionRect() {
+    if (selectedIndex < 0 || selectedIndex >= items.size())
+        return;
+
+    sf::FloatRect bounds = items[selectedIndex].getGlobalBounds();
+
+    selectionRect.setSize({
+        bounds.width + 60.f,
+        bounds.height + 25.f
+    });
+
+    selectionRect.setOrigin(
+        selectionRect.getSize().x / 2.f,
+        selectionRect.getSize().y / 2.f
+    );
+
+    selectionRect.setPosition(
+        bounds.left + bounds.width / 2.f,
+        bounds.top + bounds.height / 2.f
+    );
 }
