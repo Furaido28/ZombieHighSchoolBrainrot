@@ -6,7 +6,9 @@ class PauseMenu {
 public:
     PauseMenu(float width, float height);
 
-    void handleEvent(const sf::Event& event);
+    void handleEvent(const sf::Event& event);   // 🔑 OBLIGATOIRE
+    bool handleMouse(const sf::Event& event, sf::RenderWindow& window);
+
     void draw(sf::RenderWindow& window);
 
     int getSelectedIndex() const;
@@ -16,4 +18,6 @@ private:
     sf::Font font;
     std::vector<sf::Text> items;
     int selectedIndex;
+
+    bool isMouseOverItem(sf::Vector2f mousePos, int index) const;
 };

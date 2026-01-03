@@ -58,12 +58,28 @@ void GameScene::handleEvent(const sf::Event& event) {
             int choice = pauseMenu.getSelectedIndex();
 
             if (choice == 0) paused = false;
-            else if (choice == 1) manager->pushScene<OptionsScene>(
-                window,
-                OptionsReturnTarget::Game
-            );
-            else if (choice == 2) manager->pushScene<MenuScene>(window);
+            else if (choice == 1)
+                manager->pushScene<OptionsScene>(
+                    window,
+                    OptionsReturnTarget::Game
+                );
+            else if (choice == 2)
+                manager->resetToMenu(window);
         }
+
+        if (pauseMenu.handleMouse(event, *window)) {
+            int choice = pauseMenu.getSelectedIndex();
+
+            if (choice == 0) paused = false;
+            else if (choice == 1)
+                manager->pushScene<OptionsScene>(
+                    window,
+                    OptionsReturnTarget::Game
+                );
+            else if (choice == 2)
+                manager->resetToMenu(window);
+        }
+
         return;
     }
 

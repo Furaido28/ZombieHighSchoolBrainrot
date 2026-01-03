@@ -2,6 +2,7 @@
 #include <stack>
 
 #include "Scene.h"
+#include "scenes/headers/MenuScene.h"
 
 class SceneManager {
 public:
@@ -17,6 +18,13 @@ public:
 
     Scene* getCurrentScene() {
         return sceneStack.empty() ? nullptr : sceneStack.top().get();
+    }
+
+    void resetToMenu(sf::RenderWindow* window) {
+        while (!sceneStack.empty())
+            sceneStack.pop();
+
+        sceneStack.push(std::make_unique<MenuScene>(this, window));
     }
 
 private:

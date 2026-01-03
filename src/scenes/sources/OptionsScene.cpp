@@ -20,17 +20,22 @@ void OptionsScene::handleEvent(const sf::Event& event) {
         if (event.key.code == sf::Keyboard::Enter &&
             menu.getSelectedIndex() == 3) {
 
-            // BACK clavier
-            manager->popScene();
-            return;
+            if (returnTarget == OptionsReturnTarget::Menu)
+                manager->resetToMenu(window);
+            else if (returnTarget == OptionsReturnTarget::Game)
+                manager->popScene();
             }
     }
 
     menu.handleMouse(event, *window);
 
-    // BACK souris
     if (menu.buttonBackClicked(event, *window)) {
-        manager->popScene();
+        if (returnTarget == OptionsReturnTarget::Menu) {
+            manager->resetToMenu(window);
+        }
+        else if (returnTarget == OptionsReturnTarget::Game) {
+            manager->popScene();
+        }
     }
 }
 

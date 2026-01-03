@@ -38,11 +38,58 @@ void PauseMenu::handleEvent(const sf::Event& event) {
         items[selectedIndex].setFillColor(sf::Color(255,230,120));
     }
 
-    if (event.key.code == sf::Keyboard::Down && selectedIndex < items.size() - 1) {
+    if (event.key.code == sf::Keyboard::Down &&
+        selectedIndex < items.size() - 1) {
+
         items[selectedIndex].setFillColor(sf::Color::White);
         selectedIndex++;
         items[selectedIndex].setFillColor(sf::Color(255,230,120));
+        }
+}
+
+
+bool PauseMenu::handleMouse(const sf::Event& event, sf::RenderWindow& window) {
+
+    sf::Vector2f mousePos =
+        window.mapPixelToCoords(sf::Mouse::getPosition(window));
+
+    // 🔁 Hover
+    bool hoverAny = false;
+
+    for (int i = 0; i < items.size(); ++i) {
+        if (isMouseOverItem(mousePos, i)) {
+            if (selectedIndex != i) {
+                items[selectedIndex].setFillColor(sf::Color::White);
+                selectedIndex = i;
+                items[i].setFillColor(sf::Color(255,230,120));
+            }
+            hoverAny = true;
+        }
     }
+
+    // 🧹 Souris hors menu
+    if (!hoverAny) {
+        for (int i = 0; i < items.size(); ++i) {
+            items[i].setFillColor(
+                i == selectedIndex ? sf::Color(255,230,120)
+                                   : sf::Color::White
+            );
+        }
+    }
+
+    // 🖱️ Click
+    if (event.type == sf::Event::MouseButtonReleased &&
+        event.mouseButton.button == sf::Mouse::Left) {
+
+        for (int i = 0; i < items.size(); ++i) {
+            if (isMouseOverItem(mousePos, i)) {
+                selectedIndex = i;
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void PauseMenu::draw(sf::RenderWindow& window) {
@@ -64,3 +111,6 @@ void PauseMenu::reset() {
     }
 }
 
+bool PauseMenu::isMouseOverItem(sf::Vector2f mousePos, int index) const {
+    return items[index].getGlobalBounds().contains(mousePos);
+}
