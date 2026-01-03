@@ -68,6 +68,8 @@ public:
     const WaveManager* getWaveManager()const {return waveManager.get();}
     void openLuckyBox(int itemIndex);
 
+    bool isPlayerDead() const;
+
 private:
     int currentLevel = 0;
     std::vector<std::string> levelMaps = {

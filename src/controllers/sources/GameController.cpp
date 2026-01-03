@@ -876,3 +876,7 @@ void GameController::openLuckyBox(int itemIndex) {
             break;
     }
 }
+
+bool GameController::isPlayerDead() const {
+    return !player.isAlive();
+}
