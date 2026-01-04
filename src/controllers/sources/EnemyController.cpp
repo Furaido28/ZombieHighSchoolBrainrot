@@ -87,17 +87,17 @@ void EnemyController::update(
                 }
             }
         }
-
         /* =========================
          * Player Attack
          * ========================= */
 
-        // Check circular collision between player and enemy
-        if (circlesIntersect(
-            player.getPosition(), player.getRadius(),
-            enemy->getPosition(), enemy->getRadius()
-        )) {
-            // Enemy attacks the player
+        float dist = std::hypot(
+            player.getPosition().x - enemy->getPosition().x,
+            player.getPosition().y - enemy->getPosition().y
+        );
+        constexpr float ATTACK_DISTANCE = 10.f;
+
+        if (dist <= ATTACK_DISTANCE) {
             enemy->attack(player);
         }
     }

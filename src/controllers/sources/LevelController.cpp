@@ -285,7 +285,7 @@ void LevelController::spawnInitialItems() {
     Item medkit;
     medkit.name = "Medkit";
     medkit.type = ItemType::Consumable;
-    medkit.value = 60;
+    medkit.value = 80;
     medkit.sprite.setTexture(itemController.getTexture("medkit"));
     worldItemSystem.spawnRandom(map, medkit);
 

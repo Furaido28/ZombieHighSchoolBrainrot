@@ -13,6 +13,8 @@ OscarTheCrackhead::OscarTheCrackhead(const sf::Vector2f& pos)
     // Current health starts at maximum
     health = maxHealth;
 
+    //collision radius af the boss
+    collisionRadius = 24.f;
     // Time (in seconds) between two attacks
     attackCooldown = 0.9f;
 }

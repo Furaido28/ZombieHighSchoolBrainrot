@@ -50,6 +50,7 @@ void AttackSystem::handleAttack(
                     enemy->takeDamage(
                         static_cast<int>(enemy->getHealth() * 0.75f)
                     );
+
                 }
                 else {
                     // Standard fixed damage

@@ -12,7 +12,7 @@ UdinDinDinDun::UdinDinDinDun(const sf::Vector2f& pos)
 
     // Boss starts with full health
     health = maxHealth;
-
+    collisionRadius = 24.f;
     // Slow attack speed (long cooldown)
     attackCooldown = 2.0f;
 
