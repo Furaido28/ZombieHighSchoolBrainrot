@@ -17,21 +17,7 @@
 #include "views/headers/game/PlayerView.h"
 
 #include "core/headers/combat/ProjectileSystem.h"
-
-struct WorldItem {
-    Item item;
-    sf::Vector2f position;
-    float radius = 40.f;
-
-    sf::FloatRect getBounds() const {
-        return {
-            position.x - radius,
-            position.y - radius,
-            radius * 2.f,
-            radius * 2.f
-        };
-    }
-};
+#include "core/headers/items/WorldItemSystem.h"
 
 class GameController {
 public:
@@ -62,8 +48,14 @@ public:
     bool isPlayerDead() const;
 
 private:
+    // NEW
     ProjectileSystem projectileSystem;
+    WorldItemSystem worldItemSystem;
 
+    bool isLuckyBox(int index) const;
+    void removeItem(int index);
+
+    // OLD
     int currentLevel = 0;
     std::vector<std::string> levelMaps = {
         "assets/maps/map1.txt",
@@ -93,7 +85,6 @@ private:
     EnemyView enemyView;
 
     std::unique_ptr<WaveManager> waveManager;
-    std::vector<WorldItem> worldItems;
     float attackCooldown = 0.4f;
     float attackTimer = 0.f;
 

@@ -1,24 +1,23 @@
 #pragma once
 
-#include "../Command.h"
-#include "models/headers/Player.h"
-#include "models/headers/Item.h"
-#include <vector>
+#include "core/headers/Command.h"
 
-#include "controllers/headers/GameController.h"
-
-struct WorldItem;
+class Player;
+class WorldItemSystem;
+class GameController;
 
 class PickupItemCommand : public Command {
 public:
-    PickupItemCommand(Player& player,
-                      std::vector<WorldItem>& worldItems, GameController& controller)
-        : player(player), worldItems(worldItems), controller(controller) {}
+    PickupItemCommand(
+        Player& player,
+        WorldItemSystem& worldItemSystem,
+        GameController& game
+    );
 
     void execute(float dt) override;
 
 private:
     Player& player;
-    std::vector<WorldItem>& worldItems;
-    GameController& controller;
+    WorldItemSystem& worldItemSystem;
+    GameController& game;
 };

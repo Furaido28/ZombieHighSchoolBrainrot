@@ -30,44 +30,6 @@ static bool circlesIntersect(
 }
 
 // =========================
-// RANDOM TILE HELPERS
-// =========================
-static sf::Vector2f getRandomFreeTileCenter(const TileMap& map) {
-    std::vector<sf::Vector2i> freeTiles;
-
-    for (unsigned y = 0; y < map.getHeight(); ++y) {
-        for (unsigned x = 0; x < map.getWidth(); ++x) {
-            if (map.getTile(x, y) == '.' || map.getTile(x, y) == '*') {
-                freeTiles.emplace_back(x, y);
-            }
-        }
-    }
-
-    if (freeTiles.empty())
-        return {0.f, 0.f};
-
-    int index = std::rand() % freeTiles.size();
-    float tileSize = (float)map.getTileSize();
-
-    return {
-        freeTiles[index].x * tileSize + tileSize / 2.f,
-        freeTiles[index].y * tileSize + tileSize / 2.f
-    };
-}
-
-static void spawnWorldItem(
-    std::vector<WorldItem>& worldItems,
-    const TileMap& map,
-    Item item)
-{
-    WorldItem wi;
-    wi.item = item;
-    wi.position = getRandomFreeTileCenter(map);
-    wi.item.sprite.setPosition(wi.position);
-    worldItems.push_back(wi);
-}
-
-// =========================
 // CONSTRUCTOR
 // =========================
 GameController::GameController() : player(), playerView(*this) {
@@ -81,9 +43,15 @@ GameController::GameController() : player(), playerView(*this) {
     inputHandler.bind(sf::Keyboard::S, std::make_unique<MoveDownCommand>(player));
     inputHandler.bind(sf::Keyboard::D, std::make_unique<MoveRightCommand>(player));
 
+    inputHandler.bind(sf::Mouse::Left, std::make_unique<AttackCommand>(player));
+
     inputHandler.bind(sf::Mouse::Right, std::make_unique<UseItemCommand>(player));
-    inputHandler.bind(sf::Keyboard::E,
-        std::make_unique<PickupItemCommand>(player, worldItems, *this));
+    inputHandler.bind(sf::Keyboard::E, std::make_unique<PickupItemCommand>(
+        player,
+        worldItemSystem,
+        *this
+        )
+    );
 
     nextSlotCommand = std::make_unique<NextSlotCommand>(inv, tabPressed);
     prevSlotCommand = std::make_unique<PrevSlotCommand>(inv);
@@ -168,12 +136,6 @@ void GameController::handleEvent(const sf::Event& event) {
         tabPressed = false;
     }
 
-    if (event.type == sf::Event::MouseButtonPressed &&
-        event.mouseButton.button == sf::Mouse::Left)
-    {
-        player.requestAttack();
-    }
-
     if (event.type == sf::Event::MouseWheelScrolled) {
         if (event.mouseWheelScroll.delta > 0)
             nextSlotCommand->execute(0.f);
@@ -191,8 +153,7 @@ void GameController::handleEvent(const sf::Event& event) {
 // =========================
 // UPDATE
 // =========================
-void GameController::update(float dt)
-{
+void GameController::update(float dt) {
     if(screamerActive){
         screamerTimer -= dt;
         if (screamerTimer <= 0.f) {
@@ -356,6 +317,37 @@ void GameController::update(float dt)
                 600.f
             );
         }
+        else {
+            // -------- MELEE --------
+
+            // DEBUG HITBOX
+            debugMeleeBox.setPosition(
+                attack.meleeHitbox.left,
+                attack.meleeHitbox.top
+            );
+            debugMeleeBox.setSize({
+                attack.meleeHitbox.width,
+                attack.meleeHitbox.height
+            });
+            debugMeleeTimer = 0.1f;
+
+            // DAMAGE ENEMIES
+            for (auto& enemy : enemies) {
+                if (!enemy->isAlive()) continue;
+
+                if (attack.meleeHitbox.intersects(enemy->getGlobalBounds())) {
+                    if (attack.damage == 0) {
+                        // Cas spécial Deo
+                        enemy->takeDamage(
+                            static_cast<int>(enemy->getHealth() * 0.75f)
+                        );
+                    }
+                    else {
+                        enemy->takeDamage(attack.damage);
+                    }
+                }
+            }
+        }
     }
 
     projectileSystem.update(dt, map, enemies);
@@ -401,8 +393,7 @@ void GameController::render(sf::RenderWindow& window) {
 
     window.draw(mapView);
 
-    for (auto& wi : worldItems)
-        window.draw(wi.item.sprite);
+    worldItemSystem.render(window);
 
     for (auto& enemy : enemies)
         enemyView.render(window, *enemy, player.getPosition());
@@ -548,7 +539,7 @@ static void clearInventorySlots(Inventory& inventory) {
 void GameController::initLevel(int levelIndex) {
     // clean the game
     enemies.clear();
-    worldItems.clear();
+    worldItemSystem.clear();
     projectileSystem.clear();
 
     //load map
@@ -576,7 +567,7 @@ void GameController::initLevel(int levelIndex) {
     medkit.type = ItemType::Consumable;
     medkit.value = 60;
     medkit.sprite.setTexture(itemTextures["medkit"]);
-    spawnWorldItem(worldItems, map, medkit);
+    worldItemSystem.spawnRandom(map, medkit);
 
     Item pen;
     pen.name = "Pen";
@@ -587,7 +578,7 @@ void GameController::initLevel(int levelIndex) {
     pen.cooldown = 0.3f;
     pen.isProjectile = false;
     pen.sprite.setTexture(itemTextures["pen"]);
-    spawnWorldItem(worldItems, map, pen);
+    worldItemSystem.spawnRandom(map, pen);
 
 
     if (std::rand() % 100 < 70) {
@@ -631,7 +622,7 @@ void GameController::initLevel(int levelIndex) {
                 item.sprite.setTexture(itemTextures["chalk"]);
             }
 
-            spawnWorldItem(worldItems, map, item);
+            worldItemSystem.spawnRandom(map, item);
         }
     }
 
@@ -649,7 +640,7 @@ void GameController::initLevel(int levelIndex) {
     luckyBox.sprite.setTexture(itemTextures["luckybox"]);
 
     // SPAWN THE BOX
-    spawnWorldItem(worldItems, map, luckyBox);
+    worldItemSystem.spawnRandom(map, luckyBox);
 
     std::cout << "[GAME] LuckyBox spawned in level " << currentLevel << std::endl;
 
@@ -676,26 +667,20 @@ void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
     fragment.sprite.setTexture(itemTextures["key-fragment"]);
     fragment.sprite.setPosition(pos);
 
-    WorldItem wi;
-    wi.item = fragment;
-    wi.position = pos;
-    wi.radius = 24.f;
-
-    worldItems.push_back(wi);
+    worldItemSystem.spawnAt(pos, fragment);
 
     std::cout << "[GAME] Key Fragment spawned at boss position\n";
 }
 
 void GameController::openLuckyBox(int itemIndex) {
-    if (itemIndex < 0 || itemIndex >= (int)worldItems.size()) return;
+    if (!worldItemSystem.isLuckyBox(itemIndex))
+        return;
 
-    //check if the item is a luckybox
-    if (worldItems[itemIndex].item.type != ItemType::LuckyBox) return;
-
-    //Roll
+    // Roll
     LuckyOutcome outcome = LuckyBoxSystem::roll();
-    //erase the box
-    worldItems.erase(worldItems.begin() + itemIndex);
+
+    // Supprimer la box
+    worldItemSystem.removeItem(itemIndex);
 
     // =========================
     // TRIGGER SCREAMER
