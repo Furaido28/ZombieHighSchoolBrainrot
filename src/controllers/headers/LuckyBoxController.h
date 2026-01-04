@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 
+#include "ItemController.h"
 #include "models/headers/Item.h"
 #include "models/headers/Player.h"
 #include "core/headers/LuckyBoxSystem.h"
@@ -14,7 +15,7 @@ public:
     LuckyBoxController(
         Player& player,
         WorldItemSystem& worldItemSystem,
-        const std::map<std::string, sf::Texture>& itemTextures
+        const ItemController& itemController
     );
 
     void openLuckyBox(int itemIndex);
@@ -28,9 +29,10 @@ public:
     void triggerScreamer();
 
 private:
+    const ItemController& itemController;
+
     Player& player;
     WorldItemSystem& worldItemSystem;
-    const std::map<std::string, sf::Texture>& itemTextures;
 
     // Screamer
     bool screamerActive = false;

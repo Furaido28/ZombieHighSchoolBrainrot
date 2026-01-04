@@ -14,7 +14,15 @@
 // CONSTRUCTOR
 // =========================
 GameController::GameController() : player(), playerView(*this) {
-    Inventory& inv = player.getInventory();
+    // =========================
+    // INIT GLOBALE (UNE FOIS)
+    // =========================
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
+    gameView.setSize(1280.f, 720.f);
+    gameView.zoom(1.0f);
+
+    // Inventory& inv = player.getInventory();
 
     // =========================
     // INIT CONTROLLERS
@@ -33,41 +41,19 @@ GameController::GameController() : player(), playerView(*this) {
         *this
     );
 
-
     combatController = std::make_unique<CombatController>();
 
     enemyController = std::make_unique<EnemyController>();
 
-    // =========================
-    // INIT GLOBALE (UNE FOIS)
-    // =========================
-    std::srand(static_cast<unsigned>(std::time(nullptr)));
-
-    gameView.setSize(1280.f, 720.f);
-    gameView.zoom(1.0f);
-
-    player.setSize(48.f, 48.f);
-
-    // =========================
-    // TEXTURES (UNE FOIS)
-    // =========================
-    itemTextures["medkit"].loadFromFile("assets/inventory_items/medkit.png");
-    itemTextures["pen"].loadFromFile("assets/inventory_items/pen.png");
-    itemTextures["book"].loadFromFile("assets/inventory_items/book.png");
-    itemTextures["chalk"].loadFromFile("assets/inventory_items/chalk.png");
-    itemTextures["key-fragment"].loadFromFile("assets/inventory_items/key.png");
-    itemTextures["laptop"].loadFromFile("assets/inventory_items/laptop.png");
-    itemTextures["deo"].loadFromFile("assets/inventory_items/deo.png");
-    itemTextures["luckybox"].loadFromFile("assets/inventory_items/luckybox.png");
-
-
     luckyBoxController = std::make_unique<LuckyBoxController>(
         player,
         worldItemSystem,
-        itemTextures
+        *itemController
     );
 
 
+
+    player.setSize(48.f, 48.f);
 
     // =========================
     // PREMIER NIVEAU
@@ -277,7 +263,7 @@ void GameController::initLevel(int levelIndex) {
     medkit.name = "Medkit";
     medkit.type = ItemType::Consumable;
     medkit.value = 60;
-    medkit.sprite.setTexture(itemTextures["medkit"]);
+    medkit.sprite.setTexture(itemController->getTexture("medkit"));
     worldItemSystem.spawnRandom(map, medkit);
 
     Item pen;
@@ -288,7 +274,7 @@ void GameController::initLevel(int levelIndex) {
     pen.range = 60.f;
     pen.cooldown = 0.3f;
     pen.isProjectile = false;
-    pen.sprite.setTexture(itemTextures["pen"]);
+    pen.sprite.setTexture(itemController->getTexture("pen"));
     worldItemSystem.spawnRandom(map, pen);
 
 
@@ -302,7 +288,7 @@ void GameController::initLevel(int levelIndex) {
                 item.name = "Medkit";
                 item.type = ItemType::Consumable;
                 item.value = 60;
-                item.sprite.setTexture(itemTextures["medkit"]);
+                item.sprite.setTexture(itemController->getTexture("medkit"));
             } else if (r == 1) {
                 if (currentLevel == 0) {
                     item.name = "pen";
@@ -311,7 +297,7 @@ void GameController::initLevel(int levelIndex) {
                     item.range = 60.f;
                     item.cooldown = 0.3f;
                     item.isProjectile = false;
-                    item.sprite.setTexture(itemTextures["pen"]);
+                    item.sprite.setTexture(itemController->getTexture("pen"));
                 }
                 else {
                     item.name = "book";
@@ -320,7 +306,7 @@ void GameController::initLevel(int levelIndex) {
                     item.range = 80.f;
                     item.cooldown = 0.8f;
                     item.isProjectile = false;
-                    item.sprite.setTexture(itemTextures["book"]);
+                    item.sprite.setTexture(itemController->getTexture("book"));
                 }
             } else {
                 item.name = "Chalk";
@@ -330,7 +316,7 @@ void GameController::initLevel(int levelIndex) {
                 item.cooldown = 0.5f;
                 item.isProjectile = true;
                 item.projectileSpeed = 500.f;
-                item.sprite.setTexture(itemTextures["chalk"]);
+                item.sprite.setTexture(itemController->getTexture("chalk"));
             }
 
             worldItemSystem.spawnRandom(map, item);
@@ -348,7 +334,7 @@ void GameController::initLevel(int levelIndex) {
     luckyBox.isPickable = false;
 
     // 2. SPRITE
-    luckyBox.sprite.setTexture(itemTextures["luckybox"]);
+    luckyBox.sprite.setTexture(itemController->getTexture("luckybox"));
 
     // SPAWN THE BOX
     worldItemSystem.spawnRandom(map, luckyBox);
@@ -375,7 +361,7 @@ void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
     fragment.value = 1;
 
     //sprite & position
-    fragment.sprite.setTexture(itemTextures["key-fragment"]);
+    fragment.sprite.setTexture(itemController->getTexture("key-fragment"));
     fragment.sprite.setPosition(pos);
 
     worldItemSystem.spawnAt(pos, fragment);

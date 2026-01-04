@@ -1,14 +1,15 @@
 #include "controllers/headers/LuckyBoxController.h"
 #include <iostream>
 
+#include "controllers/headers/ItemController.h"
+
 LuckyBoxController::LuckyBoxController(
     Player& player,
     WorldItemSystem& worldItemSystem,
-    const std::map<std::string, sf::Texture>& itemTextures
-)
-    : player(player),
-      worldItemSystem(worldItemSystem),
-      itemTextures(itemTextures)
+    const ItemController& itemController
+) : itemController(itemController),
+    player(player),
+    worldItemSystem(worldItemSystem)
 {
     // Screamer texture
     screamerTexture.loadFromFile("assets/luckybox_popup.png");
@@ -133,7 +134,7 @@ Item LuckyBoxController::makeMedkit() const {
     medkit.name = "Medkit";
     medkit.type = ItemType::Consumable;
     medkit.value = 60;
-    medkit.sprite.setTexture(itemTextures.at("medkit"));
+    medkit.sprite.setTexture(itemController.getTexture("medkit"));
     return medkit;
 }
 
@@ -145,7 +146,7 @@ Item LuckyBoxController::makePen() const {
     pen.range = 60.f;
     pen.cooldown = 0.3f;
     pen.isProjectile = false;
-    pen.sprite.setTexture(itemTextures.at("pen"));
+    pen.sprite.setTexture(itemController.getTexture("pen"));
     return pen;
 }
 
@@ -157,7 +158,7 @@ Item LuckyBoxController::makeBook() const {
     book.range = 90.f;
     book.cooldown = 0.8f;
     book.isProjectile = false;
-    book.sprite.setTexture(itemTextures.at("book"));
+    book.sprite.setTexture(itemController.getTexture("book"));
     return book;
 }
 
@@ -170,7 +171,7 @@ Item LuckyBoxController::makeChalk() const {
     chalk.cooldown = 0.5f;
     chalk.isProjectile = true;
     chalk.projectileSpeed = 500.f;
-    chalk.sprite.setTexture(itemTextures.at("chalk"));
+    chalk.sprite.setTexture(itemController.getTexture("chalk"));
     return chalk;
 }
 
@@ -182,7 +183,7 @@ Item LuckyBoxController::makeLaptop() const {
     laptop.range = 100.f;
     laptop.cooldown = 1.2f;
     laptop.isProjectile = false;
-    laptop.sprite.setTexture(itemTextures.at("laptop"));
+    laptop.sprite.setTexture(itemController.getTexture("laptop"));
     return laptop;
 }
 
@@ -194,6 +195,6 @@ Item LuckyBoxController::makeDeo() const {
     deo.range = 150.f;
     deo.cooldown = 10000000.f;
     deo.isProjectile = false;
-    deo.sprite.setTexture(itemTextures.at("deo"));
+    deo.sprite.setTexture(itemController.getTexture("deo"));
     return deo;
 }

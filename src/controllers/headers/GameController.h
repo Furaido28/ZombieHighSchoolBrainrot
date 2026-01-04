@@ -34,8 +34,6 @@ public:
     void update(float dt);
     void render(sf::RenderWindow& window);
 
-    void givePotionToPlayer();
-    const sf::Texture& getItemTexture(const std::string& name) const { return itemTextures.at(name); };
     bool isInventoryExpanded() const { return player.getInventory().isExpanded(); };
 
     Player& getPlayer() { return player; };
@@ -68,9 +66,6 @@ private:
 
     WorldItemSystem worldItemSystem;
 
-    bool isLuckyBox(int index) const;
-    void removeItem(int index);
-
     // OLD
     int currentLevel = 0;
     std::vector<std::string> levelMaps = {
@@ -88,9 +83,6 @@ private:
     // Helper: On demande la taille directement au Player (MVC)
     // Plus besoin de stocker "radius" ici, c'est le Player qui sait sa taille.
     sf::Vector2f playerSize() const { return player.getSize(); }
-
-    //textures
-    std::map<std::string, sf::Texture> itemTextures;
 
     Player player;
     PlayerView playerView;
