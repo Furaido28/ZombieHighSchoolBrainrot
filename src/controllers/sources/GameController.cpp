@@ -305,50 +305,14 @@ void GameController::update(float dt) {
     // =========================
     // 6. PLAYER ATTACK
     // =========================
-    AttackInfo attack = player.tryAttack();
 
-    if (attack.valid) {
-
-        if (attack.isProjectile) {
-            projectileSystem.spawn(
-                attack.startPosition,
-                attack.velocity,
-                attack.damage,
-                600.f
-            );
-        }
-        else {
-            // -------- MELEE --------
-
-            // DEBUG HITBOX
-            debugMeleeBox.setPosition(
-                attack.meleeHitbox.left,
-                attack.meleeHitbox.top
-            );
-            debugMeleeBox.setSize({
-                attack.meleeHitbox.width,
-                attack.meleeHitbox.height
-            });
-            debugMeleeTimer = 0.1f;
-
-            // DAMAGE ENEMIES
-            for (auto& enemy : enemies) {
-                if (!enemy->isAlive()) continue;
-
-                if (attack.meleeHitbox.intersects(enemy->getGlobalBounds())) {
-                    if (attack.damage == 0) {
-                        // Cas spécial Deo
-                        enemy->takeDamage(
-                            static_cast<int>(enemy->getHealth() * 0.75f)
-                        );
-                    }
-                    else {
-                        enemy->takeDamage(attack.damage);
-                    }
-                }
-            }
-        }
-    }
+    AttackSystem::handleAttack(
+        player.tryAttack(),
+        enemies,
+        projectileSystem,
+        debugMeleeBox,
+        debugMeleeTimer
+    );
 
     projectileSystem.update(dt, map, enemies);
 

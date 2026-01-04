@@ -14,6 +14,7 @@
 #include "views/headers/game/EnemyView.h"
 #include "views/headers/game/MapView.h"
 #include "core/headers/WaveManager.h"
+#include "core/headers/combat/AttackSystem.h"
 #include "views/headers/game/PlayerView.h"
 
 #include "core/headers/combat/ProjectileSystem.h"
