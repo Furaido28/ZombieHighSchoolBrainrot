@@ -12,6 +12,8 @@
 #include "ItemController.h"
 #include "LuckyBoxController.h"
 #include "PlayerController.h"
+#include "LevelController.h" // <--- NEW
+
 #include "models/headers/Player.h"
 #include "models/headers/TileMap.h"
 #include "../../models/headers/Enemy.h"
@@ -40,14 +42,17 @@ public:
     const Player& getPlayer() const { return player; }
     PlayerView& getPlayerView() { return playerView; }
 
-    int getWaveNumber() const { return waveManager->getCurrentWave(); };
-    float getWaveTimeLeft() const { return waveManager->getTimeLeft(); };
+    int getWaveNumber() const { return waveManager ? waveManager->getCurrentWave() : 0; };
+    float getWaveTimeLeft() const { return waveManager ? waveManager->getTimeLeft() : 0.f; };
 
     const sf::View& getGameView() const { return gameView; }
+
+    // Delegated to LevelController
     void onKeyFragmentPicked();
     bool isLevelEnding() const;
     float getLevelEndRemainingTime() const;
     void spawnKeyFragmentAt(const sf::Vector2f& pos);
+
     WaveManager* getWaveManager(){return waveManager.get();}
     const WaveManager* getWaveManager()const {return waveManager.get();}
     void openLuckyBox(int itemIndex);
@@ -63,22 +68,11 @@ private:
     std::unique_ptr<EnemyController> enemyController;
     std::unique_ptr<ItemController> itemController;
     std::unique_ptr<LuckyBoxController> luckyBoxController;
+    std::unique_ptr<LevelController> levelController; // <--- NEW
 
     WorldItemSystem worldItemSystem;
 
-    // OLD
-    int currentLevel = 0;
-    std::vector<std::string> levelMaps = {
-        "assets/maps/map1.txt",
-        "assets/maps/map2.txt",
-        "assets/maps/map3.txt",
-        "assets/maps/map4.txt"
-    };
-    void initLevel(int levelIndex);
-    void goToNextLevel();
-    // Méthodes internes de collision
-    bool isPositionFree(const sf::FloatRect& bbox) const;
-    void placePlayerAtFirstFreeTile();
+    // OLD (Level logic removed)
 
     // Helper: On demande la taille directement au Player (MVC)
     // Plus besoin de stocker "radius" ici, c'est le Player qui sait sa taille.
@@ -103,8 +97,6 @@ private:
     std::unique_ptr<Command> nextSlotCommand;
     std::unique_ptr<Command> prevSlotCommand;
 
-    // --- NOUVEAU : VISUALISATION DEBUG ---
-    bool levelEnding = false;
-    sf::Clock levelEndClock;
-    float levelEndDuration = 10.f;
+    // Méthodes internes de collision (Restent ici car utilisées possiblement par d'autres)
+    bool isPositionFree(const sf::FloatRect& bbox) const;
 };

@@ -7,6 +7,13 @@
 #include <algorithm> // Pour std::remove_if
 
 #include "controllers/headers/PlayerController.h"
+#include "controllers/headers/InputController.h"
+#include "controllers/headers/ItemController.h"
+#include "controllers/headers/CombatController.h"
+#include "controllers/headers/EnemyController.h"
+#include "controllers/headers/LuckyBoxController.h"
+#include "controllers/headers/LevelController.h" // <--- NEW
+
 #include "core/headers/LuckyBoxSystem.h"
 #include "core/headers/commands/SelectSlotCommand.h"
 
@@ -51,15 +58,31 @@ GameController::GameController() : player(), playerView(*this) {
         *itemController
     );
 
-
+    // NOUVEAU : Initialisation LevelController
+    levelController = std::make_unique<LevelController>(
+        map,
+        player,
+        enemies,
+        worldItemSystem,
+        *itemController,
+        waveManager
+    );
 
     player.setSize(48.f, 48.f);
 
     // =========================
     // PREMIER NIVEAU
     // =========================
-    currentLevel = 0;
-    initLevel(currentLevel);
+    // On charge le niveau 0 via le LevelController
+    levelController->loadLevel(0);
+
+    // IMPORTANT: Comme LevelController a reset le pointeur waveManager, on doit le recréer
+    // ici car il dépend de *this (GameController)
+    waveManager = std::make_unique<WaveManager>(map, *this);
+    mapView.load(map);
+
+    // Reset camera center
+    gameView.setCenter(player.getPosition());
 }
 
 // =========================ds
@@ -75,6 +98,9 @@ void GameController::handleEvent(const sf::Event& event) {
 void GameController::update(float dt) {
     // 1. INPUT (OBLIGATOIRE)
     inputController->update(dt);
+
+    // NOUVEAU: LEVEL UPDATE (timers)
+    levelController->update(dt);
 
     // 2. PLAYER (movement + attack decision)
     AttackInfo attack;
@@ -107,17 +133,24 @@ void GameController::update(float dt) {
     // =========================
     // 8. WAVES
     // =========================
-    if (waveManager && !levelEnding)
+    // Check level ending via LevelController
+    if (waveManager && !levelController->isLevelEnding())
         waveManager->update(dt, player, enemies);
 
     // =========================
     // 9. CAMERA
     // =========================
     gameView.setCenter(player.getPosition());
-    if (levelEnding) {
-        if (levelEndClock.getElapsedTime().asSeconds() >= levelEndDuration) {
-            goToNextLevel();
-        }
+
+    // Note: La logique de transition "levelEnding" -> goToNextLevel est maintenant interne au LevelController.
+    // Cependant, si le niveau a changé dans LevelController, nous devons re-initialiser le WaveManager.
+    // Pour l'instant, c'est un point délicat sans "signal".
+    // SOLUTION SIMPLE : On recrée le WM à chaque frame si on détecte qu'il est null (car reset par LevelController::loadLevel)
+    if (!waveManager) {
+        waveManager = std::make_unique<WaveManager>(map, *this);
+        mapView.load(map);
+        // On recentre aussi la caméra au cas où
+        gameView.setCenter(player.getPosition());
     }
 }
 
@@ -164,209 +197,20 @@ bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
     return true;
 }
 
-void GameController::placePlayerAtFirstFreeTile() {
-    float tileSizeF = (float)map.getTileSize();
-    bool spawnFound = false;
-
-    // 1. On cherche d'abord le symbole '$' (Spawn Point)
-    for (unsigned y = 0; y < map.getHeight(); ++y) {
-        for (unsigned x = 0; x < map.getWidth(); ++x) {
-            char tile = map.getTile((int)x, (int)y);
-
-            if (tile == '$') {
-                // On a trouvé le point de spawn !
-                float cx = x * tileSizeF + tileSizeF / 2.f;
-                float cy = y * tileSizeF + tileSizeF / 2.f;
-                player.setPosition(cx, cy);
-                spawnFound = true;
-
-                // Optionnel : On peut remplacer le '$' par un sol normal '.' une fois le spawn trouvé
-                // pour ne pas qu'il reste un symbole bizarre si on repasse dessus.
-                // map.setTile(x, y, '.');
-
-                std::cout << "[GAME] Player spawned at specific point ($): " << x << ", " << y << std::endl;
-                return; // On arrête de chercher, on a trouvé.
-            }
-        }
-    }
-
-    // 2. Si aucun '$' n'est trouvé, on utilise l'ancienne méthode (premier sol libre '.')
-    if (!spawnFound) {
-        std::cout << "[GAME] No spawn point ($) found. Searching for first free tile..." << std::endl;
-        for (unsigned y = 0; y < map.getHeight(); ++y) {
-            for (unsigned x = 0; x < map.getWidth(); ++x) {
-                if (map.getTile((int)x, (int)y) == '.') {
-                    float cx = x * tileSizeF + tileSizeF / 2.f;
-                    float cy = y * tileSizeF + tileSizeF / 2.f;
-                    player.setPosition(cx, cy);
-                    return;
-                }
-            }
-        }
-    }
-
-    // 3. Sécurité ultime si la map est pleine de murs (ne devrait pas arriver)
-    player.setPosition(tileSizeF + playerSize().x, tileSizeF + playerSize().y);
-}
+// DELEGATION METHODS
 
 void GameController::onKeyFragmentPicked() {
-    if (levelEnding) {
-        return;
-    }
-    levelEnding = true;
-    levelEndClock.restart();
-
-    enemies.clear();      // Supprime tous les zombies instantanément
-    std::cout << "[GAME] Level Complete - Enemies cleared.\n";
+    levelController->triggerLevelEnd();
 }
 bool GameController::isLevelEnding() const {
-    return levelEnding;
+    return levelController->isLevelEnding();
 }
 float GameController::getLevelEndRemainingTime() const {
-    if (!levelEnding)
-        return 0.f;
-    float elapsed = levelEndClock.getElapsedTime().asSeconds();
-    return std::max(0.f, levelEndDuration - elapsed);
-}
-
-static void clearInventorySlots(Inventory& inventory) {
-    auto& slots = inventory.getSlots();
-    for (auto& s : slots) s.reset();
-    inventory.selectSlot(0);
-}
-void GameController::initLevel(int levelIndex) {
-    // clean the game
-    enemies.clear();
-    worldItemSystem.clear();
-
-    //load map
-    if (!map.loadFromFile(levelMaps[levelIndex], TILE_SIZE)) {
-        std::cerr << "ERROR: FAILED TO LOAD TILE MAP" << levelMaps[levelIndex]<< std::endl;
-        return;
-    }
-
-    //Rebuild wave manager + map view
-    waveManager = std::make_unique<WaveManager>(map, *this);
-    mapView.load(map);
-
-    //Reset Player position + inventory (except key)
-    placePlayerAtFirstFreeTile();
-
-    if (levelIndex == 0) {
-        clearInventorySlots(player.getInventory());
-    }
-
-    player.setHealth(100);
-
-    // --- 5) Respawn items ---
-    Item medkit;
-    medkit.name = "Medkit";
-    medkit.type = ItemType::Consumable;
-    medkit.value = 60;
-    medkit.sprite.setTexture(itemController->getTexture("medkit"));
-    worldItemSystem.spawnRandom(map, medkit);
-
-    Item pen;
-    pen.name = "Pen";
-    pen.type = ItemType::Weapon;
-    pen.value = 0;
-    pen.damage = 15;
-    pen.range = 60.f;
-    pen.cooldown = 0.3f;
-    pen.isProjectile = false;
-    pen.sprite.setTexture(itemController->getTexture("pen"));
-    worldItemSystem.spawnRandom(map, pen);
-
-
-    if (std::rand() % 100 < 70) {
-        int extraItems = 3 + std::rand() % 5;
-        for (int i = 0; i < extraItems; ++i) {
-            Item item;
-            int r = std::rand() % 3;
-
-            if (r == 0) {
-                item.name = "Medkit";
-                item.type = ItemType::Consumable;
-                item.value = 60;
-                item.sprite.setTexture(itemController->getTexture("medkit"));
-            } else if (r == 1) {
-                if (currentLevel == 0) {
-                    item.name = "pen";
-                    item.type = ItemType::Weapon;
-                    item.damage = 15;
-                    item.range = 60.f;
-                    item.cooldown = 0.3f;
-                    item.isProjectile = false;
-                    item.sprite.setTexture(itemController->getTexture("pen"));
-                }
-                else {
-                    item.name = "book";
-                    item.type = ItemType::Weapon;
-                    item.damage = 35;
-                    item.range = 80.f;
-                    item.cooldown = 0.8f;
-                    item.isProjectile = false;
-                    item.sprite.setTexture(itemController->getTexture("book"));
-                }
-            } else {
-                item.name = "Chalk";
-                item.type = ItemType::Weapon;
-                item.damage = 10;
-                item.range = 600.f;
-                item.cooldown = 0.5f;
-                item.isProjectile = true;
-                item.projectileSpeed = 500.f;
-                item.sprite.setTexture(itemController->getTexture("chalk"));
-            }
-
-            worldItemSystem.spawnRandom(map, item);
-        }
-    }
-
-    //================
-    //LUCKY BOX SPAWN
-    //================
-
-    // 1. ONE LUCKY BOX PER LEVEL
-    Item luckyBox;
-    luckyBox.name = "Lucky Box";
-    luckyBox.type = ItemType::LuckyBox;
-    luckyBox.isPickable = false;
-
-    // 2. SPRITE
-    luckyBox.sprite.setTexture(itemController->getTexture("luckybox"));
-
-    // SPAWN THE BOX
-    worldItemSystem.spawnRandom(map, luckyBox);
-
-    std::cout << "[GAME] LuckyBox spawned in level " << currentLevel << std::endl;
-
-    // --- 6) Reset camera ---
-    gameView.setCenter(player.getPosition());
-}
-void GameController::goToNextLevel() {
-    levelEnding = false;
-    currentLevel++;
-    if (currentLevel >= (int)levelMaps.size()) {
-        currentLevel = 0;
-    }
-    initLevel(currentLevel);
+    return levelController->getTimeRemaining();
 }
 
 void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
-    if (levelEnding)return;
-    Item fragment;
-    fragment.name = "Key Fragment";
-    fragment.type = ItemType::KeyFragment;
-    fragment.value = 1;
-
-    //sprite & position
-    fragment.sprite.setTexture(itemController->getTexture("key-fragment"));
-    fragment.sprite.setPosition(pos);
-
-    worldItemSystem.spawnAt(pos, fragment);
-
-    std::cout << "[GAME] Key Fragment spawned at boss position\n";
+    levelController->spawnKeyFragment(pos);
 }
 
 void GameController::openLuckyBox(int itemIndex) {
