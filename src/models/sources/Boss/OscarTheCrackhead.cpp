@@ -4,27 +4,44 @@
 #include "models/headers/Boss/phases/BossPhaseEnraged.h"
 #include "models/headers/Boss/phases/BossPhaseFrenzy.h"
 
+// Constructor: initializes the boss with a position
 OscarTheCrackhead::OscarTheCrackhead(const sf::Vector2f& pos)
-    : Boss(pos)
-{
+    : Boss(pos) {
+    // Set the maximum health of the boss
     maxHealth = 1200.f;
+
+    // Current health starts at maximum
     health = maxHealth;
+
+    // Time (in seconds) between two attacks
     attackCooldown = 0.9f;
 }
 
+// Create the boss phase depending on the phase index
 std::unique_ptr<BossPhase>
-OscarTheCrackhead::createPhase(int phaseIndex)
-{
+OscarTheCrackhead::createPhase(int phaseIndex) {
     switch (phaseIndex) {
-        case 0: return std::make_unique<BossPhaseNormal>();
-        case 1: return std::make_unique<BossPhaseEnraged>();
-        case 2: return std::make_unique<BossPhaseFrenzy>();
-        default: return std::make_unique<BossPhaseFrenzy>();
+        case 0:
+            // First phase: normal behavior
+            return std::make_unique<BossPhaseNormal>();
+
+        case 1:
+            // Second phase: enraged behavior
+            return std::make_unique<BossPhaseEnraged>();
+
+        case 2:
+            // Third phase: frenzy behavior
+            return std::make_unique<BossPhaseFrenzy>();
+
+        default:
+            // Safety fallback: always return a valid phase
+            return std::make_unique<BossPhaseFrenzy>();
     }
 }
 
-int OscarTheCrackhead::getDamage() const
-{
-    // Final boss tape toujours plus fort
+// Returns the damage dealt by the boss
+int OscarTheCrackhead::getDamage() const {
+    // If a phase exists, add bonus damage to the phase damage
+    // Otherwise, return a default damage value
     return currentPhase ? currentPhase->getDamage() + 15 : 40;
 }

@@ -1,15 +1,21 @@
 #include "models/headers/Enemy/EnemyFlyweightFactory.h"
 
+// Returns a shared archetype for a given enemy type
+// Uses a cache to avoid creating the same archetype multiple times
 const EnemyArchetype& EnemyFlyweightFactory::get(EnemyType type) {
+    // Check if the archetype already exists in the cache
     auto it = cache.find(type);
-    if (it != cache.end()) return *it->second;
+    if (it != cache.end())
+        return *it->second;
 
+    // Create a new archetype if it does not exist
     auto a = std::make_unique<EnemyArchetype>();
     a->type = type;
 
-    // Valeurs par défaut (tu peux ajuster)
+    // Default values depending on the enemy type
     switch (type) {
         case EnemyType::Basic:
+            // Standard enemy with balanced stats
             a->speed = 100.f;
             a->maxHealth = 50.f;
             a->damage = 10;
@@ -19,6 +25,7 @@ const EnemyArchetype& EnemyFlyweightFactory::get(EnemyType type) {
             break;
 
         case EnemyType::Fast:
+            // Fast enemy with lower health and damage
             a->speed = 160.f;
             a->maxHealth = 35.f;
             a->damage = 8;
@@ -28,6 +35,7 @@ const EnemyArchetype& EnemyFlyweightFactory::get(EnemyType type) {
             break;
 
         case EnemyType::Tank:
+            // Slow but strong enemy with high health and damage
             a->speed = 70.f;
             a->maxHealth = 120.f;
             a->damage = 18;
@@ -37,7 +45,7 @@ const EnemyArchetype& EnemyFlyweightFactory::get(EnemyType type) {
             break;
 
         default:
-            // Boss gérés ailleurs, mais on met un fallback
+            // Fallback values (bosses are handled elsewhere)
             a->speed = 100.f;
             a->maxHealth = 50.f;
             a->damage = 10;
@@ -47,6 +55,7 @@ const EnemyArchetype& EnemyFlyweightFactory::get(EnemyType type) {
             break;
     }
 
+    // Store the archetype in the cache and return a reference to it
     auto& ref = *a;
     cache.emplace(type, std::move(a));
     return ref;
