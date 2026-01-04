@@ -51,10 +51,23 @@
  * ========================================================== */
 class GameController {
 public:
-    /* =========================
-     * Constructors
-     * ========================= */
+    /* ======================================================
+     * Coplien Canonical Form
+     * ====================================================== */
+
+    // Default Constructor
     GameController();
+
+    // Destructor
+    ~GameController();
+
+    // Constructor of copy
+    // delete because std::unique_ptr can't be copied
+    GameController(const GameController&) = delete;
+
+    // Assignment Operator
+    GameController& operator=(const GameController&) = delete;
+
 
     /* =========================
      * Main Game Loop

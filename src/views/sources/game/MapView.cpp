@@ -39,18 +39,17 @@ bool MapView::load(const TileMap& map) {
             else if (tileType == 'T') tileIndex = 11; // Tree
             else if (tileType == 'r') tileIndex = 12; // Rock
             else if (tileType == '~') tileIndex = 13; // Water
+            else if (tileType == '4') tileIndex = 10;
 
             // --- RANDOM BLOOD MANAGEMENT ---
             else if (tileType == ',') {
-                // 1. List blood image indexes in the tileset
-                //    (Even if they're not next to each other)
-                //    Example: if your images are at positions 6, 8 and 12.
+                // List blood image indexes in the tileset
                 int bloodIndices[] = { 6, 7, 8, 9 };
 
-                // 2. Count how many variants we have (here 4)
+                // Count how many variants we have
                 int numberOfVariants = 4;
 
-                // 3. Choose one randomly
+                // Choose one randomly
                 int randomIndex = std::rand() % numberOfVariants;
                 tileIndex = bloodIndices[randomIndex];
             }
@@ -93,7 +92,6 @@ bool MapView::load(const TileMap& map) {
             sf::Vector2f t3 = bottomLeft;   // Bottom-Left
 
             // RANDOM ROTATION (Only for blood ',')
-            // This adds to the image choice for even more variety!
             if (tileType == ',') {
                 int rotation = std::rand() % 4; // 0, 1, 2 or 3
 

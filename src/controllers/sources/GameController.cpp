@@ -28,7 +28,7 @@
 #include "core/headers/commands/SelectSlotCommand.h"
 
 /* ==========================================================
- * CONSTRUCTOR
+ * CONSTRUCTOR (Coplien Canonical Form 1/4)
  * ========================================================== */
 GameController::GameController() : player(), playerView(*this) {
 
@@ -99,6 +99,21 @@ GameController::GameController() : player(), playerView(*this) {
     // Center the camera on the player
     gameView.setCenter(player.getPosition());
 }
+
+// ==========================================================
+//DESTRUCTOR (Orthodox Canonical Form 2/4)
+// ==========================================================
+GameController::~GameController() {
+    enemies.clear();
+
+    // Optional log to verify proper cleanup
+    std::cout << "[GameController] Resources released and controller destroyed." << std::endl;
+}
+
+/* * NOTE ON COPLIEN:
+ * The copy methods (Copy Constructor and Assignment Operator)
+ * are deleted in the .h file because this class manages unique resources.
+ */
 
 /* ==========================================================
  * INPUT HANDLING
@@ -276,4 +291,3 @@ bool GameController::hasKeyFragment() const {
 bool GameController::isOscarDead() const {
     return oscarDead;
 }
-
