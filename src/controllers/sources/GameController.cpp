@@ -27,6 +27,8 @@ GameController::GameController() : player(), playerView(*this) {
 
     combatController = std::make_unique<CombatController>();
 
+    enemyController = std::make_unique<EnemyController>();
+
     // =========================
     // INIT GLOBALE (UNE FOIS)
     // =========================
@@ -144,61 +146,14 @@ void GameController::update(float dt) {
         }
     }
 
-    // =========================
-    // ENEMY MOVEMENT + COLLISIONS
-    // =========================
-    for (auto& enemy : enemies) {
-        if (!enemy->isAlive()) continue;
-
-        sf::Vector2f oldPos = enemy->getPosition();
-
-        enemy->update(dt, player.getPosition());
-
-        sf::Vector2f newPos = enemy->getPosition();
-        sf::Vector2f delta = newPos - oldPos;
-
-        enemy->setPosition(oldPos);
-
-        sf::FloatRect bbox = enemy->getGlobalBounds();
-        sf::FloatRect future = bbox;
-        future.left += delta.x;
-        future.top  += delta.y;
-
-        if (isPositionFree(future)) {
-            enemy->setPosition(oldPos + delta);
-        }
-        else {
-            sf::FloatRect bboxX = bbox;
-            bboxX.left += delta.x;
-
-            if (isPositionFree(bboxX)) {
-                enemy->setPosition({ oldPos.x + delta.x, oldPos.y });
-            }
-            else {
-                sf::FloatRect bboxY = bbox;
-                bboxY.top += delta.y;
-
-                if (isPositionFree(bboxY)) {
-                    enemy->setPosition({ oldPos.x, oldPos.y + delta.y });
-                }
-                else {
-                    enemy->setPosition(oldPos);
-                }
-            }
-        }
-    }
+    // 4. ENEMY
+    enemyController->update(dt, player, map, enemies);
 
     //  Décision d’attaque (cooldown géré par Player)
     AttackInfo attack = player.tryAttack();
 
     // 5. COMBAT
-    combatController->update(
-        dt,
-        player,
-        map,
-        enemies,
-        attack
-    );
+    combatController->update(dt, player, map, enemies, attack);
 
     // =========================
     // 7. DEBUG – SKIP WAVE
