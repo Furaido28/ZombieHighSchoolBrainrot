@@ -1,8 +1,15 @@
+/* ==========================================================
+ * Includes
+ * ========================================================== */
 #include "controllers/headers/LuckyBoxController.h"
 #include <iostream>
 
 #include "controllers/headers/ItemController.h"
 
+/* ==========================================================
+ * LuckyBoxController Constructor
+ * Initializes screamer visuals and audio
+ * ========================================================== */
 LuckyBoxController::LuckyBoxController(
     Player& player,
     WorldItemSystem& worldItemSystem,
@@ -11,11 +18,19 @@ LuckyBoxController::LuckyBoxController(
     player(player),
     worldItemSystem(worldItemSystem)
 {
-    // Screamer texture
+    /* =========================
+     * Screamer Visuals
+     * ========================= */
+
+    // Load screamer texture
     screamerTexture.loadFromFile("assets/luckybox_popup.png");
     screamerSprite.setTexture(screamerTexture);
 
-    // Screamer sound
+    /* =========================
+     * Screamer Audio
+     * ========================= */
+
+    // Load and configure screamer sound
     screamerSoundBuffer.loadFromFile(
         "assets/sound/sound_effect/luckybox_scream.ogg"
     );
@@ -23,93 +38,161 @@ LuckyBoxController::LuckyBoxController(
     screamerSound.setVolume(100.f);
 }
 
+/* ==========================================================
+ * LuckyBoxController::update
+ * Updates screamer timer and state
+ * ========================================================== */
 void LuckyBoxController::update(float dt) {
+
+    // No update if screamer is inactive
     if (!screamerActive) return;
 
+    // Decrease screamer timer
     screamerTimer -= dt;
+
+    // Disable screamer when duration is over
     if (screamerTimer <= 0.f) {
         screamerActive = false;
     }
 }
 
+/* ==========================================================
+ * LuckyBoxController::render
+ * Renders screamer overlay on screen
+ * ========================================================== */
 void LuckyBoxController::render(sf::RenderWindow& window) const {
+
+    // Do not render if screamer is inactive
     if (!screamerActive)
         return;
 
+    // Use default view (UI overlay)
     window.setView(window.getDefaultView());
 
+    // Copy sprite to safely apply transformations
     sf::Sprite sprite = screamerSprite;
 
+    // Window size
     sf::Vector2u winSize = window.getSize();
+
+    // Sprite bounds
     sf::FloatRect bounds = sprite.getLocalBounds();
 
+    // Center sprite origin
     sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
 
+    // Desired screen coverage (80%)
     float desiredCoverage = 0.8f;
+
+    // Compute scaling factor
     float scaleX = static_cast<float>(winSize.x) / bounds.width;
     float scaleY = static_cast<float>(winSize.y) / bounds.height;
     float scale = std::min(scaleX, scaleY) * desiredCoverage;
 
+    // Apply scale and center position
     sprite.setScale(scale, scale);
     sprite.setPosition(winSize.x / 2.f, winSize.y / 2.f);
 
+    // Draw screamer sprite
     window.draw(sprite);
 }
 
+/* ==========================================================
+ * Screamer State Accessors
+ * ========================================================== */
 bool LuckyBoxController::isScreamerActive() const {
     return screamerActive;
 }
 
+/* ==========================================================
+ * LuckyBoxController::triggerScreamer
+ * Activates screamer visual and audio
+ * ========================================================== */
 void LuckyBoxController::triggerScreamer() {
+
+    // Activate screamer
     screamerActive = true;
     screamerTimer = screamerDuration;
+
+    // Restart screamer sound
     screamerSound.stop();
     screamerSound.play();
 }
 
+/* ==========================================================
+ * LuckyBoxController::openLuckyBox
+ * Handles lucky box opening and outcome resolution
+ * ========================================================== */
 void LuckyBoxController::openLuckyBox(int itemIndex) {
+
+    // Safety check: ensure item is a lucky box
     if (!worldItemSystem.isLuckyBox(itemIndex))
         return;
 
+    // Roll a random lucky box outcome
     LuckyOutcome outcome = LuckyBoxSystem::roll();
 
+    // Remove lucky box from the world
     worldItemSystem.removeItem(itemIndex);
+
+    // Trigger screamer effect
     triggerScreamer();
 
+    // Player inventory reference
     Inventory& inv = player.getInventory();
 
+    /* =========================
+     * Outcome Resolution
+     * ========================= */
     switch (outcome) {
+
         case LuckyOutcome::Heal: {
+            // Heal the player (max 100 HP)
             int hp = player.getHealth();
             player.setHealth(std::min(100, hp + 50));
             break;
         }
+
         case LuckyOutcome::Medkit:
             inv.addItem(makeMedkit());
             break;
+
         case LuckyOutcome::Pen:
             inv.addItem(makePen());
             break;
+
         case LuckyOutcome::Book:
             inv.addItem(makeBook());
             break;
+
         case LuckyOutcome::Chalk:
             inv.addItem(makeChalk());
             break;
+
         case LuckyOutcome::Computer:
             inv.addItem(makeLaptop());
             break;
+
         case LuckyOutcome::Deo:
             inv.addItem(makeDeo());
             break;
+
         case LuckyOutcome::LoseHealth:
+            // Player loses half of current health
             player.takeDamage(player.getHealth() / 2);
             break;
+
         case LuckyOutcome::LoseRandomItem:
+            // Remove a random item from inventory
             inv.removeRandomItem();
             break;
     }
 
+    /* =========================
+     * Debug Output
+     * ========================= */
+
+    // Convert outcome enum to string
     auto outcomeToString = [](LuckyOutcome o) {
         switch (o) {
             case LuckyOutcome::Heal:           return "Heal";
@@ -126,9 +209,13 @@ void LuckyBoxController::openLuckyBox(int itemIndex) {
     };
 
     std::cout << "[LUCKYBOX] Opened\n";
-    std::cout << "[LUCKYBOX] Outcome = " << outcomeToString(outcome) << std::endl;
+    std::cout << "[LUCKYBOX] Outcome = " 
+              << outcomeToString(outcome) << std::endl;
 }
 
+/* ==========================================================
+ * Item Factory Methods
+ * ========================================================== */
 Item LuckyBoxController::makeMedkit() const {
     Item medkit;
     medkit.name = "Medkit";

@@ -1,3 +1,6 @@
+/* ==========================================================
+ * Includes
+ * ========================================================== */
 #include "../headers/LevelController.h"
 #include "../../models/headers/TileMap.h"
 #include "../../models/headers/Player.h"
@@ -5,20 +8,28 @@
 #include "../../core/headers/items/WorldItemSystem.h"
 #include "../headers/ItemController.h"
 #include "../../core/headers/WaveManager.h"
-#include "../../core/headers/commands/SelectSlotCommand.h" // Pour le reset inventaire (si besoin de logique spécifique)
+#include "../../core/headers/commands/SelectSlotCommand.h" // Inventory reset helper
 #include "../../Constants.h" // TILE_SIZE
 
 #include <iostream>
 #include <cmath>
-#include <cstdlib> // Pour std::rand
+#include <cstdlib> // std::rand
 
-// Helper local pour reset l'inventaire (comme c'était dans GameController)
+/* ==========================================================
+ * Helper Functions
+ * ========================================================== */
+
+// Clears all inventory slots and resets selection
+// (Logic previously located in GameController)
 static void clearInventorySlots(Inventory& inventory) {
     auto& slots = inventory.getSlots();
     for (auto& s : slots) s.reset();
     inventory.selectSlot(0);
 }
 
+/* ==========================================================
+ * LevelController Constructor
+ * ========================================================== */
 LevelController::LevelController(
     TileMap& m, 
     Player& p, 
@@ -27,9 +38,18 @@ LevelController::LevelController(
     ItemController& ic,
     std::unique_ptr<WaveManager>& wm
 ) 
-: map(m), player(p), enemies(e), worldItemSystem(wis), itemController(ic), waveManager(wm),
-  currentLevel(0), levelEnding(false), levelEndDuration(10.f), waveSpawnDelay(0.f)
+: map(m), 
+  player(p), 
+  enemies(e), 
+  worldItemSystem(wis), 
+  itemController(ic), 
+  waveManager(wm),
+  currentLevel(0), 
+  levelEnding(false), 
+  levelEndDuration(10.f), 
+  waveSpawnDelay(0.f)
 {
+    // List of level map files
     levelMaps = {
         "assets/maps/map1.txt",
         "assets/maps/map2.txt",
@@ -38,79 +58,130 @@ LevelController::LevelController(
     };
 }
 
+/* ==========================================================
+ * Level Loading
+ * ========================================================== */
 void LevelController::loadLevel(int levelIndex) {
+
+    // Clamp level index
     if (levelIndex < 0 || levelIndex >= (int)levelMaps.size()) {
         currentLevel = 0;
     } else {
         currentLevel = levelIndex;
     }
 
-    // 1. clean the game
+    /* =========================
+     * Cleanup Previous Level
+     * ========================= */
+
+    // Remove all enemies and world items
     enemies.clear();
     worldItemSystem.clear();
     
-    // 2. load map
-    if (!map.loadFromFile(levelMaps[currentLevel], TILE_SIZE)) { // TILE_SIZE hardcodé à 32 ici ou include constant
-        std::cerr << "ERROR: FAILED TO LOAD TILE MAP " << levelMaps[currentLevel] << std::endl;
+    /* =========================
+     * Load Tile Map
+     * ========================= */
+
+    if (!map.loadFromFile(levelMaps[currentLevel], TILE_SIZE)) {
+        std::cerr << "ERROR: FAILED TO LOAD TILE MAP " 
+                  << levelMaps[currentLevel] << std::endl;
         return;
     }
 
-    // 3. Reset WaveManager (On doit le recréer pour la nouvelle map)
-    // Note: On laisse le GameController gérer la création finale du WaveManager car il a besoin de *this (GameController)
-    // Mais on peut le reset ici pour être propre.
+    /* =========================
+     * Reset Wave Manager
+     * ========================= */
+
+    // WaveManager must be recreated by GameController later
     waveManager.reset(); 
     
-    // 4. Reset Player position ($ logic)
+    /* =========================
+     * Player Reset
+     * ========================= */
+
+    // Place player at spawn point
     placePlayerAtSpawn();
 
-    // 5. Reset Inventaire (except key) - UNIQUEMENT au niveau 0
+    // Reset inventory ONLY on first level
     if (currentLevel == 0) {
         clearInventorySlots(player.getInventory());
     }
     
-    // Soin complet
+    // Full heal
     player.setHealth(100);
 
-    // 6. Spawn Items initial
+    /* =========================
+     * Item Spawning
+     * ========================= */
+
     spawnInitialItems();
     spawnLuckyBox();
 
-    // 7. Timer de début (Warmup)
+    /* =========================
+     * Level Timers
+     * ========================= */
+
+    // Warmup delay before wave starts
     waveSpawnDelay = 10.f;
     levelEnding = false;
 
     std::cout << "[LEVEL] Loaded level " << currentLevel << std::endl;
 }
 
+/* ==========================================================
+ * Level Update
+ * ========================================================== */
 void LevelController::update(float dt) {
-    // Gestion fin de niveau (Level Ending transition)
+
+    /* =========================
+     * Level Ending Transition
+     * ========================= */
+
     if (levelEnding) {
         if (levelEndClock.getElapsedTime().asSeconds() >= levelEndDuration) {
             nextLevel();
         }
     }
 
-    // Gestion délai début de vague (Warmup timer)
+    /* =========================
+     * Wave Spawn Delay
+     * ========================= */
+
     if (waveSpawnDelay > 0.f) {
         waveSpawnDelay -= dt;
     }
 }
 
+/* ==========================================================
+ * Level Progression
+ * ========================================================== */
 void LevelController::nextLevel() {
-    // Passage au niveau suivant
+
+    // Move to next level
     int nextLvl = currentLevel + 1;
     if (nextLvl >= (int)levelMaps.size()) {
         nextLvl = 0;
     }
+
     loadLevel(nextLvl);
-    // Important : Il faudra recréer le WaveManager côté GameController après cet appel
+
+    // WaveManager must be recreated by GameController after this
 }
 
+/* ==========================================================
+ * Level End Handling
+ * ========================================================== */
 void LevelController::triggerLevelEnd() {
+
+    // Prevent multiple triggers
     if (levelEnding) return;
+
     levelEnding = true;
     levelEndClock.restart();
-    enemies.clear(); // Supprime tous les zombies instantanément
+
+    // Instantly remove all enemies
+    enemies.clear();
+
     std::cout << "[LEVEL] Level Complete - Enemies cleared. Next in 10s.\n";
 }
 
@@ -120,11 +191,20 @@ bool LevelController::isLevelEnding() const {
 
 float LevelController::getTimeRemaining() const {
     if (!levelEnding) return 0.f;
-    return std::max(0.f, levelEndDuration - levelEndClock.getElapsedTime().asSeconds());
+    return std::max(
+        0.f, 
+        levelEndDuration - levelEndClock.getElapsedTime().asSeconds()
+    );
 }
 
+/* ==========================================================
+ * Key Fragment Spawning
+ * ========================================================== */
 void LevelController::spawnKeyFragment(const sf::Vector2f& position) {
+
+    // No spawning during level ending
     if (levelEnding) return;
+
     Item fragment;
     fragment.name = "Key Fragment";
     fragment.type = ItemType::KeyFragment;
@@ -133,33 +213,46 @@ void LevelController::spawnKeyFragment(const sf::Vector2f& position) {
     fragment.sprite.setPosition(position);
     
     worldItemSystem.spawnAt(position, fragment);
+
     std::cout << "[LEVEL] Key Fragment spawned.\n";
 }
 
+/* ==========================================================
+ * Player Spawn Logic
+ * ========================================================== */
 void LevelController::placePlayerAtSpawn() {
+
     float tileSizeF = (float)map.getTileSize();
     bool spawnFound = false;
 
-    // 1. On cherche d'abord le symbole '$' (Spawn Point)
+    /* =========================
+     * Priority Spawn ('$')
+     * ========================= */
+
+    // Look for explicit spawn tile '$'
     for (unsigned y = 0; y < map.getHeight(); ++y) {
         for (unsigned x = 0; x < map.getWidth(); ++x) {
             char tile = map.getTile((int)x, (int)y);
             if (tile == '$') {
-                // On a trouvé le point de spawn !
+
                 float cx = x * tileSizeF + tileSizeF / 2.f;
                 float cy = y * tileSizeF + tileSizeF / 2.f;
                 player.setPosition(cx, cy);
                 spawnFound = true;
                 
-                std::cout << "[LEVEL] Player spawned at specific point ($): " << x << ", " << y << std::endl;
-                return; // On arrête de chercher, on a trouvé.
+                std::cout << "[LEVEL] Player spawned at ($): " 
+                          << x << ", " << y << std::endl;
+                return;
             }
         }
     }
 
-    // 2. Si aucun '$' n'est trouvé, on utilise l'ancienne méthode (premier sol libre '.')
+    /* =========================
+     * Fallback Spawn ('.')
+     * ========================= */
+
     if (!spawnFound) {
-        std::cout << "[LEVEL] No spawn point ($) found. Searching for first free tile..." << std::endl;
+        std::cout << "[LEVEL] No spawn point ($). Using first free tile.\n";
         for (unsigned y = 0; y < map.getHeight(); ++y) {
             for (unsigned x = 0; x < map.getWidth(); ++x) {
                 if (map.getTile((int)x, (int)y) == '.') {
@@ -172,14 +265,23 @@ void LevelController::placePlayerAtSpawn() {
         }
     }
     
-    // 3. Sécurité ultime
+    /* =========================
+     * Ultimate Fallback
+     * ========================= */
+
     player.setPosition(tileSizeF + 48.f, tileSizeF + 48.f);
 }
 
+/* ==========================================================
+ * Initial Item Spawning
+ * ========================================================== */
 void LevelController::spawnInitialItems() {
-    // --- 5) Respawn items ---
-    
-    // Medkit garanti
+
+    /* =========================
+     * Guaranteed Items
+     * ========================= */
+
+    // Guaranteed medkit
     Item medkit;
     medkit.name = "Medkit";
     medkit.type = ItemType::Consumable;
@@ -187,7 +289,7 @@ void LevelController::spawnInitialItems() {
     medkit.sprite.setTexture(itemController.getTexture("medkit"));
     worldItemSystem.spawnRandom(map, medkit);
 
-    // Arme de départ (Pen) garanti
+    // Guaranteed starting weapon (Pen)
     Item pen;
     pen.name = "Pen";
     pen.type = ItemType::Weapon;
@@ -199,19 +301,29 @@ void LevelController::spawnInitialItems() {
     pen.sprite.setTexture(itemController.getTexture("pen"));
     worldItemSystem.spawnRandom(map, pen);
     
-    // Items aléatoires (70% de chance)
+    /* =========================
+     * Random Extra Items
+     * ========================= */
+
+    // 70% chance to spawn additional items
     if (std::rand() % 100 < 70) {
+
         int extraItems = 3 + std::rand() % 5;
+
         for (int i = 0; i < extraItems; ++i) {
+
             Item item;
             int r = std::rand() % 3;
             
             if (r == 0) {
+                // Medkit
                 item.name = "Medkit";
                 item.type = ItemType::Consumable;
                 item.value = 60;
                 item.sprite.setTexture(itemController.getTexture("medkit"));
-            } else if (r == 1) {
+            } 
+            else if (r == 1) {
+                // Weapon depending on level
                 if (currentLevel == 0) {
                     item.name = "pen";
                     item.type = ItemType::Weapon;
@@ -230,7 +342,9 @@ void LevelController::spawnInitialItems() {
                     item.isProjectile = false;
                     item.sprite.setTexture(itemController.getTexture("book"));
                 }
-            } else {
+            } 
+            else {
+                // Chalk projectile weapon
                 item.name = "Chalk";
                 item.type = ItemType::Weapon;
                 item.damage = 10;
@@ -246,19 +360,21 @@ void LevelController::spawnInitialItems() {
     }
 }
 
+/* ==========================================================
+ * Lucky Box Spawning
+ * ========================================================== */
 void LevelController::spawnLuckyBox() {
-    //================
-    //LUCKY BOX SPAWN
-    //================
 
-    // 1. ONE LUCKY BOX PER LEVEL
+    // One lucky box per level
     Item luckyBox;
     luckyBox.name = "Lucky Box";
     luckyBox.type = ItemType::LuckyBox;
     luckyBox.isPickable = false;
     luckyBox.sprite.setTexture(itemController.getTexture("luckybox"));
     
-    // SPAWN THE BOX
+    // Spawn randomly on the map
     worldItemSystem.spawnRandom(map, luckyBox);
-    std::cout << "[LEVEL] LuckyBox spawned in level " << currentLevel << std::endl;
+
+    std::cout << "[LEVEL] LuckyBox spawned in level " 
+              << currentLevel << std::endl;
 }
