@@ -9,16 +9,6 @@
 #include "core/headers/LuckyBoxSystem.h"
 #include "core/headers/commands/SelectSlotCommand.h"
 
-static bool circlesIntersect(
-    const sf::Vector2f& aPos, float aRadius,
-    const sf::Vector2f& bPos, float bRadius)
-{
-    sf::Vector2f d = aPos - bPos;
-    float distSq = d.x * d.x + d.y * d.y;
-    float r = aRadius + bRadius;
-    return distSq <= r * r;
-}
-
 // =========================
 // CONSTRUCTOR
 // =========================
@@ -26,7 +16,7 @@ GameController::GameController() : player(), playerView(*this) {
     Inventory& inv = player.getInventory();
 
     // =========================
-    // COMMANDS
+    // INIT CONTROLLERS
     // =========================
     inputController = std::make_unique<InputController>(
         player,
@@ -35,6 +25,7 @@ GameController::GameController() : player(), playerView(*this) {
         *this
     );
 
+    combatController = std::make_unique<CombatController>();
 
     // =========================
     // INIT GLOBALE (UNE FOIS)
@@ -76,14 +67,6 @@ GameController::GameController() : player(), playerView(*this) {
     screamerSound.setVolume(100.f); // MAX SFML (très fort)
 
     // =========================
-    // DEBUG SHAPES
-    // =========================
-    debugMeleeBox.setFillColor(sf::Color(255, 0, 0, 100));
-    debugProjectileRange.setFillColor(sf::Color::Transparent);
-    debugProjectileRange.setOutlineColor(sf::Color(0, 100, 255, 150));
-    debugProjectileRange.setOutlineThickness(2.f);
-
-    // =========================
     // PREMIER NIVEAU
     // =========================
     currentLevel = 0;
@@ -107,9 +90,6 @@ void GameController::update(float dt) {
             screamerActive = false;
         }
     }
-    // --- NOUVEAU : Gestion du timer de debug ---
-    if (debugMeleeTimer > 0.f)
-        debugMeleeTimer -= dt;
 
     // =========================
     // 1. PLAYER INPUT
@@ -165,103 +145,60 @@ void GameController::update(float dt) {
     }
 
     // =========================
-    // 4. UPDATE PLAYER
+    // ENEMY MOVEMENT + COLLISIONS
     // =========================
-
-    player.update(dt);
-
-    // --- NOUVEAU : Mise à jour de la visualisation de portée (Projectile) ---
-    showProjectileRange = false;
-    int slot = player.getInventory().getSelectedSlot();
-    auto& slots = player.getInventory().getSlots();
-
-    if (slot >= 0 && slot < (int)slots.size() && slots[slot].has_value()) {
-        const Item& equippedItem = slots[slot].value();
-        if (equippedItem.type == ItemType::Weapon && equippedItem.isProjectile) {
-            showProjectileRange = true;
-            float range = equippedItem.range;
-            debugProjectileRange.setRadius(range);
-            debugProjectileRange.setOrigin(range, range);
-            debugProjectileRange.setPosition(player.getPosition());
-        }
-    }
-
-    // =========================
-    // 5. ENEMY UPDATE & ATTACK
-    // =========================
-
     for (auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
 
         sf::Vector2f oldPos = enemy->getPosition();
 
-        if (player.isAlive())
-            enemy->update(dt, player.getPosition());
-        else
-            enemy->update(dt, enemy->getPosition());
+        enemy->update(dt, player.getPosition());
 
-        // Collision Enemy vs Map
         sf::Vector2f newPos = enemy->getPosition();
-        sf::Vector2f deltaE = newPos - oldPos;
-        enemy->setPosition(oldPos); // Reset
+        sf::Vector2f delta = newPos - oldPos;
 
-        // Revenir à la position valide
         enemy->setPosition(oldPos);
 
-        // Tentative déplacement complet
         sf::FloatRect bbox = enemy->getGlobalBounds();
         sf::FloatRect future = bbox;
-        future.left += deltaE.x;
-        future.top  += deltaE.y;
+        future.left += delta.x;
+        future.top  += delta.y;
 
         if (isPositionFree(future)) {
-            enemy->setPosition(oldPos + deltaE);
+            enemy->setPosition(oldPos + delta);
         }
         else {
-            // Glissement X
             sf::FloatRect bboxX = bbox;
-            bboxX.left += deltaE.x;
+            bboxX.left += delta.x;
 
             if (isPositionFree(bboxX)) {
-                enemy->setPosition({ oldPos.x + deltaE.x, oldPos.y });
+                enemy->setPosition({ oldPos.x + delta.x, oldPos.y });
             }
             else {
-                // Glissement Y
                 sf::FloatRect bboxY = bbox;
-                bboxY.top += deltaE.y;
+                bboxY.top += delta.y;
 
                 if (isPositionFree(bboxY)) {
-                    enemy->setPosition({ oldPos.x, oldPos.y + deltaE.y });
+                    enemy->setPosition({ oldPos.x, oldPos.y + delta.y });
                 }
                 else {
-                    // Bloqué total → reste en place
                     enemy->setPosition(oldPos);
                 }
             }
         }
-
-        // Enemy Attack Player
-        if (circlesIntersect(
-            player.getPosition(), player.getRadius(),
-            enemy->getPosition(), enemy->getRadius()))
-        {
-            enemy->attack(player);
-        }
     }
 
-    // =========================
-    // 6. PLAYER ATTACK
-    // =========================
+    //  Décision d’attaque (cooldown géré par Player)
+    AttackInfo attack = player.tryAttack();
 
-    AttackSystem::handleAttack(
-        player.tryAttack(),
+    // 5. COMBAT
+    combatController->update(
+        dt,
+        player,
+        map,
         enemies,
-        projectileSystem,
-        debugMeleeBox,
-        debugMeleeTimer
+        attack
     );
-
-    projectileSystem.update(dt, map, enemies);
 
     // =========================
     // 7. DEBUG – SKIP WAVE
@@ -309,13 +246,7 @@ void GameController::render(sf::RenderWindow& window) {
     for (auto& enemy : enemies)
         enemyView.render(window, *enemy, player.getPosition());
 
-    projectileSystem.render(window);
-
-    if (showProjectileRange)
-        window.draw(debugProjectileRange);
-
-    if (debugMeleeTimer > 0.f)
-        window.draw(debugMeleeBox);
+    combatController->render(window);
 
     playerView.renderWorld(window, player);
 
@@ -451,7 +382,6 @@ void GameController::initLevel(int levelIndex) {
     // clean the game
     enemies.clear();
     worldItemSystem.clear();
-    projectileSystem.clear();
 
     //load map
     if (!map.loadFromFile(levelMaps[levelIndex], TILE_SIZE)) {

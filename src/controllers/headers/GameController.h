@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 
+#include "CombatController.h"
 #include "InputController.h"
 #include "models/headers/Player.h"
 #include "models/headers/TileMap.h"
@@ -54,9 +55,9 @@ public:
 
 private:
     // NEW
-    ProjectileSystem projectileSystem;
     WorldItemSystem worldItemSystem;
     std::unique_ptr<InputController> inputController;
+    std::unique_ptr<CombatController> combatController;
 
     bool isLuckyBox(int index) const;
     void removeItem(int index);
@@ -102,10 +103,6 @@ private:
     std::unique_ptr<Command> prevSlotCommand;
 
     // --- NOUVEAU : VISUALISATION DEBUG ---
-    sf::RectangleShape debugMeleeBox;   // Le rectangle rouge du coup
-    float debugMeleeTimer = 0.f;        // Combien de temps il reste affiché
-    sf::CircleShape debugProjectileRange; // Le cercle bleu de portée
-    bool showProjectileRange = false;     // Doit-on afficher le cercle ?
     bool levelEnding = false;
     sf::Clock levelEndClock;
     float levelEndDuration = 10.f;

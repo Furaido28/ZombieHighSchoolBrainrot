@@ -7,6 +7,7 @@
 #include "core/headers/commands/AttackCommand.h"
 #include "core/headers/commands/PickupItemCommand.h"
 #include "core/headers/commands/SelectSlotCommand.h"
+#include "core/headers/commands/UseItemCommand.h"
 
 InputController::InputController(
     Player& p,
@@ -28,6 +29,8 @@ InputController::InputController(
         sf::Mouse::Left,
         std::make_unique<AttackCommand>(player)
     );
+
+    inputHandler.bind(sf::Mouse::Right, std::make_unique<UseItemCommand>(player));
 
     inputHandler.bind(
         sf::Keyboard::E,
