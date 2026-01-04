@@ -6,6 +6,7 @@
 #include <ctime>
 #include <algorithm> // Pour std::remove_if
 
+#include "controllers/headers/PlayerController.h"
 #include "core/headers/LuckyBoxSystem.h"
 #include "core/headers/commands/SelectSlotCommand.h"
 
@@ -18,6 +19,8 @@ GameController::GameController() : player(), playerView(*this) {
     // =========================
     // INIT CONTROLLERS
     // =========================
+    playerController = std::make_unique<PlayerController>();
+
     inputController = std::make_unique<InputController>(
         player,
         player.getInventory(),
@@ -93,66 +96,17 @@ void GameController::update(float dt) {
         }
     }
 
-    // =========================
-    // 1. PLAYER INPUT
-    // =========================
-
-    // Reset mouvement
-    player.setMoving(false);
-
-    // Commands
+    // 1. INPUT (OBLIGATOIRE)
     inputController->update(dt);
 
-    // Update logique
-    player.update(dt);
+    // 2. PLAYER (movement + attack decision)
+    AttackInfo attack;
+    playerController->update(dt, player, map, attack);
 
-    // =========================
-    // 3. MOVEMENT + COLLISIONS
-    // =========================
-
-    sf::Vector2f dir = player.consumeMovement();
-
-    if (dir.x != 0.f || dir.y != 0.f) {
-        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-        dir /= len;
-    }
-
-    sf::Vector2f delta = dir * 300.f * dt;
-
-    sf::FloatRect currentBBox = player.getGlobalBounds();
-    sf::FloatRect futureBBox = currentBBox;
-    futureBBox.left += delta.x;
-    futureBBox.top  += delta.y;
-
-    if (isPositionFree(futureBBox)) {
-        player.move(delta);
-    }
-    else {
-        // glissement X
-        sf::FloatRect bboxX = currentBBox;
-        bboxX.left += delta.x;
-
-        if (isPositionFree(bboxX)) {
-            player.move({ delta.x, 0.f });
-        }
-        else {
-            // glissement Y
-            sf::FloatRect bboxY = currentBBox;
-            bboxY.top += delta.y;
-
-            if (isPositionFree(bboxY)) {
-                player.move({ 0.f, delta.y });
-            }
-        }
-    }
-
-    // 4. ENEMY
+    // 3. ENEMIES
     enemyController->update(dt, player, map, enemies);
 
-    //  Décision d’attaque (cooldown géré par Player)
-    AttackInfo attack = player.tryAttack();
-
-    // 5. COMBAT
+    // 4. COMBAT
     combatController->update(dt, player, map, enemies, attack);
 
     // =========================
