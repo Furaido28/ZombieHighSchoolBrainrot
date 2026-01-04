@@ -59,6 +59,7 @@ public:
 
     bool isPlayerDead() const;
     bool hasKeyFragment()const;
+    bool isOscarDead()const;
 
 private:
     // NEW
@@ -100,4 +101,5 @@ private:
     // Méthodes internes de collision (Restent ici car utilisées possiblement par d'autres)
     bool isPositionFree(const sf::FloatRect& bbox) const;
     bool keyFragmentCollected = false;
+    bool oscarDead = false;
 };

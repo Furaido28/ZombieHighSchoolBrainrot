@@ -110,29 +110,40 @@ std::vector<WorldItem>& WorldItemSystem::getItems() {
 // TRY TO PICKUP ITEM
 // =========================
 PickupResult WorldItemSystem::tryPickup(Player& player, int& pickedIndex) {
-    // Iterate backwards to safely remove items
     for (int i = (int)worldItems.size() - 1; i >= 0; --i) {
         WorldItem& wi = worldItems[i];
 
-        float dist = std::hypot(
-            wi.position.x - player.getPosition().x,
-            wi.position.y - player.getPosition().y
+        // 🔵 Centre réel de l'item (sprite)
+        sf::FloatRect bounds = wi.item.sprite.getGlobalBounds();
+        sf::Vector2f itemCenter(
+            bounds.left + bounds.width / 2.f,
+            bounds.top + bounds.height / 2.f
         );
 
-        if (dist <= wi.radius) {
+        // 🔵 Centre du joueur
+        sf::Vector2f playerCenter = player.getPosition();
+
+        float dist = std::hypot(
+            itemCenter.x - playerCenter.x,
+            itemCenter.y - playerCenter.y
+        );
+
+        // ➕ Petite marge pour le confort de jeu
+        constexpr float PICKUP_MARGIN = 20.f;
+
+        if (dist <= wi.radius + PICKUP_MARGIN) {
 
             pickedIndex = i;
 
-            // Special case: lucky box
             if (wi.item.type == ItemType::LuckyBox) {
                 return PickupResult::LuckyBoxPicked;
             }
 
             if (wi.item.type == ItemType::KeyFragment) {
-                worldItems.erase(worldItems.begin()+i);
+                worldItems.erase(worldItems.begin() + i);
                 return PickupResult::KeyFragment;
             }
-            // Standard item pickup
+
             if (wi.item.isPickable) {
                 if (player.getInventory().addItem(wi.item)) {
                     worldItems.erase(worldItems.begin() + i);
@@ -142,9 +153,9 @@ PickupResult WorldItemSystem::tryPickup(Player& player, int& pickedIndex) {
         }
     }
 
-    // No item picked
     return PickupResult::None;
 }
+
 
 // =========================
 // LUCKYBOX
