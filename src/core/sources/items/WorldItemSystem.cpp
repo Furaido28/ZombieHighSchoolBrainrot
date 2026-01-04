@@ -73,12 +73,6 @@ void WorldItemSystem::update(Player& player, GameController& game) {
                 game.openLuckyBox(i);
                 return;
             }
-
-            if (wi.item.isPickable) {
-                if (player.getInventory().addItem(wi.item)) {
-                    worldItems.erase(worldItems.begin() + i);
-                }
-            }
         }
     }
 }
@@ -118,6 +112,10 @@ PickupResult WorldItemSystem::tryPickup(Player& player, int& pickedIndex) {
                 return PickupResult::LuckyBoxPicked;
             }
 
+            if (wi.item.type == ItemType::KeyFragment) {
+                worldItems.erase(worldItems.begin()+i);
+                return PickupResult::KeyFragment;
+            }
             if (wi.item.isPickable) {
                 if (player.getInventory().addItem(wi.item)) {
                     worldItems.erase(worldItems.begin() + i);

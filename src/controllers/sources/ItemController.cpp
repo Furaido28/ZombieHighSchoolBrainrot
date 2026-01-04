@@ -27,6 +27,10 @@ void ItemController::tryPickup(Player& player) {
         case PickupResult::ItemPicked:
             // déjà ajouté à l’inventaire
             break;
+        case PickupResult::KeyFragment:
+            game.onKeyFragmentPicked();
+            std::cout<<"[DEBUG] KEY PICKED"<<std::endl;
+            break;
 
         case PickupResult::None:
         default:
