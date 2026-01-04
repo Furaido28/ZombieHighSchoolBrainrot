@@ -1,39 +1,48 @@
 #include "../headers/GameController.h"
+
+/* ==========================================================
+ * Standard & Utility Includes
+ * ========================================================== */
 #include "../../Constants.h"
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-#include <algorithm> // Pour std::remove_if
+#include <algorithm>
 
+/* ==========================================================
+ * Controllers
+ * ========================================================== */
 #include "controllers/headers/PlayerController.h"
 #include "controllers/headers/InputController.h"
 #include "controllers/headers/ItemController.h"
 #include "controllers/headers/CombatController.h"
 #include "controllers/headers/EnemyController.h"
 #include "controllers/headers/LuckyBoxController.h"
-#include "controllers/headers/LevelController.h" // <--- NEW
+#include "controllers/headers/LevelController.h"
 
+/* ==========================================================
+ * Core Systems
+ * ========================================================== */
 #include "core/headers/LuckyBoxSystem.h"
 #include "core/headers/commands/SelectSlotCommand.h"
 
-// =========================
-// CONSTRUCTOR
-// =========================
+/* ==========================================================
+ * CONSTRUCTOR
+ * ========================================================== */
 GameController::GameController() : player(), playerView(*this) {
-    // =========================
-    // INIT GLOBALE (UNE FOIS)
-    // =========================
+
+    /* =========================
+     * Global Initialization
+     * ========================= */
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
     gameView.setSize(1280.f, 720.f);
     gameView.zoom(1.0f);
 
-    // Inventory& inv = player.getInventory();
-
-    // =========================
-    // INIT CONTROLLERS
-    // =========================
+    /* =========================
+     * Controllers Initialization
+     * ========================= */
     playerController = std::make_unique<PlayerController>();
 
     inputController = std::make_unique<InputController>(
@@ -49,8 +58,7 @@ GameController::GameController() : player(), playerView(*this) {
     );
 
     combatController = std::make_unique<CombatController>();
-
-    enemyController = std::make_unique<EnemyController>();
+    enemyController  = std::make_unique<EnemyController>();
 
     luckyBoxController = std::make_unique<LuckyBoxController>(
         player,
@@ -58,7 +66,9 @@ GameController::GameController() : player(), playerView(*this) {
         *itemController
     );
 
-    // NOUVEAU : Initialisation LevelController
+    /* =========================
+     * Level Controller
+     * ========================= */
     levelController = std::make_unique<LevelController>(
         map,
         player,
@@ -68,56 +78,71 @@ GameController::GameController() : player(), playerView(*this) {
         waveManager
     );
 
+    /* =========================
+     * Player Setup
+     * ========================= */
     player.setSize(48.f, 48.f);
 
-    // =========================
-    // PREMIER NIVEAU
-    // =========================
-    // On charge le niveau 0 via le LevelController
+    /* =========================
+     * First Level Load
+     * ========================= */
     levelController->loadLevel(0);
 
-    // IMPORTANT: Comme LevelController a reset le pointeur waveManager, on doit le recréer
-    // ici car il dépend de *this (GameController)
+    /*
+     * IMPORTANT:
+     * LevelController resets the WaveManager pointer internally.
+     * We recreate it here because it depends on GameController.
+     */
     waveManager = std::make_unique<WaveManager>(map, *this);
     mapView.load(map);
 
-    // Reset camera center
+    // Center the camera on the player
     gameView.setCenter(player.getPosition());
 }
 
-// =========================ds
-// INPUT EVENTS
-// =========================
+/* ==========================================================
+ * INPUT HANDLING
+ * ========================================================== */
 void GameController::handleEvent(const sf::Event& event) {
     inputController->handleEvent(event);
 }
 
-// =========================
-// UPDATE
-// =========================
+/* ==========================================================
+ * UPDATE LOOP
+ * ========================================================== */
 void GameController::update(float dt) {
-    // 1. INPUT (OBLIGATOIRE)
+
+    /* =========================
+     * 1. Input Processing
+     * ========================= */
     inputController->update(dt);
 
-    // NOUVEAU: LEVEL UPDATE (timers)
+    /* =========================
+     * 2. Level Logic (timers & transitions)
+     * ========================= */
     levelController->update(dt);
 
-    // 2. PLAYER (movement + attack decision)
+    /* =========================
+     * 3. Player Update
+     * ========================= */
     AttackInfo attack;
     playerController->update(dt, player, map, attack);
 
     luckyBoxController->update(dt);
 
-    // 3. ENEMIES
+    /* =========================
+     * 4. Enemies Update
+     * ========================= */
     enemyController->update(dt, player, map, enemies);
 
-    // 4. COMBAT
+    /* =========================
+     * 5. Combat Resolution
+     * ========================= */
     combatController->update(dt, player, map, enemies, attack);
 
-    // =========================
-    // 7. DEBUG – SKIP WAVE
-    // =========================
-
+    /* =========================
+     * 6. Debug – Skip Wave
+     * ========================= */
     static bool kWasPressed = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::K)) {
         if (!kWasPressed && waveManager) {
@@ -125,97 +150,111 @@ void GameController::update(float dt) {
             std::cout << "[DEBUG] Skip requested\n";
         }
         kWasPressed = true;
-    }
-    else {
+    } else {
         kWasPressed = false;
     }
 
-    // =========================
-    // 8. WAVES
-    // =========================
-    // Check level ending via LevelController
-    if (waveManager && !levelController->isLevelEnding())
+    /* =========================
+     * 7. Wave Management
+     * ========================= */
+    if (waveManager && !levelController->isLevelEnding()) {
         waveManager->update(dt, player, enemies);
+    }
 
-    // =========================
-    // 9. CAMERA
-    // =========================
+    /* =========================
+     * 8. Camera Update
+     * ========================= */
     gameView.setCenter(player.getPosition());
 
-    // Note: La logique de transition "levelEnding" -> goToNextLevel est maintenant interne au LevelController.
-    // Cependant, si le niveau a changé dans LevelController, nous devons re-initialiser le WaveManager.
-    // Pour l'instant, c'est un point délicat sans "signal".
-    // SOLUTION SIMPLE : On recrée le WM à chaque frame si on détecte qu'il est null (car reset par LevelController::loadLevel)
+    /*
+     * NOTE:
+     * When a new level is loaded, LevelController resets the WaveManager.
+     * We detect this and recreate it here.
+     */
     if (!waveManager) {
         waveManager = std::make_unique<WaveManager>(map, *this);
         mapView.load(map);
-        // On recentre aussi la caméra au cas où
         gameView.setCenter(player.getPosition());
     }
 }
 
-// =========================
-// RENDER
-// =========================
+/* ==========================================================
+ * RENDERING
+ * ========================================================== */
 void GameController::render(sf::RenderWindow& window) {
+
     window.setView(gameView);
 
+    // Map
     window.draw(mapView);
 
+    // World items (dropped loot, key fragments, etc.)
     worldItemSystem.render(window);
 
-    for (auto& enemy : enemies)
+    // Enemies
+    for (auto& enemy : enemies) {
         enemyView.render(window, *enemy, player.getPosition());
+    }
 
+    // Combat effects (projectiles, impacts, etc.)
     combatController->render(window);
 
+    // Player (world layer)
     playerView.renderWorld(window, player);
 
-    // =========================
-    // SCREAMER RENDER (CENTERED)
-    // =========================
+    // Lucky box UI / screamer (screen-space)
     luckyBoxController->render(window);
 }
 
-// =========================
-// UTILS
-// =========================
+/* ==========================================================
+ * COLLISION & UTILS
+ * ========================================================== */
 bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
-    float tileSizeF = (float)map.getTileSize();
 
-    int x0 = (int)std::floor(bbox.left / tileSizeF);
-    int y0 = (int)std::floor(bbox.top / tileSizeF);
-    int x1 = (int)std::floor((bbox.left + bbox.width - 0.001f) / tileSizeF);
-    int y1 = (int)std::floor((bbox.top + bbox.height - 0.001f) / tileSizeF);
+    float tileSize = static_cast<float>(map.getTileSize());
+
+    int x0 = static_cast<int>(std::floor(bbox.left / tileSize));
+    int y0 = static_cast<int>(std::floor(bbox.top / tileSize));
+    int x1 = static_cast<int>(std::floor((bbox.left + bbox.width  - 0.001f) / tileSize));
+    int y1 = static_cast<int>(std::floor((bbox.top  + bbox.height - 0.001f) / tileSize));
 
     for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
-            char t = map.getTile(x, y);
-            if (t == '#' || t=='R' || t=='B' || t=='A' || t=='r' || t=='T' || t=='~') return false;
+            char tile = map.getTile(x, y);
+            if (tile == '#' || tile == 'R' || tile == 'B' ||
+                tile == 'A' || tile == 'r' || tile == 'T' || tile == '~') {
+                return false;
+            }
         }
     }
     return true;
 }
 
-// DELEGATION METHODS
-
+/* ==========================================================
+ * DELEGATION METHODS (Level / Gameplay)
+ * ========================================================== */
 void GameController::onKeyFragmentPicked() {
+
     keyFragmentCollected = true;
+
     Item fragment;
     fragment.name = "Key Fragment";
     fragment.type = ItemType::KeyFragment;
     fragment.sprite.setTexture(itemController->getTexture("key-fragment"));
+
     player.getInventory().addKeyFragment(fragment);
     levelController->triggerLevelEnd();
 }
+
 bool GameController::isLevelEnding() const {
     return levelController->isLevelEnding();
 }
+
 float GameController::getLevelEndRemainingTime() const {
     return levelController->getTimeRemaining();
 }
 
-void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
+void GameController::spawnKeyFragmentAt(const sf::Vector2f& pos) {
     if (levelController->getCurrentLevel() < 3)
         levelController->spawnKeyFragment(pos);
     else {
@@ -230,6 +269,7 @@ void GameController::openLuckyBox(int itemIndex) {
 bool GameController::isPlayerDead() const {
     return !player.isAlive();
 }
+
 bool GameController::hasKeyFragment() const {
     return keyFragmentCollected;
 }
