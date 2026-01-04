@@ -4,23 +4,24 @@
 class Boss;
 class Player;
 
+// Base class for all boss phases
 class BossPhase {
 public:
     virtual ~BossPhase() = default;
 
-    // Appelé UNE FOIS quand on entre dans la phase
+    // Called ONCE when the boss enters this phase
     virtual void onEnter(Boss& boss) {}
 
-    // Appelé UNE FOIS quand on quitte la phase
+    // Called ONCE when the boss leaves this phase
     virtual void onExit(Boss& boss) {}
 
-    // Appelé À CHAQUE FRAME
+    // Called EVERY FRAME while this phase is active
     virtual void update(
         Boss& boss,
         float dt,
         const sf::Vector2f& playerPos
     ) = 0;
 
-    // Dégâts infligés dans cette phase
+    // Returns the damage dealt during this phase
     virtual int getDamage() const = 0;
 };

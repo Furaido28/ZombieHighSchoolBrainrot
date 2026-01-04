@@ -3,30 +3,36 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include "Inventory.h"
-#include "Item.h" // Nécessaire pour connaître les types d'armes
+#include "Item.h" // Needed to know weapon types
 
-// 1. On définit les directions
+// Defines possible player directions
 enum class Direction { Down = 0, Left = 1, Right = 2, Up = 3 };
 
-// --- NOUVEAU : Structure pour renvoyer les données de l'attaque au Controller ---
+// Structure used to return attack data to the controller
 struct AttackInfo {
-    bool valid = false;         // L'attaque a-t-elle lieu ? (false si cooldown ou pas d'arme)
-    bool isProjectile = false;  // true = tir (craie), false = corps à corps (règle)
+    // Indicates if the attack is valid (no cooldown, weapon equipped, etc.)
+    bool valid = false;
+
+    // true = projectile attack, false = melee attack
+    bool isProjectile = false;
+
+    // Damage dealt by the attack
     int damage = 0;
 
-    // Si Melee (Zone de dégâts rectangulaire devant le joueur)
+    // Melee attack hitbox (used if isProjectile == false)
     sf::FloatRect meleeHitbox;
 
-    // Si Projectile (Position de départ et vitesse)
+    // Projectile attack data (used if isProjectile == true)
     sf::Vector2f startPosition;
     sf::Vector2f velocity;
 };
 
+// Player entity class
 class Player {
 public:
     Player();
 
-    // Stats de vie
+    // --- Health ---
     int getHealth() const;
     int getMaxHealth() const;
     void setHealth(int value);
@@ -34,61 +40,74 @@ public:
     bool isAlive() const;
     bool isInvincible() const;
 
-    // Mouvement et Position
+    // --- Movement & Position ---
     void move(const sf::Vector2f& delta);
     void setPosition(float x, float y);
     void setSize(float w, float h);
 
-    // Update gère maintenant les timers d'invincibilité ET de cooldown d'attaque
+    // Updates timers (invincibility and attack cooldown)
     void update(float dt);
 
+    // Returns collision radius
     float getRadius() const;
 
-    // Gestion de la direction
+    // --- Direction handling ---
     void setDirection(Direction dir);
     Direction getDirection() const;
 
-    // Hitbox et Taille
+    // --- Hitbox & Size ---
     sf::Vector2f getPosition() const;
     sf::Vector2f getSize() const;
     sf::FloatRect getGlobalBounds() const;
 
-    // États
+    // --- State ---
     void setMoving(bool moving);
     bool isMoving() const;
+
+    // Inventory access
     Inventory& getInventory();
     const Inventory& getInventory() const;
 
-    // --- NOUVEAU : Méthode pour déclencher une attaque ---
+    // Tries to perform an attack and returns attack data
     AttackInfo tryAttack();
 
-
-    // Ajoute une intention de mouvement (appelée par les commandes)
+    // Adds movement input (can be accumulated)
     void addMovement(const sf::Vector2f& dir);
 
-    // Récupère et reset le mouvement (appelée par GameController)
+    // Returns and clears movement input
     sf::Vector2f consumeMovement();
 
+    // Requests an attack (checked during update)
     void requestAttack();
 
 private:
+    // Health values
     int health;
     int maxHealth;
+
+    // Invincibility timer after taking damage
     float invincibilityTimer = 0.f;
 
-    // --- NOUVEAU : Timer pour empêcher de spammer les attaques ---
+    // Attack cooldown timer to prevent attack spamming
     float attackCooldownTimer = 0.f;
 
+    // Transform data
     sf::Vector2f position;
     sf::Vector2f size;
     float speed;
+
+    // Movement state
     bool moving;
+
+    // Player inventory
     Inventory inventory;
 
-    // Direction actuelle (pour savoir où taper)
+    // Current facing direction (used for attacks)
     Direction currentDirection;
 
+    // Accumulated movement input
     sf::Vector2f movementIntent{0.f, 0.f};
 
+    // Indicates that an attack was requested
     bool attackRequested = false;
 };
