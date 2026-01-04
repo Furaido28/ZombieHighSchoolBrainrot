@@ -349,89 +349,18 @@ void GameController::update(float dt)
     if (attack.valid) {
 
         if (attack.isProjectile) {
-            // -------- PROJECTILE --------
-            Projectile p;
-            p.position = attack.startPosition;
-            p.velocity = attack.velocity;
-            p.damage = attack.damage;
-            p.distanceTraveled = 0.f;
-            p.maxRange = 600.f; // ou item.range si tu veux
-            p.active = true;
-
-            p.shape.setRadius(4.f);
-            p.shape.setOrigin(4.f, 4.f);
-            p.shape.setFillColor(sf::Color::White);
-            p.shape.setPosition(p.position);
-
-            projectiles.push_back(p);
-        }
-        else {
-            // -------- MELEE --------
-            debugMeleeBox.setPosition(
-                attack.meleeHitbox.left,
-                attack.meleeHitbox.top
+            projectileSystem.spawn(
+                attack.startPosition,
+                attack.velocity,
+                attack.damage,
+                600.f
             );
-            debugMeleeBox.setSize({
-                attack.meleeHitbox.width,
-                attack.meleeHitbox.height
-            });
-            debugMeleeTimer = 0.1f;
-
-            for (auto& enemy : enemies) {
-                if (!enemy->isAlive()) continue;
-
-                if (attack.meleeHitbox.intersects(enemy->getGlobalBounds())) {
-                    if (attack.damage == 0)
-                        enemy->takeDamage(static_cast<int>(enemy->getHealth()*0.75));
-                    else
-                        enemy->takeDamage(attack.damage);
-                }
-            }
         }
     }
 
-    // ==========================================
-    // 6.5 PROJECTILE UPDATE LOOP
-    // ==========================================
-    for (auto& p : projectiles) {
-        if (!p.active) continue;
+    projectileSystem.update(dt, map, enemies);
 
-        // Déplacement
-        sf::Vector2f moveAmount = p.velocity * dt;
-        p.position += moveAmount;
-        p.distanceTraveled += std::sqrt(moveAmount.x * moveAmount.x + moveAmount.y * moveAmount.y);
-        p.shape.setPosition(p.position);
-
-        // 1. Collision Mur
-        sf::FloatRect pBox(p.position.x - 2, p.position.y - 2, 4, 4);
-        if (!isPositionFree(pBox)) {
-            p.active = false;
-            continue;
-        }
-
-        // 2. Portée Max
-        if (p.distanceTraveled >= p.maxRange) {
-            p.active = false;
-            continue;
-        }
-
-        // 3. Collision Ennemis
-        for (auto& enemy : enemies) {
-            if (!enemy->isAlive()) continue;
-
-            if (enemy->getGlobalBounds().contains(p.position)) {
-                enemy->takeDamage(p.damage);
-                p.active = false; // Détruit le projectile
-                break;
-            }
-        }
-    }
-
-    // Nettoyage des projectiles inactifs
-    projectiles.erase(std::remove_if(projectiles.begin(), projectiles.end(),
-        [](const Projectile& p) { return !p.active; }), projectiles.end());
-
-
+    // =========================
     // 7. DEBUG – SKIP WAVE
     // =========================
 
@@ -478,8 +407,7 @@ void GameController::render(sf::RenderWindow& window) {
     for (auto& enemy : enemies)
         enemyView.render(window, *enemy, player.getPosition());
 
-    for (const auto& p : projectiles)
-        window.draw(p.shape);
+    projectileSystem.render(window);
 
     if (showProjectileRange)
         window.draw(debugProjectileRange);
@@ -621,7 +549,7 @@ void GameController::initLevel(int levelIndex) {
     // clean the game
     enemies.clear();
     worldItems.clear();
-    projectiles.clear();
+    projectileSystem.clear();
 
     //load map
     if (!map.loadFromFile(levelMaps[levelIndex], TILE_SIZE)) {

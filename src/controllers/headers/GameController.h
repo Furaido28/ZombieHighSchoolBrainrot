@@ -16,16 +16,7 @@
 #include "core/headers/WaveManager.h"
 #include "views/headers/game/PlayerView.h"
 
-// Structure simple pour gérer un projectile en vol
-struct Projectile {
-    sf::Vector2f position;
-    sf::Vector2f velocity;
-    int damage;
-    float distanceTraveled = 0.f;
-    float maxRange;
-    sf::CircleShape shape; // Visuel simple (bille blanche)
-    bool active = true;
-};
+#include "core/headers/combat/ProjectileSystem.h"
 
 struct WorldItem {
     Item item;
@@ -71,6 +62,8 @@ public:
     bool isPlayerDead() const;
 
 private:
+    ProjectileSystem projectileSystem;
+
     int currentLevel = 0;
     std::vector<std::string> levelMaps = {
         "assets/maps/map1.txt",
@@ -110,9 +103,6 @@ private:
     InputHandler inputHandler;
     std::unique_ptr<Command> nextSlotCommand;
     std::unique_ptr<Command> prevSlotCommand;
-
-    // --- NOUVEAU : Liste des projectiles ---
-    std::vector<Projectile> projectiles;
 
     // --- NOUVEAU : VISUALISATION DEBUG ---
     sf::RectangleShape debugMeleeBox;   // Le rectangle rouge du coup
