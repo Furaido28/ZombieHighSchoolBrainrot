@@ -9,6 +9,7 @@
 #include "CombatController.h"
 #include "EnemyController.h"
 #include "InputController.h"
+#include "ItemController.h"
 #include "PlayerController.h"
 #include "models/headers/Player.h"
 #include "models/headers/TileMap.h"
@@ -61,6 +62,7 @@ private:
     std::unique_ptr<InputController> inputController;
     std::unique_ptr<CombatController> combatController;
     std::unique_ptr<EnemyController> enemyController;
+    std::unique_ptr<ItemController> itemController;
     WorldItemSystem worldItemSystem;
 
     bool isLuckyBox(int index) const;

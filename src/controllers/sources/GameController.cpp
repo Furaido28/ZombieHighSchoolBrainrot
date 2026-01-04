@@ -28,6 +28,11 @@ GameController::GameController() : player(), playerView(*this) {
         *this
     );
 
+    itemController = std::make_unique<ItemController>(
+        worldItemSystem,
+        *this
+    );
+
     combatController = std::make_unique<CombatController>();
 
     enemyController = std::make_unique<EnemyController>();
