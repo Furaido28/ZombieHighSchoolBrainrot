@@ -33,6 +33,7 @@ GameController::GameController() : player(), playerView(*this) {
         *this
     );
 
+
     combatController = std::make_unique<CombatController>();
 
     enemyController = std::make_unique<EnemyController>();
@@ -59,22 +60,14 @@ GameController::GameController() : player(), playerView(*this) {
     itemTextures["deo"].loadFromFile("assets/inventory_items/deo.png");
     itemTextures["luckybox"].loadFromFile("assets/inventory_items/luckybox.png");
 
-    // =========================
-    // SCREAMER ASSETS
-    // =========================
-    screamerTexture.loadFromFile("assets/luckybox_popup.png");
-    screamerSprite.setTexture(screamerTexture);
-    sf::Vector2u size = screamerTexture.getSize();
 
-
-    screamerSprite.setScale(0.3,0.3);
-
-    // Son screamer
-    screamerSoundBuffer.loadFromFile(
-        "assets/sound/sound_effect/luckybox_scream.ogg"
+    luckyBoxController = std::make_unique<LuckyBoxController>(
+        player,
+        worldItemSystem,
+        itemTextures
     );
-    screamerSound.setBuffer(screamerSoundBuffer);
-    screamerSound.setVolume(100.f); // MAX SFML (très fort)
+
+
 
     // =========================
     // PREMIER NIVEAU
@@ -94,19 +87,14 @@ void GameController::handleEvent(const sf::Event& event) {
 // UPDATE
 // =========================
 void GameController::update(float dt) {
-    if(screamerActive){
-        screamerTimer -= dt;
-        if (screamerTimer <= 0.f) {
-            screamerActive = false;
-        }
-    }
-
     // 1. INPUT (OBLIGATOIRE)
     inputController->update(dt);
 
     // 2. PLAYER (movement + attack decision)
     AttackInfo attack;
     playerController->update(dt, player, map, attack);
+
+    luckyBoxController->update(dt);
 
     // 3. ENEMIES
     enemyController->update(dt, player, map, enemies);
@@ -167,39 +155,7 @@ void GameController::render(sf::RenderWindow& window) {
     // =========================
     // SCREAMER RENDER (CENTERED)
     // =========================
-    if (screamerActive) {
-        window.setView(window.getDefaultView());
-
-        sf::Vector2u winSize = window.getSize();
-
-        // CORRECTION ICI : On prend les limites réelles du sprite (après le découpage IntRect)
-        sf::FloatRect bounds = screamerSprite.getLocalBounds();
-
-        // Origine au centre de la zone visible
-        screamerSprite.setOrigin(
-            bounds.width / 2.f,
-            bounds.height / 2.f
-        );
-
-        // 🔽 FACTEUR DE TAILLE (ex: 80% de l’écran)
-        float desiredCoverage = 0.8f;
-
-        // On calcule l'échelle par rapport à la taille visible (bounds) et non la texture totale
-        float scaleX = static_cast<float>(winSize.x) / bounds.width;
-        float scaleY = static_cast<float>(winSize.y) / bounds.height;
-        float scale = std::min(scaleX, scaleY) * desiredCoverage;
-
-        screamerSprite.setScale(scale, scale);
-
-        // Centrage écran
-        screamerSprite.setPosition(
-            winSize.x / 2.f,
-            winSize.y / 2.f
-        );
-
-        window.draw(screamerSprite);
-    }
-
+    luckyBoxController->render(window);
 }
 
 // =========================
@@ -428,163 +384,7 @@ void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
 }
 
 void GameController::openLuckyBox(int itemIndex) {
-    if (!worldItemSystem.isLuckyBox(itemIndex))
-        return;
-
-    // Roll
-    LuckyOutcome outcome = LuckyBoxSystem::roll();
-
-    // Supprimer la box
-    worldItemSystem.removeItem(itemIndex);
-
-    // =========================
-    // TRIGGER SCREAMER
-    // =========================
-    screamerActive = true;
-    screamerTimer = screamerDuration;
-
-    screamerSound.stop(); // sécurité
-    screamerSound.play();
-
-    // Helper to create any items
-    auto makeMedkit = [&]() {
-        Item medkit;
-        medkit.name = "Medkit";
-        medkit.type = ItemType::Consumable;
-        medkit.value = 60;
-        medkit.sprite.setTexture(itemTextures["medkit"]);
-        return medkit;
-    };
-
-    auto makePen = [&]() {
-        Item pen;
-        pen.name = "Pen";
-        pen.type = ItemType::Weapon;
-        pen.value = 0;
-        pen.damage = 15;
-        pen.range = 60.f;
-        pen.cooldown = 0.3f;
-        pen.isProjectile = false;
-        pen.sprite.setTexture(itemTextures["pen"]);
-        return pen;
-    };
-
-    auto makeBook = [&]() {
-        Item book;
-        book.name = "Book";
-        book.type = ItemType::Weapon;
-        book.damage = 35;
-        book.range = 90.f;
-        book.cooldown = 0.8f;
-        book.isProjectile = false;
-        book.sprite.setTexture(itemTextures["book"]);
-        return book;
-    };
-
-    auto makeChalk = [&]() {
-        Item chalk;
-        chalk.name = "Chalk";
-        chalk.type = ItemType::Weapon;
-        chalk.damage = 10;
-        chalk.range = 600.f;
-        chalk.cooldown = 0.5f;
-        chalk.isProjectile = true;
-        chalk.projectileSpeed = 500.f;
-        chalk.sprite.setTexture(itemTextures["chalk"]);
-        return chalk;
-    };
-
-    auto makeLaptop = [&]() {
-        Item laptop;
-        laptop.name = "Laptop";
-        laptop.type = ItemType::Weapon;
-
-
-        laptop.damage = 80;
-        laptop.range = 100.f;
-        laptop.cooldown = 1.2f;
-        laptop.isProjectile = false;
-
-        laptop.sprite.setTexture(itemTextures["laptop"]);
-        return laptop;
-    };
-    auto makeDeo = [&]() {
-        Item deo;
-        deo.name = "Deo";
-        deo.type = ItemType::Weapon;
-
-        deo.damage = 0;
-        deo.range = 150.f;
-        deo.cooldown = 10000000.f;
-        deo.isProjectile = false;
-        deo.sprite.setTexture(itemTextures["deo"]);
-        return deo;
-    };
-
-    //apply the result of the roll
-    Inventory& inv = player.getInventory();
-
-    switch (outcome) {
-        case LuckyOutcome::Heal :{
-            int currentHp = player.getHealth();
-            int maxHp = 100;
-
-            if(currentHp < maxHp) {
-                if (rand()%100 < 50) {
-                    player.setHealth(100);
-                }
-                else {
-                    if (currentHp +50 > 100) {
-                        player.setHealth(100);
-                    }
-                    else {
-                        player.setHealth(currentHp+50);
-                    }
-                }
-            }
-            else {
-                inv.addItem(makeMedkit());
-            }
-            std::cout << "[LUCKYBOX] Outcome : Heal\n";
-            break;
-        }
-        case LuckyOutcome::Medkit:
-            inv.addItem(makeMedkit());
-            std::cout << "[LUCKYBOX] Outcome : Medkit\n";
-            break;
-
-        case LuckyOutcome::Pen:
-            inv.addItem(makePen());
-            std::cout << "[LuckyBox] Outcome: Pen\n";
-            break;
-
-        case LuckyOutcome::Book:
-            inv.addItem(makeBook());
-            std::cout << "[LuckyBox] Outcome: Book\n";
-            break;
-
-        case LuckyOutcome::Chalk:
-            inv.addItem(makeChalk());
-            std::cout << "[LuckyBox] Outcome: Chalk\n";
-            break;
-
-        case LuckyOutcome::Computer:
-            inv.addItem(makeLaptop());
-            std::cout << "[LuckyBox] Outcome: Laptop\n";
-            break;
-        case LuckyOutcome::Deo:
-            inv.addItem(makeDeo());
-            std::cout << "[LuckyBox] Outcome: Deo\n";
-            break;
-        case LuckyOutcome::LoseHealth:
-            player.takeDamage(static_cast<int>(player.getHealth()/2));
-            std::cout << "[LuckyBox] Outcome: LoseHealth\n";
-            break;
-        case LuckyOutcome::LoseRandomItem:
-            inv.removeRandomItem();
-            std::cout << "[LuckyBox] Outcome: LoseRandomItem\n";
-            break;
-    }
+    luckyBoxController->openLuckyBox(itemIndex);
 }
 
 bool GameController::isPlayerDead() const {

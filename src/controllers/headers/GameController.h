@@ -10,6 +10,7 @@
 #include "EnemyController.h"
 #include "InputController.h"
 #include "ItemController.h"
+#include "LuckyBoxController.h"
 #include "PlayerController.h"
 #include "models/headers/Player.h"
 #include "models/headers/TileMap.h"
@@ -63,6 +64,8 @@ private:
     std::unique_ptr<CombatController> combatController;
     std::unique_ptr<EnemyController> enemyController;
     std::unique_ptr<ItemController> itemController;
+    std::unique_ptr<LuckyBoxController> luckyBoxController;
+
     WorldItemSystem worldItemSystem;
 
     bool isLuckyBox(int index) const;
@@ -112,17 +115,4 @@ private:
     bool levelEnding = false;
     sf::Clock levelEndClock;
     float levelEndDuration = 10.f;
-
-    // =========================
-    // LUCKYBOX SCREAMER EFFECT
-    // =========================
-    bool screamerActive = false;
-    float screamerTimer = 0.f;
-    float screamerDuration = 0.6f; // durée du jumpscare
-
-    sf::Texture screamerTexture;
-    sf::Sprite screamerSprite;
-
-    sf::SoundBuffer screamerSoundBuffer;
-    sf::Sound screamerSound;
 };
