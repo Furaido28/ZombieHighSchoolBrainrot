@@ -33,11 +33,10 @@ WaveManager::WaveManager(const TileMap& mapRef, GameController& controller)
 
     // ---------- Wave configuration ----------
     // Each wave defines how many enemies of each type are spawned
-    waves.push_back({0,0,0,1});
-    // waves.push_back({6, 0, 0, 0});
-    // waves.push_back({10, 4, 0, 0});
-    // waves.push_back({14, 8, 3, 0});
-    // waves.push_back({20, 8, 6, 1});
+    waves.push_back({6, 0, 0, 0});
+    waves.push_back({10, 4, 0, 0});
+    waves.push_back({14, 8, 3, 0});
+    waves.push_back({20, 8, 6, 1});
 
     // Initialize timers
     preWaveClock.restart();

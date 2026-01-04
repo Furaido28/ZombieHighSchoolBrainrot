@@ -39,7 +39,7 @@ int Player::getMaxHealth() const {
 
 // Sets health directly (use carefully)
 void Player::setHealth(int value) {
-    health = 99999999;
+    health = 250;
 }
 
 // Checks if the player is currently invincible
