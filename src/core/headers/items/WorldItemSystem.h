@@ -11,7 +11,8 @@ class GameController;
 enum class PickupResult {
     None,
     ItemPicked,
-    LuckyBoxPicked
+    LuckyBoxPicked,
+    KeyFragment
 };
 
 class WorldItemSystem {

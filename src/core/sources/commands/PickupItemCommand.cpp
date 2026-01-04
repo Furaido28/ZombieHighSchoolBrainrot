@@ -1,5 +1,7 @@
 #include "core/headers/commands/PickupItemCommand.h"
 
+#include <iostream>
+
 #include "models/headers/Player.h"
 #include "core/headers/items/WorldItemSystem.h"
 #include "controllers/headers/GameController.h"
@@ -23,5 +25,10 @@ void PickupItemCommand::execute(float) {
     // If the picked item is a lucky box, trigger special behavior
     if (result == PickupResult::LuckyBoxPicked) {
         game.openLuckyBox(index);
+    }
+
+    if (result == PickupResult::KeyFragment) {
+        game.onKeyFragmentPicked();
+        std::cout << "[DEBUG] KEY PICKED\n";
     }
 }
