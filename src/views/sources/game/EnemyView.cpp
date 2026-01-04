@@ -4,7 +4,7 @@
 #include <algorithm>
 
 // ======================================================
-// CHARGEMENT INTELLIGENT (GRILLE + FRAMES SPÉCIFIQUES)
+// INTELLIGENT LOADING (GRID + SPECIFIC FRAMES)
 // ======================================================
 void EnemyView::loadDirectionalTextures(EnemyType type, const std::string& folder, const std::string& filePrefix,
                                         int fFront, int fBack, int fLeft, int fRight, float speed, int cols)
@@ -22,6 +22,7 @@ void EnemyView::loadDirectionalTextures(EnemyType type, const std::string& folde
         return false;
     };
 
+    // Load textures for all directions
     if (!load(anims.front, "front.png", fFront)) ok = false;
     if (!load(anims.back, "back.png", fBack)) ok = false;
     if (!load(anims.left, "left.png", fLeft)) ok = false;
@@ -31,9 +32,9 @@ void EnemyView::loadDirectionalTextures(EnemyType type, const std::string& folde
         anims.frameDuration = speed;
         anims.isLoaded = true;
         animationsMap[type] = anims;
-        std::cout << "Animations chargees pour " << folder << " (Cols: " << cols << ")\n";
+        std::cout << "Animations loaded for " << folder << " (Cols: " << cols << ")\n";
     } else {
-        std::cerr << "ERREUR: Echec anims " << folder << "\n";
+        std::cerr << "ERROR: Failed to load animations for " << folder << "\n";
     }
 }
 
@@ -43,35 +44,38 @@ void EnemyView::loadDirectionalTextures(EnemyType type, const std::string& folde
 EnemyView::EnemyView()
 {
     // --------------------------------------------------
-    // 1. CONFIGURATION DES ENNEMIS ANIMÉS
+    // 1. ANIMATED ENEMIES CONFIGURATION
     // --------------------------------------------------
-    // BASIC
+    // BASIC enemy
     loadDirectionalTextures(EnemyType::Basic, "Basic", "basic_enemy", 33, 29, 33, 33, 0.05f, 6);
-    // FAST
+    // FAST enemy
     loadDirectionalTextures(EnemyType::Fast, "Fast", "fast_enemy", 23, 23, 24, 34, 0.04f, 5);
-    // TANK
+    // TANK enemy
     loadDirectionalTextures(EnemyType::Tank, "Tank", "tank_enemy", 31, 33, 50, 39, 0.05f, 6);
 
     // --------------------------------------------------
-    // 2. CHARGEMENT DES BOSS
+    // 2. BOSS LOADING
     // --------------------------------------------------
-    if (!boss01Texture.loadFromFile("assets/animation/Boss/TralaleroTralala/idle.png")) std::cerr << "Erreur Boss01 idle\n";
-    if (!boss02Texture.loadFromFile("assets/animation/Boss/ChimpanziniBananini/idle.png")) std::cerr << "Erreur Boss02 idle\n";
-    if (!boss03Texture.loadFromFile("assets/animation/Boss/UdinDinDinDun/idle.png")) std::cerr << "Erreur Boss03 idle\n";
-    if (!finalBossTexture.loadFromFile("assets/animation/Boss/OscarTheCrackhead/idle.png")) std::cerr << "Erreur FinalBoss idle\n";
+    if (!boss01Texture.loadFromFile("assets/animation/Boss/TralaleroTralala/idle.png")) std::cerr << "Error Boss01 idle\n";
+    if (!boss02Texture.loadFromFile("assets/animation/Boss/ChimpanziniBananini/idle.png")) std::cerr << "Error Boss02 idle\n";
+    if (!boss03Texture.loadFromFile("assets/animation/Boss/UdinDinDinDun/idle.png")) std::cerr << "Error Boss03 idle\n";
+    if (!finalBossTexture.loadFromFile("assets/animation/Boss/OscarTheCrackhead/idle.png")) std::cerr << "Error FinalBoss idle\n";
 
     // --------------------------------------------------
-    // 3. UI INIT
+    // 3. UI INITIALIZATION
     // --------------------------------------------------
+    // Health bar background setup
     hbBack.setSize({ hpWidth - 2 * hpRadius, hpHeight });
     hbBack.setFillColor(sf::Color(30, 30, 30, 220));
     hbBackLeft.setRadius(hpRadius); hbBackRight.setRadius(hpRadius);
     hbBackLeft.setFillColor(hbBack.getFillColor()); hbBackRight.setFillColor(hbBack.getFillColor());
 
+    // Health bar foreground setup
     hbFront.setFillColor(sf::Color::Green);
     hbFrontLeft.setRadius(hpRadius); hbFrontRight.setRadius(hpRadius);
     hbFrontLeft.setFillColor(sf::Color::Green); hbFrontRight.setFillColor(sf::Color::Green);
 
+    // Add outlines
     hbBack.setOutlineThickness(1.f); hbBack.setOutlineColor(sf::Color::Black);
     hbBackLeft.setOutlineThickness(1.f); hbBackRight.setOutlineThickness(1.f);
     hbBackLeft.setOutlineColor(sf::Color::Black); hbBackRight.setOutlineColor(sf::Color::Black);
@@ -87,7 +91,7 @@ void EnemyView::loadTextureForType(EnemyType type)
     currentType = type;
     textureInitialized = true;
 
-    // Seuls les Boss sont gérés ici désormais
+    // Only Boss enemies are managed here now
     switch (type) {
         case EnemyType::Boss01:    sprite.setTexture(boss01Texture);      break;
         case EnemyType::Boss02:    sprite.setTexture(boss02Texture);      break;
@@ -116,10 +120,12 @@ void EnemyView::drawHealthBar(sf::RenderWindow& window, const Enemy& enemy)
     float yOffset = enemy.getRadius() + 10.f;
     sf::Vector2f pos(basePos.x - hpWidth / 2.f, basePos.y - yOffset);
 
+    // Set background health bar positions
     hbBack.setPosition(pos.x + hpRadius, pos.y);
     hbBackLeft.setPosition(pos.x, pos.y);
     hbBackRight.setPosition(pos.x + hpWidth - 2 * hpRadius, pos.y);
 
+    // Set foreground health bar positions
     float fillWidth = (hpWidth - 2 * hpRadius) * ratio;
     hbFront.setSize({ fillWidth, hpHeight });
     hbFront.setPosition(pos.x + hpRadius, pos.y);
@@ -129,6 +135,7 @@ void EnemyView::drawHealthBar(sf::RenderWindow& window, const Enemy& enemy)
         hbFrontRight.setPosition(pos.x + hpRadius + fillWidth - hpRadius, pos.y);
     }
 
+    // Health bar color based on health percentage
     sf::Color color;
     if (ratio > 0.6f) color = sf::Color(80, 220, 100);
     else if (ratio > 0.3f) color = sf::Color(240, 200, 80);
@@ -136,7 +143,10 @@ void EnemyView::drawHealthBar(sf::RenderWindow& window, const Enemy& enemy)
 
     hbFront.setFillColor(color); hbFrontLeft.setFillColor(color); hbFrontRight.setFillColor(color);
 
+    // Draw background health bar
     window.draw(hbBackLeft); window.draw(hbBack); window.draw(hbBackRight);
+    
+    // Draw foreground health bar if there's health left
     if (ratio > 0.f) {
         window.draw(hbFrontLeft); window.draw(hbFront);
         if (fillWidth > hpRadius) window.draw(hbFrontRight);
@@ -144,17 +154,14 @@ void EnemyView::drawHealthBar(sf::RenderWindow& window, const Enemy& enemy)
 }
 
 // ======================================================
-// RENDER (LOGIQUE COMPLÈTE)
-// ======================================================
-// ======================================================
-// RENDER (LOGIQUE COMPLÈTE)
+// RENDER (COMPLETE LOGIC)
 // ======================================================
 void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::Vector2f& playerPos)
 {
     EnemyType type = enemy.getType();
 
     // =========================================================
-    // CAS 1 : ENNEMIS ANIMÉS (BASIC, FAST, TANK)
+    // CASE 1: ANIMATED ENEMIES (BASIC, FAST, TANK)
     // =========================================================
     if (type == EnemyType::Basic ||
         type == EnemyType::Fast  ||
@@ -167,6 +174,7 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
 
         DirectionData* dirData = &anims.front;
 
+        // Determine direction based on velocity
         if (std::abs(v.x) > std::abs(v.y)) {
             dirData = (v.x > 0) ? &anims.right : &anims.left;
         } else {
@@ -174,6 +182,7 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
             else if (v.y < 0) dirData = &anims.back;
         }
 
+        // Calculate animation frame
         int frameIndex = 0;
         if (isMoving && dirData->frameCount > 1) {
             float time = globalClock.getElapsedTime().asSeconds();
@@ -182,6 +191,7 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
 
         sprite.setTexture(dirData->texture);
 
+        // Calculate texture rectangle
         frameWidth  = dirData->texture.getSize().x / dirData->cols;
         int rows    = (dirData->frameCount + dirData->cols - 1) / dirData->cols;
         frameHeight = dirData->texture.getSize().y / std::max(1, rows);
@@ -193,14 +203,14 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
         sprite.setTextureRect({ col * frameWidth, row * frameHeight, frameWidth, frameHeight });
     }
     // =========================================================
-    // CAS 2 : BOSS (CORRIGÉ)
+    // CASE 2: BOSS (FIXED)
     // =========================================================
     else
     {
-        // RESET total pour éviter héritage précédent
+        // Reset texture rectangle to avoid previous inheritance
         sprite.setTextureRect(sf::IntRect());
 
-        // FORCE la texture du boss
+        // Force boss texture
         const sf::Texture* tex = nullptr;
         switch (type) {
             case EnemyType::Boss01:    tex = &boss01Texture; break;
@@ -213,13 +223,13 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
         if (tex) {
             sprite.setTexture(*tex, true);
 
-            // 🔥 RECALCUL OBLIGATOIRE
+            // 🔥 MANDATORY RECALCULATION
             frameWidth  = tex->getSize().x / 4;
             frameHeight = tex->getSize().y;
             sprite.setOrigin(frameWidth / 2.f, frameHeight / 2.f);
         }
 
-        // Direction
+        // Direction calculation for boss
         sf::Vector2f v = enemy.getVelocity();
         int dirIndex = 0;
 
@@ -249,7 +259,7 @@ void EnemyView::render(sf::RenderWindow& window, const Enemy& enemy, const sf::V
     window.draw(sprite);
 
     // =========================================================
-    // HEALTH BAR
+    // HEALTH BAR (only if close to player)
     // =========================================================
     sf::Vector2f d = enemy.getPosition() - playerPos;
     if ((d.x * d.x + d.y * d.y) < (150.f * 150.f) && enemy.isAlive())

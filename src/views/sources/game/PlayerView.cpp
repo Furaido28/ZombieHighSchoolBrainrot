@@ -10,19 +10,19 @@
 PlayerView::PlayerView(GameController& controller): controller(controller) {
     // --- Textures ---
     if (!textureIdle.loadFromFile("assets/animation/player/player_sheet.png"))
-        std::cerr << "Erreur player_sheet.png\n";
+        std::cerr << "Error player_sheet.png\n";
 
     if (!textureLeft.loadFromFile("assets/animation/player/player_walking_left.png"))
-        std::cerr << "Erreur walking_left.png\n";
+        std::cerr << "Error walking_left.png\n";
 
     if (!textureRight.loadFromFile("assets/animation/player/player_walking_right.png"))
-        std::cerr << "Erreur walking_right.png\n";
+        std::cerr << "Error walking_right.png\n";
 
     if (!textureDown.loadFromFile("assets/animation/player/player_walking_front.png"))
-        std::cerr << "Erreur walking_front.png\n";
+        std::cerr << "Error walking_front.png\n";
 
     if (!textureUp.loadFromFile("assets/animation/player/player_walking_back.png"))
-        std::cerr << "Erreur walking_back.png\n";
+        std::cerr << "Error walking_back.png\n";
 
     textureLeft.setSmooth(true);
     textureRight.setSmooth(true);
@@ -31,7 +31,7 @@ PlayerView::PlayerView(GameController& controller): controller(controller) {
 
     sprite.setTexture(textureIdle);
 
-    // --- HUD ---
+    // --- HUD (Heads-Up Display) ---
     hpBack.setSize({200.f, 20.f});
     hpBack.setFillColor(sf::Color(30, 30, 30, 220));
 
@@ -44,7 +44,7 @@ PlayerView::PlayerView(GameController& controller): controller(controller) {
     hpOutline.setOutlineColor(sf::Color::Black);
 
     if (!hudFont.loadFromFile("assets/fonts/arial.ttf"))
-        std::cerr << "Erreur police HUD (healthbar)\n";
+        std::cerr << "Error HUD font (healthbar)\n";
 
     hpText.setFont(hudFont);
     hpText.setCharacterSize(14);
@@ -52,12 +52,12 @@ PlayerView::PlayerView(GameController& controller): controller(controller) {
     hpText.setStyle(sf::Text::Bold);
 
     if (!heartTexture.loadFromFile("assets/ui/heart.png"))
-        std::cerr << "Erreur heart.png\n";
+        std::cerr << "Error heart.png\n";
 
     heartTexture.setSmooth(true);
     heartSprite.setTexture(heartTexture);
 
-    // Taille du cœur
+    // Heart size
     float targetHeartSize = 18.f;
 
     sf::Vector2u texSize = heartTexture.getSize();
@@ -82,7 +82,7 @@ PlayerView::PlayerView(GameController& controller): controller(controller) {
 
     // --- WALK SOUND ---
     if (!walkBuffer.loadFromFile("assets/sound/sound_effect/bruit-de-pas.ogg")) {
-        std::cerr << "Erreur sound_effect/bruit-de-pas.ogg\n";
+        std::cerr << "Error sound_effect/bruit-de-pas.ogg\n";
     }
 
     walkSound.setBuffer(walkBuffer);
@@ -121,7 +121,6 @@ void PlayerView::playAnimation(
     sprite.setScale(scale, scale);
     sprite.setOrigin(frameSize / 2.f, frameSize / 2.f);
 }
-
 
 void PlayerView::renderWorld(sf::RenderWindow& window, const Player& player) {
     sprite.setPosition(player.getPosition());
@@ -178,7 +177,7 @@ void PlayerView::renderWorld(sf::RenderWindow& window, const Player& player) {
         currentFrame = 0;
     }
 
-    // Feedback dégâts
+    // Damage feedback
     if (!player.isAlive())
         sprite.setColor(sf::Color(255, 255, 255, 80));
     else if (player.isInvincible())
@@ -218,33 +217,33 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int w
     else
         hpFront.setFillColor(sf::Color::Red);
 
-    // Texte HP
+    // HP Text
     hpText.setString(
         std::to_string((int)player.getHealth()) + " / " +
         std::to_string((int)player.getMaxHealth())
     );
 
-    // Origine du texte : bas-centre
+    // Text origin: bottom-center
     sf::FloatRect textBounds = hpText.getLocalBounds();
     hpText.setOrigin(
         textBounds.left + textBounds.width / 2.f,
         textBounds.top + textBounds.height
     );
 
-    // Espace entre texte et barre
+    // Spacing between text and bar
     float textSpacing = 8.f;
 
-    // Position du texte (au-dessus de la barre)
+    // Text position (above bar)
     hpText.setPosition(
         pos.x + barWidth / 2.f,
         pos.y - textSpacing
     );
 
-    // --- CŒUR ---
+    // --- HEART ---
     float heartSpacing = 6.f;
     sf::FloatRect heartBounds = heartSprite.getGlobalBounds();
 
-    // Position du cœur à gauche du texte
+    // Heart position left of text
     heartSprite.setPosition(
         hpText.getGlobalBounds().left - heartBounds.width - heartSpacing,
         hpText.getGlobalBounds().top +
@@ -253,14 +252,14 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int w
     );
 
     // =========================
-    // TEXTE DE VAGUE / TIMERS
+    // WAVE / TIMERS TEXT
     // =========================
     auto wm = controller.getWaveManager();
 
     if (wm && !wm->isFinished()) {
 
         // =========================
-        // TEXTE DE VAGUE (uniquement en jeu)
+        // WAVE TEXT (only in-game)
         // =========================
         if (!(wm->getCurrentWave() == 1 && wm->getTimeBeforeFirstWave() > 0.f)) {
 
@@ -335,7 +334,7 @@ void PlayerView::renderHUD(sf::RenderWindow& window, const Player& player, int w
     }
 
     // =========================
-    // HUD DRAW (toujours à la fin)
+    // HUD DRAW (always at the end)
     // =========================
     window.draw(hpBack);
     window.draw(hpFront);

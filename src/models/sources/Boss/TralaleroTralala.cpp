@@ -5,16 +5,14 @@
 #include "models/headers/Boss/phases/BossPhaseFrenzy.h"
 
 TralaleroTralala::TralaleroTralala(const sf::Vector2f& pos)
-    : Boss(pos)
-{
+    : Boss(pos) {
     maxHealth = 400.f;
     health = maxHealth;
     attackCooldown = 1.2f;
 }
 
 std::unique_ptr<BossPhase>
-TralaleroTralala::createPhase(int phaseIndex)
-{
+TralaleroTralala::createPhase(int phaseIndex) {
     switch (phaseIndex) {
         case 0: return std::make_unique<BossPhaseNormal>();
         case 1: return std::make_unique<BossPhaseEnraged>();
@@ -22,8 +20,7 @@ TralaleroTralala::createPhase(int phaseIndex)
     }
 }
 
-int TralaleroTralala::getDamage() const
-{
+int TralaleroTralala::getDamage() const{
     return currentPhase ? currentPhase->getDamage() : 20;
 }
 

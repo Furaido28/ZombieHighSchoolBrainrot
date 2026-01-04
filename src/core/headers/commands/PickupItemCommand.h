@@ -1,24 +1,26 @@
 #pragma once
 
-#include "../Command.h"
-#include "models/headers/Player.h"
-#include "models/headers/Item.h"
-#include <vector>
+#include "core/headers/Command.h"
 
-#include "controllers/headers/GameController.h"
+class Player;
+class WorldItemSystem;
+class GameController;
 
-struct WorldItem;
-
+// Command to handle the action of picking up items from the ground
 class PickupItemCommand : public Command {
 public:
-    PickupItemCommand(Player& player,
-                      std::vector<WorldItem>& worldItems, GameController& controller)
-        : player(player), worldItems(worldItems), controller(controller) {}
+    // Constructor
+    PickupItemCommand(
+        Player& player,
+        WorldItemSystem& worldItemSystem,
+        GameController& game
+    );
 
+    // Executes the logic: checks for nearby items and adds them to inventory
     void execute(float dt) override;
 
 private:
-    Player& player;
-    std::vector<WorldItem>& worldItems;
-    GameController& controller;
+    Player& player;                   // The entity picking up the item
+    WorldItemSystem& worldItemSystem; // Manages items on the ground
+    GameController& game;             // Reference to main game controller (for notifications/logic)
 };

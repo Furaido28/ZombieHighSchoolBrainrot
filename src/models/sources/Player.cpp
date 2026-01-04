@@ -1,19 +1,21 @@
 #include "../headers/Player.h"
-#include <algorithm> // Pour std::max
+#include <algorithm> // For std::max
 
-// Constructeur : Initialisation des variables
+// Constructor: initialize player default values
 Player::Player()
     : position(0.f, 0.f),
       size(48.f, 48.f),
       currentDirection(Direction::Down),
       moving(false),
-      attackCooldownTimer(0.f) // Init du cooldown à 0
+      attackCooldownTimer(0.f) // Attack cooldown starts ready
 {
     maxHealth = 100;
     health = maxHealth;
 }
 
+// Applies damage to the player
 void Player::takeDamage(int amount){
+    // Ignore damage if player is invincible
     if (invincibilityTimer > 0.f)
         return;
 
@@ -21,42 +23,51 @@ void Player::takeDamage(int amount){
     if (health < 0)
         health = 0;
 
-    invincibilityTimer = 3.f; // 3s d’invincibilité
+    // Start invincibility frames
+    invincibilityTimer = 1.5f;
 }
 
+// Returns current health
 int Player::getHealth() const {
     return health;
 }
 
+// Returns maximum health
 int Player::getMaxHealth() const {
     return maxHealth;
 }
 
+// Sets health directly (use carefully)
 void Player::setHealth(int value) {
     health = value;
 }
 
+// Checks if the player is currently invincible
 bool Player::isInvincible() const{
     return invincibilityTimer > 0.f;
 }
 
+// Checks if the player is alive
 bool Player::isAlive() const {
     return health > 0;
 }
 
+// Moves the player by a delta vector
 void Player::move(const sf::Vector2f& delta) {
     position += delta;
 }
 
+// Sets the absolute position
 void Player::setPosition(float x, float y) {
     position = sf::Vector2f(x, y);
 }
 
+// Sets player size
 void Player::setSize(float w, float h) {
     size = sf::Vector2f(w, h);
 }
 
-// Mise à jour : Gère les timers (Invincibilité + Attaque)
+// Update timers (invincibility and attack cooldown)
 void Player::update(float dt) {
     if (invincibilityTimer > 0.f)
         invincibilityTimer -= dt;
@@ -65,18 +76,22 @@ void Player::update(float dt) {
         attackCooldownTimer -= dt;
 }
 
+// Returns player position
 sf::Vector2f Player::getPosition() const {
     return position;
 }
 
+// Returns player size
 sf::Vector2f Player::getSize() const {
     return size;
 }
 
+// Returns collision radius (used for circular checks)
 float Player::getRadius() const {
     return std::min(size.x, size.y) * 0.5f;
 }
 
+// Returns player bounding box
 sf::FloatRect Player::getGlobalBounds() const {
     float halfWidth = size.x / 2.f;
     float halfHeight = size.y / 2.f;
@@ -89,7 +104,7 @@ sf::FloatRect Player::getGlobalBounds() const {
     );
 }
 
-// --- GESTION DE LA DIRECTION ---
+// --- DIRECTION HANDLING ---
 void Player::setDirection(Direction dir) {
     currentDirection = dir;
 }
@@ -102,48 +117,53 @@ void Player::setMoving(bool m) { moving = m; }
 
 bool Player::isMoving() const { return moving; }
 
+// Inventory access
 Inventory &Player::getInventory() { return inventory; }
 
-// --- NOUVELLE LOGIQUE D'ATTAQUE ---
+const Inventory& Player::getInventory() const {
+    return inventory;
+}
+
+// --- ATTACK LOGIC ---
 AttackInfo Player::tryAttack() {
     AttackInfo info;
-    info.valid = false; // Par défaut, pas d'attaque
+    info.valid = false; // No attack by default
 
+    // Attack must be requested explicitly
     if (!attackRequested) return info;
 
     attackRequested = false;
 
-    // 1. Vérification du Cooldown
+    // 1. Cooldown check
     if (attackCooldownTimer > 0.f) {
         return info;
     }
 
-    // 2. Récupération de l'arme depuis l'inventaire
+    // 2. Get selected item from inventory
     int slotIndex = inventory.getSelectedSlot();
     auto& slots = inventory.getSlots();
 
-    // Vérifie si le slot est valide et contient un item
+    // Check if slot is valid and contains an item
     if (slotIndex < 0 || slotIndex >= (int)slots.size() || !slots[slotIndex].has_value()) {
-        return info; // Pas d'item en main
+        return info;
     }
 
-    // Référence à l'item
     const Item& item = slots[slotIndex].value();
 
-    // Vérifie si c'est bien une arme
+    // Check if the item is a weapon
     if (item.type != ItemType::Weapon) {
         return info;
     }
 
-    // 3. Initialisation de l'attaque valide
+    // 3. Valid attack setup
     info.valid = true;
     info.damage = item.damage;
     info.isProjectile = item.isProjectile;
 
-    // On applique le cooldown de l'arme
+    // Apply weapon cooldown
     attackCooldownTimer = item.cooldown;
 
-    // 4. Calcul du vecteur de direction (Où regarde le joueur ?)
+    // 4. Compute direction vector based on player facing
     sf::Vector2f dirVec(0.f, 0.f);
     switch (currentDirection) {
         case Direction::Up:    dirVec = {0.f, -1.f}; break;
@@ -152,33 +172,27 @@ AttackInfo Player::tryAttack() {
         case Direction::Right: dirVec = {1.f, 0.f};  break;
     }
 
-    // 5. Configuration selon le type d'attaque
+    // 5. Configure attack type
     if (info.isProjectile) {
-        // --- PROJECTILE ---
-        // Le tir part du centre du joueur
+        // --- PROJECTILE ATTACK ---
         info.startPosition = position;
         info.velocity = dirVec * item.projectileSpeed;
     }
     else {
-        // --- MELEE (Corps à corps) ---
-        // On définit une zone rectangulaire devant le joueur
-        float reach = item.range;  // La "longueur" du coup
-        float width = 40.f;        // La "largeur" du coup (peut être hardcodé ou dans l'item)
+        // --- MELEE ATTACK ---
+        float reach = item.range;
+        float width = 40.f;
 
-        // Calcul du centre de la Hitbox d'attaque
-        // On part du centre du joueur et on avance dans la direction
-        // Distance = (Demi-taille joueur) + (Demi-portée arme) pour que la hitbox soit collée devant
+        // Compute hitbox center in front of the player
         float offset = (std::max(size.x, size.y) / 2.f) + (reach / 2.f);
         sf::Vector2f hitCenter = position + (dirVec * offset);
 
-        // Dimensions de la boîte selon l'orientation
+        // Hitbox size depends on attack direction
         float boxW, boxH;
         if (currentDirection == Direction::Up || currentDirection == Direction::Down) {
-            // Attaque verticale : la hitbox est large (width) et haute (reach)
             boxW = width;
             boxH = reach;
         } else {
-            // Attaque horizontale : la hitbox est large (reach) et haute (width)
             boxW = reach;
             boxH = width;
         }
@@ -193,16 +207,20 @@ AttackInfo Player::tryAttack() {
 
     return info;
 }
+
+// Adds movement input (can be accumulated)
 void Player::addMovement(const sf::Vector2f& dir) {
     movementIntent += dir;
 }
 
+// Returns and resets movement input
 sf::Vector2f Player::consumeMovement() {
     sf::Vector2f result = movementIntent;
     movementIntent = {0.f, 0.f};
     return result;
 }
 
+// Requests an attack for the next update
 void Player::requestAttack() {
     attackRequested = true;
 }

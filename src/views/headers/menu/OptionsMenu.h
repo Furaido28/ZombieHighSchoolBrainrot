@@ -5,36 +5,38 @@
 
 class OptionsMenu {
 public:
-    OptionsMenu(float width, float height);
+    OptionsMenu(float width, float height); // Constructor - initialize options menu
 
-    void handleInput(sf::Keyboard::Key key);
-    void handleMouse(const sf::Event& event, sf::RenderWindow& window);
+    void handleInput(sf::Keyboard::Key key); // Handle keyboard input
+    void handleMouse(const sf::Event& event, sf::RenderWindow& window); // Handle mouse input
 
-    void draw(sf::RenderWindow& window);
-    int getSelectedIndex() const;
+    void draw(sf::RenderWindow& window); // Draw the options menu
+    int getSelectedIndex() const; // Get current selection
 
+    // Check if back button was clicked
     bool buttonBackClicked(const sf::Event& event, sf::RenderWindow& window) const;
+
 private:
-    void updateLayout();
+    void updateLayout(); // Update positions and sizes
 
-    float windowWidth;
-    float windowHeight;
+    float windowWidth; // Store window width
+    float windowHeight; // Store window height
 
-    sf::Font font;
-    std::vector<sf::Text> labels;
-    std::vector<Slider> sliders;
+    sf::Font font; // Font for text
+    std::vector<sf::Text> labels; // Text labels for options
+    std::vector<Slider> sliders; // Slider controls
 
-    sf::Text backText;
-    int selectedIndex;
-    int activeSlider;
+    sf::Text backText; // Back button text
+    int selectedIndex; // Currently selected item
+    int activeSlider; // Currently active slider
 
-    int hoveredSlider;
+    int hoveredSlider; // Slider being hovered
 
-    sf::RectangleShape backRect;
+    sf::RectangleShape backRect; // Back button shape
 
-    sf::Texture backgroundTexture;
-    sf::Sprite backgroundSprite;
+    sf::Texture backgroundTexture; // Menu background
+    sf::Sprite backgroundSprite; // Background image
 
+    // Check if mouse is over back button
     bool isMouseOnBack(sf::Vector2f mousePos) const;
 };
-

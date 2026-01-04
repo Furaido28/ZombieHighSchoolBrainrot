@@ -1,138 +1,176 @@
 #pragma once
 
+/* ==========================================================
+ * Standard & SFML Includes
+ * ========================================================== */
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <vector>
 #include <map>
 #include <string>
+
+/* ==========================================================
+ * Controllers
+ * ========================================================== */
+#include "CombatController.h"
+#include "EnemyController.h"
+#include "InputController.h"
+#include "ItemController.h"
+#include "LuckyBoxController.h"
+#include "PlayerController.h"
+#include "LevelController.h" // Handles level progression & ending logic
+
+/* ==========================================================
+ * Models
+ * ========================================================== */
 #include "models/headers/Player.h"
 #include "models/headers/TileMap.h"
-#include "../../models/headers/Enemy.h"
-#include "../../models/headers/Boss/Boss.h"
-#include "core/headers/InputHandler.h"
+#include "models/headers/Enemy.h"
+#include "models/headers/Boss/Boss.h"
 #include "models/headers/Item.h"
+
+/* ==========================================================
+ * Views
+ * ========================================================== */
+#include "views/headers/game/PlayerView.h"
 #include "views/headers/game/EnemyView.h"
 #include "views/headers/game/MapView.h"
+
+/* ==========================================================
+ * Core Systems
+ * ========================================================== */
+#include "core/headers/InputHandler.h"
 #include "core/headers/WaveManager.h"
-#include "views/headers/game/PlayerView.h"
+#include "core/headers/combat/AttackSystem.h"
+#include "core/headers/combat/ProjectileSystem.h"
+#include "core/headers/items/WorldItemSystem.h"
 
-// Structure simple pour gérer un projectile en vol
-struct Projectile {
-    sf::Vector2f position;
-    sf::Vector2f velocity;
-    int damage;
-    float distanceTraveled = 0.f;
-    float maxRange;
-    sf::CircleShape shape; // Visuel simple (bille blanche)
-    bool active = true;
-};
-
-struct WorldItem {
-    Item item;
-    sf::Vector2f position;
-    float radius = 40.f;
-
-    sf::FloatRect getBounds() const {
-        return {
-            position.x - radius,
-            position.y - radius,
-            radius * 2.f,
-            radius * 2.f
-        };
-    }
-};
-
+/* ==========================================================
+ * GameController
+ * Central class coordinating the game loop (MVC style)
+ * ========================================================== */
 class GameController {
 public:
+    /* =========================
+     * Constructors
+     * ========================= */
     GameController();
+
+    /* =========================
+     * Main Game Loop
+     * ========================= */
     void handleEvent(const sf::Event& event);
     void update(float dt);
     void render(sf::RenderWindow& window);
 
-    void givePotionToPlayer();
-    const sf::Texture& getItemTexture(const std::string& name) const { return itemTextures.at(name); };
-    bool isInventoryExpanded() const { return tabPressed; };
+    /* =========================
+     * Player Accessors
+     * ========================= */
+    bool isInventoryExpanded() const {
+        return player.getInventory().isExpanded();
+    }
 
-    Player& getPlayer() { return player; };
+    Player& getPlayer() { return player; }
+    const Player& getPlayer() const { return player; }
     PlayerView& getPlayerView() { return playerView; }
 
-    int getWaveNumber() const { return waveManager->getCurrentWave(); };
-    float getWaveTimeLeft() const { return waveManager->getTimeLeft(); };
+    /* =========================
+     * Wave / Combat Information
+     * ========================= */
+    int getWaveNumber() const {
+        return waveManager ? waveManager->getCurrentWave() : 0;
+    }
 
+    float getWaveTimeLeft() const {
+        return waveManager ? waveManager->getTimeLeft() : 0.f;
+    }
+
+    WaveManager* getWaveManager() { return waveManager.get(); }
+    const WaveManager* getWaveManager() const { return waveManager.get(); }
+
+    /* =========================
+     * Camera
+     * ========================= */
     const sf::View& getGameView() const { return gameView; }
+
+    /* =========================
+     * Level Logic (delegated to LevelController)
+     * ========================= */
     void onKeyFragmentPicked();
     bool isLevelEnding() const;
     float getLevelEndRemainingTime() const;
-    void spawnKeyFragmentAt(const sf::Vector2f& pos);
-    WaveManager* getWaveManager(){return waveManager.get();}
-    const WaveManager* getWaveManager()const {return waveManager.get();}
-    void openLuckyBox(int itemIndex);
+    void spawnKeyFragmentAt(const sf::Vector2f& position);
 
+    /* =========================
+     * Gameplay Helpers
+     * ========================= */
+    void openLuckyBox(int itemIndex);
     bool isPlayerDead() const;
+    bool hasKeyFragment() const;
+    bool isOscarDead()const;
 
 private:
-    int currentLevel = 0;
-    std::vector<std::string> levelMaps = {
-        "assets/maps/map1.txt",
-        "assets/maps/map2.txt",
-        "assets/maps/map3.txt",
-        "assets/maps/map4.txt"
-    };
-    void initLevel(int levelIndex);
-    void goToNextLevel();
-    // Méthodes internes de collision
-    bool isPositionFree(const sf::FloatRect& bbox) const;
-    void placePlayerAtFirstFreeTile();
+    /* ======================================================
+     * Controllers (Game Logic)
+     * ====================================================== */
+    std::unique_ptr<PlayerController> playerController;
+    std::unique_ptr<InputController> inputController;
+    std::unique_ptr<CombatController> combatController;
+    std::unique_ptr<EnemyController> enemyController;
+    std::unique_ptr<ItemController> itemController;
+    std::unique_ptr<LuckyBoxController> luckyBoxController;
+    std::unique_ptr<LevelController> levelController;
 
-    // Helper: On demande la taille directement au Player (MVC)
-    // Plus besoin de stocker "radius" ici, c'est le Player qui sait sa taille.
-    sf::Vector2f playerSize() const { return player.getSize(); }
+    /* ======================================================
+     * World Systems
+     * ====================================================== */
+    WorldItemSystem worldItemSystem;
+    std::unique_ptr<WaveManager> waveManager;
 
-    //textures
-    std::map<std::string, sf::Texture> itemTextures;
-
+    /* ======================================================
+     * Player & World State
+     * ====================================================== */
     Player player;
     PlayerView playerView;
+
     TileMap map;
-    sf::View gameView;
     MapView mapView;
+
+    sf::View gameView;
+
     std::vector<std::unique_ptr<Enemy>> enemies;
     EnemyView enemyView;
 
-    std::unique_ptr<WaveManager> waveManager;
-    std::vector<WorldItem> worldItems;
+    /* ======================================================
+     * Combat Timing
+     * ====================================================== */
     float attackCooldown = 0.4f;
     float attackTimer = 0.f;
 
-    //Command
+    /* ======================================================
+     * Input / Command System
+     * ====================================================== */
     bool tabPressed = false;
 
     InputHandler inputHandler;
     std::unique_ptr<Command> nextSlotCommand;
     std::unique_ptr<Command> prevSlotCommand;
 
-    // --- NOUVEAU : Liste des projectiles ---
-    std::vector<Projectile> projectiles;
+    /* ======================================================
+     * Collision & Utility Methods
+     * ====================================================== */
 
-    // --- NOUVEAU : VISUALISATION DEBUG ---
-    sf::RectangleShape debugMeleeBox;   // Le rectangle rouge du coup
-    float debugMeleeTimer = 0.f;        // Combien de temps il reste affiché
-    sf::CircleShape debugProjectileRange; // Le cercle bleu de portée
-    bool showProjectileRange = false;     // Doit-on afficher le cercle ?
-    bool levelEnding = false;
-    sf::Clock levelEndClock;
-    float levelEndDuration = 10.f;
+    // Returns the player's bounding size (MVC-compliant)
+    sf::Vector2f playerSize() const {
+        return player.getSize();
+    }
 
-    // =========================
-    // LUCKYBOX SCREAMER EFFECT
-    // =========================
-    bool screamerActive = false;
-    float screamerTimer = 0.f;
-    float screamerDuration = 0.6f; // durée du jumpscare
+    // Checks if a bounding box is free of collisions
+    bool isPositionFree(const sf::FloatRect& boundingBox) const;
 
-    sf::Texture screamerTexture;
-    sf::Sprite screamerSprite;
-
-    sf::SoundBuffer screamerSoundBuffer;
-    sf::Sound screamerSound;
+    /* ======================================================
+     * Level Progression State
+     * ====================================================== */
+    bool keyFragmentCollected = false;
+    bool oscarDead = false;
 };

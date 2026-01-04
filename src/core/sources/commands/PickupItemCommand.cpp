@@ -1,60 +1,34 @@
 #include "core/headers/commands/PickupItemCommand.h"
-#include "controllers/headers/GameController.h"
-#include <SFML/System/Vector2.hpp>
-#include <cmath>
 
-static bool circlesIntersect(
-    const sf::Vector2f& aPos, float aRadius,
-    const sf::Vector2f& bPos, float bRadius)
-{
-    sf::Vector2f d = aPos - bPos;
-    float distSq = d.x * d.x + d.y * d.y;
-    float r = aRadius + bRadius;
-    return distSq <= r * r;
+#include <iostream>
+
+#include "models/headers/Player.h"
+#include "core/headers/items/WorldItemSystem.h"
+#include "controllers/headers/GameController.h"
+
+// Constructor: stores references to required systems
+PickupItemCommand::PickupItemCommand(
+    Player& p,
+    WorldItemSystem& wis,
+    GameController& g
+) : player(p), worldItemSystem(wis), game(g) {
 }
 
-void PickupItemCommand::execute(float)
-{
-    for (auto it = worldItems.begin(); it != worldItems.end();) {
+// Executes the pickup item command
+void PickupItemCommand::execute(float) {
+    int index = -1;
 
-        sf::FloatRect bounds = it->item.sprite.getGlobalBounds();
-        sf::Vector2f itemCenter(
-            bounds.left + bounds.width / 2.f,
-            bounds.top  + bounds.height / 2.f
-        );
+    // Try to pick up an item from the world
+    PickupResult result =
+        worldItemSystem.tryPickup(player, index);
 
-        if (circlesIntersect(
-            player.getPosition(), player.getRadius(),
-            itemCenter, it->radius))
-        {
-            //===================
-            // --- LUCKY BOX ---
-            //===================
-            if (it->item.type == ItemType::LuckyBox) {
-                int index = std::distance(worldItems.begin(), it);
-                controller.openLuckyBox(index);
-                return;
-            }
+    // If the picked item is a lucky box, trigger special behavior
+    if (result == PickupResult::LuckyBoxPicked) {
+        game.openLuckyBox(index);
+    }
 
-            bool picked = false;
-
-            if (it->item.type == ItemType::KeyFragment)
-                picked = player.getInventory().addKeyFragment(it->item);
-            if (picked) {
-                if (it->item.type == ItemType::KeyFragment) {
-                    controller.onKeyFragmentPicked();
-                }
-                it = worldItems.erase(it);
-                continue;
-            }
-            else
-                picked = player.getInventory().addItem(it->item);
-
-            if (picked) {
-                it = worldItems.erase(it);
-                continue;
-            }
-        }
-        ++it;
+    if (result == PickupResult::KeyFragment) {
+        game.onKeyFragmentPicked();
+        std::cout << "[DEBUG] KEY PICKED\n";
     }
 }
