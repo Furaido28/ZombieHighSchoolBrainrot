@@ -12,11 +12,13 @@
 
 class AttackSystem {
 public:
+    // Main function to process an attack
+    // It checks if enemies are hit
     static void handleAttack(
-        const AttackInfo& attack,
-        std::vector<std::unique_ptr<Enemy>>& enemies,
-        ProjectileSystem& projectileSystem,
-        sf::RectangleShape& debugMeleeBox,
-        float& debugMeleeTimer
+        const AttackInfo& attack,                       // Data regarding the attack (damage, range, type)
+        std::vector<std::unique_ptr<Enemy>>& enemies,   // List of active enemies to check for hits
+        ProjectileSystem& projectileSystem,             // System to spawn projectiles (if ranged)
+        sf::RectangleShape& debugMeleeBox,              // Visual shape to see the melee hitbox
+        float& debugMeleeTimer                          // Timer to keep the box visible briefly
     );
 };
