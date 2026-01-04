@@ -81,7 +81,7 @@ void LuckyBoxController::openLuckyBox(int itemIndex) {
     switch (outcome) {
         case LuckyOutcome::Heal: {
             int hp = player.getHealth();
-            player.setHealth(std::min(100, hp + 50));
+            player.setHealth(std::min(250, hp + 100));
             break;
         }
         case LuckyOutcome::Medkit:
@@ -156,7 +156,7 @@ Item LuckyBoxController::makeBook() const {
     book.type = ItemType::Weapon;
     book.damage = 35;
     book.range = 90.f;
-    book.cooldown = 0.8f;
+    book.cooldown = 0.65f;
     book.isProjectile = false;
     book.sprite.setTexture(itemController.getTexture("book"));
     return book;
@@ -193,7 +193,7 @@ Item LuckyBoxController::makeDeo() const {
     deo.type = ItemType::Weapon;
     deo.damage = 0;
     deo.range = 150.f;
-    deo.cooldown = 10000000.f;
+    deo.cooldown = 2.f;
     deo.isProjectile = false;
     deo.sprite.setTexture(itemController.getTexture("deo"));
     return deo;

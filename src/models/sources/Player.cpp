@@ -9,7 +9,7 @@ Player::Player()
       moving(false),
       attackCooldownTimer(0.f) // Attack cooldown starts ready
 {
-    maxHealth = 100;
+    maxHealth = 250;
     health = maxHealth;
 }
 
