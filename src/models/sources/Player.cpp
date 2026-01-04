@@ -104,6 +104,10 @@ bool Player::isMoving() const { return moving; }
 
 Inventory &Player::getInventory() { return inventory; }
 
+const Inventory& Player::getInventory() const {
+    return inventory;
+}
+
 // --- NOUVELLE LOGIQUE D'ATTAQUE ---
 AttackInfo Player::tryAttack() {
     AttackInfo info;
@@ -193,6 +197,7 @@ AttackInfo Player::tryAttack() {
 
     return info;
 }
+
 void Player::addMovement(const sf::Vector2f& dir) {
     movementIntent += dir;
 }

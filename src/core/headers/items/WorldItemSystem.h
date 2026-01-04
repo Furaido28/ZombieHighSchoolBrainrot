@@ -8,6 +8,12 @@ class TileMap;
 class Player;
 class GameController;
 
+enum class PickupResult {
+    None,
+    ItemPicked,
+    LuckyBoxPicked
+};
+
 class WorldItemSystem {
 public:
     WorldItemSystem() = default;
@@ -26,7 +32,7 @@ public:
     std::vector<WorldItem>& getItems();
 
     // Essaie de récupérer un item
-    void tryPickup(Player& player, GameController& game);
+    PickupResult tryPickup(Player& player, int& pickedIndex);
 
     bool isLuckyBox(int index) const;
 

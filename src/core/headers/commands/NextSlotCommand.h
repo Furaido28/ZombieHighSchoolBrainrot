@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Command.h"
+#include "models/headers/Inventory.h"
 
 class NextSlotCommand : public Command {
 public:
@@ -10,7 +11,8 @@ public:
     void execute(float) override {
         int maxSlot = tabPressed ? 8 : 2;
         int cur = inv.getSelectedSlot();
-        if (cur < maxSlot) inv.selectSlot(cur + 1);
+        if (cur < maxSlot)
+            inv.selectSlot(cur + 1);
     }
 
 private:

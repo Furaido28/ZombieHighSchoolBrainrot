@@ -8,8 +8,16 @@ PickupItemCommand::PickupItemCommand(
     Player& p,
     WorldItemSystem& wis,
     GameController& g
-) : player(p), worldItemSystem(wis), game(g) {}
+) : player(p), worldItemSystem(wis), game(g) {
+}
 
 void PickupItemCommand::execute(float) {
-    worldItemSystem.tryPickup(player, game);
+    int index = -1;
+
+    PickupResult result =
+        worldItemSystem.tryPickup(player, index);
+
+    if (result == PickupResult::LuckyBoxPicked) {
+        game.openLuckyBox(index);
+    }
 }

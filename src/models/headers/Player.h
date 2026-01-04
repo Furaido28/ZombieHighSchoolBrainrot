@@ -57,6 +57,7 @@ public:
     void setMoving(bool moving);
     bool isMoving() const;
     Inventory& getInventory();
+    const Inventory& getInventory() const;
 
     // --- NOUVEAU : Méthode pour déclencher une attaque ---
     AttackInfo tryAttack();

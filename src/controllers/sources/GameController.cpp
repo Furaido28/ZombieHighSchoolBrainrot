@@ -7,17 +7,7 @@
 #include <algorithm> // Pour std::remove_if
 
 #include "core/headers/LuckyBoxSystem.h"
-#include "core/headers/commands/AttackCommand.h"
-#include "core/headers/commands/MoveDownCommand.h"
-#include "core/headers/commands/MoveLeftCommand.h"
-#include "core/headers/commands/MoveRightCommand.h"
-#include "core/headers/commands/MoveUpCommand.h"
-#include "core/headers/commands/NextSlotCommand.h"
-#include "core/headers/commands/PickupItemCommand.h"
-#include "core/headers/commands/PrevSlotCommand.h"
 #include "core/headers/commands/SelectSlotCommand.h"
-#include "core/headers/commands/SetInventoryExpandedCommand.h"
-#include "core/headers/commands/UseItemCommand.h"
 
 static bool circlesIntersect(
     const sf::Vector2f& aPos, float aRadius,
@@ -36,35 +26,15 @@ GameController::GameController() : player(), playerView(*this) {
     Inventory& inv = player.getInventory();
 
     // =========================
-    // COMMANDES (UNE FOIS)
+    // COMMANDS
     // =========================
-    inputHandler.bind(sf::Keyboard::Z, std::make_unique<MoveUpCommand>(player));
-    inputHandler.bind(sf::Keyboard::Q, std::make_unique<MoveLeftCommand>(player));
-    inputHandler.bind(sf::Keyboard::S, std::make_unique<MoveDownCommand>(player));
-    inputHandler.bind(sf::Keyboard::D, std::make_unique<MoveRightCommand>(player));
-
-    inputHandler.bind(sf::Mouse::Left, std::make_unique<AttackCommand>(player));
-
-    inputHandler.bind(sf::Mouse::Right, std::make_unique<UseItemCommand>(player));
-    inputHandler.bind(sf::Keyboard::E, std::make_unique<PickupItemCommand>(
+    inputController = std::make_unique<InputController>(
         player,
+        player.getInventory(),
         worldItemSystem,
         *this
-        )
     );
 
-    nextSlotCommand = std::make_unique<NextSlotCommand>(inv, tabPressed);
-    prevSlotCommand = std::make_unique<PrevSlotCommand>(inv);
-
-    inputHandler.bind(sf::Keyboard::Num1, std::make_unique<SelectSlotCommand>(inv, 0));
-    inputHandler.bind(sf::Keyboard::Num2, std::make_unique<SelectSlotCommand>(inv, 1));
-    inputHandler.bind(sf::Keyboard::Num3, std::make_unique<SelectSlotCommand>(inv, 2));
-    inputHandler.bind(sf::Keyboard::Num4, std::make_unique<SelectSlotCommand>(inv, 3));
-    inputHandler.bind(sf::Keyboard::Num5, std::make_unique<SelectSlotCommand>(inv, 4));
-    inputHandler.bind(sf::Keyboard::Num6, std::make_unique<SelectSlotCommand>(inv, 5));
-    inputHandler.bind(sf::Keyboard::Num7, std::make_unique<SelectSlotCommand>(inv, 6));
-    inputHandler.bind(sf::Keyboard::Num8, std::make_unique<SelectSlotCommand>(inv, 7));
-    inputHandler.bind(sf::Keyboard::Num9, std::make_unique<SelectSlotCommand>(inv, 8));
 
     // =========================
     // INIT GLOBALE (UNE FOIS)
@@ -124,30 +94,7 @@ GameController::GameController() : player(), playerView(*this) {
 // INPUT EVENTS
 // =========================
 void GameController::handleEvent(const sf::Event& event) {
-    if (event.type == sf::Event::KeyPressed &&
-        event.key.code == sf::Keyboard::Tab)
-    {
-        tabPressed = true;
-    }
-
-    if (event.type == sf::Event::KeyReleased &&
-        event.key.code == sf::Keyboard::Tab)
-    {
-        tabPressed = false;
-    }
-
-    if (event.type == sf::Event::MouseWheelScrolled) {
-        if (event.mouseWheelScroll.delta > 0)
-            nextSlotCommand->execute(0.f);
-        else
-            prevSlotCommand->execute(0.f);
-    }
-
-    if (event.type == sf::Event::KeyReleased &&
-        event.key.code == sf::Keyboard::Tab)
-    {
-        tabPressed = false;
-    }
+    inputController->handleEvent(event);
 }
 
 // =========================
@@ -171,8 +118,8 @@ void GameController::update(float dt) {
     // Reset mouvement
     player.setMoving(false);
 
-    // Commandes
-    inputHandler.handleInput(dt);
+    // Commands
+    inputController->update(dt);
 
     // Update logique
     player.update(dt);

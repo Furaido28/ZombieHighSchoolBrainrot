@@ -18,9 +18,12 @@ public:
     int getSelectedSlot() const;
     void removeRandomItem();
 
+    void setExpanded(bool value) { expanded = value; }
+    bool isExpanded() const { return expanded; }
 
 private:
     std::vector<std::optional<Item>> slots; // 9 slots
     std::vector<Item> keyFragments;          // max 3
     int selectedSlot = 0; // 0,1,2 (hotbar)
+    bool expanded = false;
 };

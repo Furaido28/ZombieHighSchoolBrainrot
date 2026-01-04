@@ -101,7 +101,7 @@ std::vector<WorldItem>& WorldItemSystem::getItems() {
 // =========================
 // TRY TO PICKUP ITEM
 // =========================
-void WorldItemSystem::tryPickup(Player& player, GameController& game) {
+PickupResult WorldItemSystem::tryPickup(Player& player, int& pickedIndex) {
     for (int i = (int)worldItems.size() - 1; i >= 0; --i) {
         WorldItem& wi = worldItems[i];
 
@@ -112,19 +112,22 @@ void WorldItemSystem::tryPickup(Player& player, GameController& game) {
 
         if (dist <= wi.radius) {
 
+            pickedIndex = i;
+
             if (wi.item.type == ItemType::LuckyBox) {
-                game.openLuckyBox(i);
-                return;
+                return PickupResult::LuckyBoxPicked;
             }
 
             if (wi.item.isPickable) {
                 if (player.getInventory().addItem(wi.item)) {
                     worldItems.erase(worldItems.begin() + i);
+                    return PickupResult::ItemPicked;
                 }
-                return;
             }
         }
     }
+
+    return PickupResult::None;
 }
 
 // =========================

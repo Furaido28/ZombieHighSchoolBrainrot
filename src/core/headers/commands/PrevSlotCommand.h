@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Command.h"
+#include "models/headers/Inventory.h"
 
 class PrevSlotCommand : public Command {
 public:

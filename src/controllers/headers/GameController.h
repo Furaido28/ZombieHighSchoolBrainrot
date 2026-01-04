@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 #include <string>
+
+#include "InputController.h"
 #include "models/headers/Player.h"
 #include "models/headers/TileMap.h"
 #include "../../models/headers/Enemy.h"
@@ -29,9 +31,10 @@ public:
 
     void givePotionToPlayer();
     const sf::Texture& getItemTexture(const std::string& name) const { return itemTextures.at(name); };
-    bool isInventoryExpanded() const { return tabPressed; };
+    bool isInventoryExpanded() const { return player.getInventory().isExpanded(); };
 
     Player& getPlayer() { return player; };
+    const Player& getPlayer() const { return player; }
     PlayerView& getPlayerView() { return playerView; }
 
     int getWaveNumber() const { return waveManager->getCurrentWave(); };
@@ -48,10 +51,12 @@ public:
 
     bool isPlayerDead() const;
 
+
 private:
     // NEW
     ProjectileSystem projectileSystem;
     WorldItemSystem worldItemSystem;
+    std::unique_ptr<InputController> inputController;
 
     bool isLuckyBox(int index) const;
     void removeItem(int index);
