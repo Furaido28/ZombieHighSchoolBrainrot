@@ -108,7 +108,7 @@ void LevelController::loadLevel(int levelIndex) {
     }
     
     // Full heal
-    player.setHealth(100);
+    player.setHealth(player.getMaxHealth());
 
     /* =========================
      * Item Spawning
