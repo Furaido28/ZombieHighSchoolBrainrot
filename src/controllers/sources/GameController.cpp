@@ -216,7 +216,11 @@ float GameController::getLevelEndRemainingTime() const {
 }
 
 void GameController::spawnKeyFragmentAt(const sf::Vector2f &pos) {
-    levelController->spawnKeyFragment(pos);
+    if (levelController->getCurrentLevel() < 3)
+        levelController->spawnKeyFragment(pos);
+    else {
+        oscarDead = true;
+    }
 }
 
 void GameController::openLuckyBox(int itemIndex) {
@@ -229,3 +233,7 @@ bool GameController::isPlayerDead() const {
 bool GameController::hasKeyFragment() const {
     return keyFragmentCollected;
 }
+bool GameController::isOscarDead() const {
+    return oscarDead;
+}
+

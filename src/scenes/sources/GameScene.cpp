@@ -107,6 +107,9 @@ void GameScene::update(float dt) {
         controller.update(dt);
         inventoryView.update(controller.isInventoryExpanded());
     }
+    if (controller.isOscarDead()) {
+        manager->pushScene<VictoryScene>(window);
+    }
 }
 
 void GameScene::render() {
