@@ -200,6 +200,12 @@ bool GameController::isPositionFree(const sf::FloatRect& bbox) const {
 // DELEGATION METHODS
 
 void GameController::onKeyFragmentPicked() {
+    keyFragmentCollected = true;
+    Item fragment;
+    fragment.name = "Key Fragment";
+    fragment.type = ItemType::KeyFragment;
+    fragment.sprite.setTexture(itemController->getTexture("key-fragment"));
+    player.getInventory().addKeyFragment(fragment);
     levelController->triggerLevelEnd();
 }
 bool GameController::isLevelEnding() const {
@@ -219,4 +225,7 @@ void GameController::openLuckyBox(int itemIndex) {
 
 bool GameController::isPlayerDead() const {
     return !player.isAlive();
+}
+bool GameController::hasKeyFragment() const {
+    return keyFragmentCollected;
 }
