@@ -6,17 +6,24 @@
 #include "models/headers/Player.h"
 
 class GameController;
+
 class PlayerView {
 public:
     PlayerView(GameController& controller);
 
-    // Dessin du joueur dans le monde (avec caméra)
+    // Draw the player in the game world (with camera)
     void renderWorld(sf::RenderWindow& window, const Player& player);
 
-    // Dessin du HUD (sans caméra)
-    void renderHUD(sf::RenderWindow& window, const Player& player, int waveNumber, float timeLeft);
+    // Draw HUD elements (no camera)
+    void renderHUD(
+        sf::RenderWindow& window,
+        const Player& player,
+        int waveNumber,
+        float timeLeft
+    );
 
 private:
+    // Play sprite animation from a spritesheet
     void playAnimation(
         sf::Texture& texture,
         int frameCount,
@@ -26,19 +33,19 @@ private:
 
     sf::Sprite sprite;
 
-    // Textures
+    // Player textures (directions & idle)
     sf::Texture textureIdle;
     sf::Texture textureLeft;
     sf::Texture textureRight;
     sf::Texture textureUp;
     sf::Texture textureDown;
 
-    // Animation
+    // Animation data
     sf::Clock animationClock;
     int currentFrame = 0;
     float frameTime = 0.03f;
 
-    // HUD
+    // ================= HUD =================
     sf::RectangleShape hpBack;
     sf::RectangleShape hpFront;
     sf::RectangleShape hpOutline;
@@ -53,8 +60,10 @@ private:
     sf::Text waveText;
     sf::Text timerText;
 
+    // Walking sound
     sf::SoundBuffer walkBuffer;
     sf::Sound walkSound;
     bool wasMoving = false;
+
     GameController& controller;
 };

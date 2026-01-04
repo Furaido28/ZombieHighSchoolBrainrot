@@ -4,23 +4,24 @@
 
 class PauseMenu {
 public:
-    PauseMenu(float width, float height);
+    PauseMenu(float width, float height); // Constructor
 
-    void handleEvent(const sf::Event& event);   // 🔑 OBLIGATOIRE
-    bool handleMouse(const sf::Event& event, sf::RenderWindow& window);
+    void handleEvent(const sf::Event& event);   // Handle events
+    bool handleMouse(const sf::Event& event, sf::RenderWindow& window); // Handle mouse input
 
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window); // Draw pause menu
 
-    int getSelectedIndex() const;
-    void reset();
+    int getSelectedIndex() const; // Get selected menu item
+    void reset(); // Reset menu state
 
 private:
-    sf::Font font;
-    std::vector<sf::Text> items;
-    int selectedIndex;
+    sf::Font font; // Text font
+    std::vector<sf::Text> items; // Menu options
+    int selectedIndex; // Currently selected item
 
-    sf::RectangleShape selectionRect;
-    void updateSelectionRect();
+    sf::RectangleShape selectionRect; // Visual selection indicator
+    void updateSelectionRect(); // Update selection rectangle position
 
+    // Check if mouse is over specific menu item
     bool isMouseOverItem(sf::Vector2f mousePos, int index) const;
 };

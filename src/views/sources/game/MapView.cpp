@@ -1,25 +1,25 @@
 #include "../../headers/game/MapView.h"
 #include <iostream>
-#include <cstdlib> // Nécessaire pour std::rand()
+#include <cstdlib> // Necessary for std::rand()
 
 bool MapView::load(const TileMap& map) {
     if (!m_tileset.loadFromFile("assets/tileset.png")) {
-        std::cerr << "ERREUR: Impossible de charger assets/tileset.png" << std::endl;
+        std::cerr << "ERROR: Cannot load assets/tileset.png" << std::endl;
         return false;
     }
 
     m_vertices.setPrimitiveType(sf::Quads);
     m_vertices.resize(map.getWidth() * map.getHeight() * 4);
 
-    // --- CONFIGURATION TAILLES ---
+    // --- SIZE CONFIGURATION ---
 
-    // 1. Taille Logique (Monde) : 64px
+    // 1. Logical Size (World): 64px
     float worldSize = (float)map.getTileSize();
 
-    // 2. Taille Texture (Image) : 64px
+    // 2. Texture Size (Image): 64px
     float textureSize = 64.0f;
 
-    // Calcul du nombre de colonnes dans l'image
+    // Calculate number of columns in the image
     int tilesPerRow = m_tileset.getSize().x / (int)textureSize;
 
     for (unsigned i = 0; i < map.getWidth(); ++i) {
@@ -28,29 +28,29 @@ bool MapView::load(const TileMap& map) {
             char tileType = map.getTile(i, j);
             int tileIndex = 0;
 
-            // --- MAPPING & CHOIX DE TEXTURE ---
-            if (tileType == '.')      tileIndex = 0; // SOL
-            else if (tileType == '#') tileIndex = 1; // MUR
-            else if (tileType == 'B') tileIndex = 2; // BANC
+            // --- MAPPING & TEXTURE SELECTION ---
+            if (tileType == '.')      tileIndex = 0; // FLOOR
+            else if (tileType == '#') tileIndex = 1; // WALL
+            else if (tileType == 'B') tileIndex = 2; // BENCH
             else if (tileType == 'R') tileIndex = 3; // TABLE
-            else if (tileType == 'N') tileIndex = 4; // NOIR
-            else if (tileType == 'A') tileIndex = 5; // BANC ensanglanté
+            else if (tileType == 'N') tileIndex = 4; // BLACK
+            else if (tileType == 'A') tileIndex = 5; // BLOODY BENCH
             else if (tileType == '*') tileIndex = 10; // Grass
-            else if (tileType == 'T') tileIndex = 11; // Arbre
-            else if (tileType == 'r') tileIndex = 12; // Roche
-            else if (tileType == '~') tileIndex = 13; // Eau
+            else if (tileType == 'T') tileIndex = 11; // Tree
+            else if (tileType == 'r') tileIndex = 12; // Rock
+            else if (tileType == '~') tileIndex = 13; // Water
 
-            // --- GESTION DU SANG ALEATOIRE ---
+            // --- RANDOM BLOOD MANAGEMENT ---
             else if (tileType == ',') {
-                // 1. Liste ici les index de tes images de sang dans le tileset
-                //    (Même si elles ne sont pas côte à côte)
-                //    Exemple : si tes images sont aux positions 6, 8 et 12.
+                // 1. List blood image indexes in the tileset
+                //    (Even if they're not next to each other)
+                //    Example: if your images are at positions 6, 8 and 12.
                 int bloodIndices[] = { 6, 7, 8, 9 };
 
-                // 2. On compte combien il y a de choix (ici 3)
+                // 2. Count how many variants we have (here 4)
                 int numberOfVariants = 4;
 
-                // 3. On en choisit un au hasard
+                // 3. Choose one randomly
                 int randomIndex = std::rand() % numberOfVariants;
                 tileIndex = bloodIndices[randomIndex];
             }
@@ -61,9 +61,9 @@ bool MapView::load(const TileMap& map) {
                 tileType == '1' ||
                 tileType == '2' ||
                 tileType == '3'
-                ) tileIndex = 0; // Les items spawn sur du sol standard
+                ) tileIndex = 0; // Items spawn on standard floor
 
-            // Calcul colonne/ligne dans le tileset
+            // Calculate column/row in the tileset
             int tu = tileIndex % tilesPerRow;
             int tv = tileIndex / tilesPerRow;
 
@@ -76,26 +76,26 @@ bool MapView::load(const TileMap& map) {
             quad[3].position = sf::Vector2f(i * worldSize, (j + 1) * worldSize);
 
             // --- B. TEXTURE & ROTATION ---
-            // Coordonnées de base dans l'image (selon l'index choisi plus haut)
+            // Base coordinates in the image (according to chosen index above)
             float u = (float)(tu * (int)textureSize);
             float v = (float)(tv * (int)textureSize);
 
-            // Définition des 4 coins de la texture
+            // Define the 4 corners of the texture
             sf::Vector2f topLeft     = sf::Vector2f(u, v);
             sf::Vector2f topRight    = sf::Vector2f(u + textureSize, v);
             sf::Vector2f bottomRight = sf::Vector2f(u + textureSize, v + textureSize);
             sf::Vector2f bottomLeft  = sf::Vector2f(u, v + textureSize);
 
-            // Par défaut (Rotation 0°)
-            sf::Vector2f t0 = topLeft;      // Haut-Gauche
-            sf::Vector2f t1 = topRight;     // Haut-Droite
-            sf::Vector2f t2 = bottomRight;  // Bas-Droite
-            sf::Vector2f t3 = bottomLeft;   // Bas-Gauche
+            // Default (Rotation 0°)
+            sf::Vector2f t0 = topLeft;      // Top-Left
+            sf::Vector2f t1 = topRight;     // Top-Right
+            sf::Vector2f t2 = bottomRight;  // Bottom-Right
+            sf::Vector2f t3 = bottomLeft;   // Bottom-Left
 
-            // ROTATION ALÉATOIRE (Seulement pour le sang ',')
-            // Cela s'ajoute au choix de l'image pour encore plus de variété !
+            // RANDOM ROTATION (Only for blood ',')
+            // This adds to the image choice for even more variety!
             if (tileType == ',') {
-                int rotation = std::rand() % 4; // 0, 1, 2 ou 3
+                int rotation = std::rand() % 4; // 0, 1, 2 or 3
 
                 if (rotation == 1) { // 90°
                     t0 = bottomLeft; t1 = topLeft; t2 = topRight; t3 = bottomRight;
@@ -108,13 +108,13 @@ bool MapView::load(const TileMap& map) {
                 }
             }
 
-            // Application des coordonnées de texture
+            // Apply texture coordinates
             quad[0].texCoords = t0;
             quad[1].texCoords = t1;
             quad[2].texCoords = t2;
             quad[3].texCoords = t3;
 
-            // Couleur
+            // Color
             quad[0].color = sf::Color::White;
             quad[1].color = sf::Color::White;
             quad[2].color = sf::Color::White;
